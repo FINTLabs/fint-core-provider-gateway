@@ -1,9 +1,9 @@
-FROM gradle:7.2-jdk11-openj9 as builder
+FROM gradle:7.2-jdk17 as builder
 USER root
 COPY . .
 RUN gradle --no-daemon build
 
-FROM gcr.io/distroless/java
+FROM gcr.io/distroless/java:17
 ENV JAVA_TOOL_OPTIONS -XX:+ExitOnOutOfMemoryError
 COPY --from=builder /home/gradle/build/libs/fint-provider-v2-*.jar /data/app.jar
 CMD ["/data/app.jar"]
