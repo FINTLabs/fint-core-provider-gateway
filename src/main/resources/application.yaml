@@ -1,1 +1,28 @@
+fint:
+  kafka:
+    application-id: provider
+    enable-ssl: true
 
+spring:
+  kafka:
+    consumer:
+      group-id: provider
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://idp.felleskomponent.no/nidp/oauth/nam
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+springdoc:
+  api-docs:
+    path: /api-docs
+
+logging:
+  level:
+    root: INFO

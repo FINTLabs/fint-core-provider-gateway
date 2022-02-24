@@ -1,48 +1,73 @@
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: aiven-kafka-certificates
+spec:
+  itemPath: "vaults/aks-alpha-vault/items/aiven-kafka-certificates"
+---
+apiVersion: onepassword.com/v1
+kind: OnePasswordItem
+metadata:
+  name: aiven-kafka
+spec:
+  itemPath: "vaults/aks-alpha-vault/items/aiven-kafka"
+---
 apiVersion: v1
 kind: Service
 metadata:
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
   labels:
-    io.kompose.service: spring-boot-template-project
-  name: spring-boot-template-project
+    io.kompose.service: fint-provider-gateway
+  name: fint-provider-gateway
 spec:
   ports:
     - name: "8080"
       port: 8080
   type: LoadBalancer
   selector:
-    io.kompose.service: spring-boot-template-project
+    io.kompose.service: fint-provider-gateway
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
   labels:
-    io.kompose.service: spring-boot-template-project
-  name: spring-boot-template-project
+    io.kompose.service: fint-provider-gateway
+  name: fint-provider-gateway
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      io.kompose.service: spring-boot-template-project
+      io.kompose.service: fint-provider-gateway
   template:
     metadata:
       labels:
-        io.kompose.service: spring-boot-template-project
+        io.kompose.service: fint-provider-gateway
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8080"
+      prometheus.io/path: "actuator/prometheus"
     spec:
       restartPolicy: Always
+      volumes:
+        - name: credentials
+          secret:
+            secretName: aiven-kafka-certificates
       containers:
-        - image: fintlabsacr.azurecr.io/spring-boot-template-project:build.${BUILD_NUMBER}_${GIT_COMMIT}
-          name: spring-boot-template-project
+        - image: fintlabsacr.azurecr.io/fint-provider-gateway:dummy
+          name: fint-provider-gateway
+          volumeMounts:
+            - name: credentials
+              mountPath: /credentials
           resources:
             limits:
-              memory: "512Mi"
+              memory: "1152Mi"
               cpu: "1"
             requests:
-              memory: "128Mi"
+              memory: "512Mi"
               cpu: "100m"
           ports:
             - containerPort: 8080
@@ -50,4 +75,4 @@ spec:
             - name: TZ
               value: Europe/Oslo
             - name: JAVA_TOOL_OPTIONS
-              value: '-XX:+ExitOnOutOfMemoryError -Xmx480M -verbose:gc'
+              value: '-XX:+ExitOnOutOfMemoryError -Xmx1G -verbose:gc'
