@@ -71,6 +71,9 @@ spec:
               cpu: "100m"
           ports:
             - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: aiven-kafka
           env:
             - name: TZ
               value: Europe/Oslo
