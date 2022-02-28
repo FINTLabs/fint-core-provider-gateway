@@ -46,10 +46,10 @@ spec:
     metadata:
       labels:
         io.kompose.service: fint-provider-gateway
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "8080"
-      prometheus.io/path: "actuator/prometheus"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "actuator/prometheus"
     spec:
       restartPolicy: Always
       volumes:
