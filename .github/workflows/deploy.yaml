@@ -44,7 +44,7 @@ jobs:
         uses: azure/k8s-deploy@v1
         with:
           manifests: |
-            viken-no-k8s.yaml
+            k8s.yaml
           images: |
             ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ github.sha }}
           namespace: ${{ env.NAMESPACE }}

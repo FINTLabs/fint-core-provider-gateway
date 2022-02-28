@@ -65,8 +65,8 @@ public class FintCoreKafkaAdapterService {
             );
     }
 
-    private String getKey(HashMap<String, ?> resource) {
-        HashMap<String, ?> links = (HashMap<String, ?>) resource.get("_links");
+    private String getKey(HashMap<?, ?> resource) {
+        HashMap<?, ?> links = (HashMap<?, ?>) resource.get("_links");
         List<HashMap<String, String>> selfLinks = (List<HashMap<String, String>>) links.get("self");
         List<String> selfLinksList = selfLinks.stream()
                 .filter(o -> o.containsKey("href"))
