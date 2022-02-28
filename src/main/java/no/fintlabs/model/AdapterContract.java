@@ -9,11 +9,11 @@ import java.util.List;
 @Data
 @Builder
 public class AdapterContract {
-    private String id;
+    private String adapterId;
     private String orgId;
     private String username;
     private long pingIntervalInMs;
-    private List<AdapterCapability> capability;
+    private List<AdapterCapability> capabilities;
     private long time;
 
     @Data

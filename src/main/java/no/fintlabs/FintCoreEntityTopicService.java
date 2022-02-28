@@ -32,7 +32,7 @@ public class FintCoreEntityTopicService {
     }
 
     public void ensureAdapterEntityTopics(AdapterContract adapterContract) {
-        adapterContract.getCapability()
+        adapterContract.getCapabilities()
                 .forEach(capability -> ensureEntityTopic(capability,
                                 adapterContract.getOrgId(),
                                 TimeUnit.DAYS.toMillis(capability.getFullSyncIntervalInDays())
