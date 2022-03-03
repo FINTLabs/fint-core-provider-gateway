@@ -13,6 +13,9 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.register.retention-time-ms:86400000}")
     private long adapterRegisterRetentionTimeMs;
 
+    @Value("${fint.provider.adapter.scope:fint-adapter}")
+    private String scope;
+
 
 
 }

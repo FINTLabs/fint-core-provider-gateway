@@ -72,5 +72,5 @@ spec:
               value: Europe/Oslo
             - name: JAVA_TOOL_OPTIONS
               value: '-XX:+ExitOnOutOfMemoryError -Xmx3G -verbose:gc'
-            - name: server.context-path
+            - name: spring.webflux.base-path
               value: /provider

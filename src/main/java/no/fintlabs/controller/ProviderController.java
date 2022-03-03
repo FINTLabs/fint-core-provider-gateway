@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 @Slf4j
 @RestController
-@RequestMapping()
+@RequestMapping
 public class ProviderController {
 
     private final FintCoreEntityTopicService fintCoreEntityTopicService;
