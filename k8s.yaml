@@ -1,13 +1,6 @@
 apiVersion: onepassword.com/v1
 kind: OnePasswordItem
 metadata:
-  name: aiven-kafka-certificates
-spec:
-  itemPath: "vaults/aks-alpha-vault/items/aiven-kafka-certificates"
----
-apiVersion: onepassword.com/v1
-kind: OnePasswordItem
-metadata:
   name: aiven-kafka
 spec:
   itemPath: "vaults/aks-alpha-vault/items/aiven-kafka"
@@ -49,8 +42,9 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
-        prometheus.io/path: "actuator/prometheus"
+        prometheus.io/path: "provider/actuator/prometheus"
     spec:
+      replicas: 1
       restartPolicy: Always
       volumes:
         - name: credentials
@@ -78,4 +72,6 @@ spec:
             - name: TZ
               value: Europe/Oslo
             - name: JAVA_TOOL_OPTIONS
-              value: '-XX:+ExitOnOutOfMemoryError -Xmx1G -verbose:gc'
+              value: '-XX:+ExitOnOutOfMemoryError -Xmx3G -verbose:gc'
+            - name: server.context-path
+              value: /provider
