@@ -25,6 +25,8 @@ management:
 springdoc:
   api-docs:
     path: /api-docs
+  swagger-ui:
+    path: /swagger/
 
 logging:
   level:
