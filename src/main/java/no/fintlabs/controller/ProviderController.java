@@ -6,12 +6,9 @@ import no.fintlabs.AdapterRequestValidator;
 import no.fintlabs.FintCoreEntityTopicService;
 import no.fintlabs.FintCoreEventTopicService;
 import no.fintlabs.FintCoreKafkaAdapterService;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
-import no.fintlabs.model.AdapterContract;
-import no.fintlabs.model.AdapterPing;
-import no.fintlabs.model.DeltaSyncEntity;
-import no.fintlabs.model.FullSyncEntity;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +17,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -62,7 +60,7 @@ public class ProviderController {
 
     @PostMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> postEntities(@AuthenticationPrincipal Jwt principal,
-                                             @RequestBody FullSyncEntity entities,
+                                             @RequestBody FullSyncEntityMapOfObject entities,
                                              @PathVariable final String domain,
                                              @PathVariable final String packageName,
                                              @PathVariable final String entity) throws JsonProcessingException {
@@ -72,10 +70,15 @@ public class ProviderController {
 
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
+        entities.getResources().forEach(resource -> {
+                    try {
+                        fintCoreKafkaAdapterService.entity(entities.getMetadata().getOrgId(), domain, packageName, entity, resource);
+                    } catch (JsonProcessingException e) {
+                        handleJsonProcessingException(e);
+                    }
+                }
 
-        for (HashMap<String, ?> resource : entities.getResources()) {
-            fintCoreKafkaAdapterService.entity(entities.getMetadata().getOrgId(), domain, packageName, entity, resource);
-        }
+        );
 
         return ResponseEntity.ok().build();
     }
@@ -83,7 +86,7 @@ public class ProviderController {
     @PatchMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deltaSync(
             @AuthenticationPrincipal Jwt principal,
-            @RequestBody DeltaSyncEntity entities,
+            @RequestBody DeltaSyncEntityOfObject entities,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity
@@ -123,6 +126,7 @@ public class ProviderController {
 
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<Void> handleJsonProcessingException(Throwable e) {
+        log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 

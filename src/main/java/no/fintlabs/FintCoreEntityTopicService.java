@@ -1,8 +1,9 @@
 package no.fintlabs;
 
+import no.fintlabs.adapter.models.AdapterCapability;
+import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.kafka.entity.EntityTopicNameParameters;
 import no.fintlabs.kafka.entity.EntityTopicService;
-import no.fintlabs.model.AdapterContract;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -15,7 +16,7 @@ public class FintCoreEntityTopicService {
         this.entityTopicService = entityTopicService;
     }
 
-    public void ensureEntityTopic(AdapterContract.AdapterCapability adapterCapability, String orgId, long retentionTimeMs) {
+    public void ensureEntityTopic(AdapterCapability adapterCapability, String orgId, long retentionTimeMs) {
         entityTopicService.ensureTopic(EntityTopicNameParameters
                         .builder()
                         .orgId(orgId)

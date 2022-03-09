@@ -2,20 +2,17 @@ package no.fintlabs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.adapter.models.AdapterContract;
+import no.fintlabs.adapter.models.AdapterPing;
 import no.fintlabs.kafka.entity.EntityTopicNameParameters;
 import no.fintlabs.kafka.entity.FintKafkaEntityProducerService;
 import no.fintlabs.kafka.event.EventTopicNameParameters;
 import no.fintlabs.kafka.event.FintKafkaEventProducerService;
-import no.fintlabs.model.AdapterContract;
-import no.fintlabs.model.AdapterPing;
 import org.apache.kafka.common.KafkaException;
-import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -53,16 +50,16 @@ public class FintCoreKafkaAdapterService {
     }
 
     public void entity(String orgId, String domain, String packageName, String entityName, HashMap<String, ?> entity) throws JsonProcessingException, KafkaException {
-            fintKafkaEntityProducerService.send(
-                    EntityTopicNameParameters
-                            .builder()
-                            .orgId(orgId)
-                            .domainContext("fint-core")
-                            .resource(String.format("%s-%s-%s", domain, packageName, entityName))
-                            .build(),
-                    getKey(entity),
-                    entity
-            );
+        fintKafkaEntityProducerService.send(
+                EntityTopicNameParameters
+                        .builder()
+                        .orgId(orgId)
+                        .domainContext("fint-core")
+                        .resource(String.format("%s-%s-%s", domain, packageName, entityName))
+                        .build(),
+                getKey(entity),
+                entity
+        );
     }
 
     private String getKey(HashMap<?, ?> resource) {
@@ -75,7 +72,5 @@ public class FintCoreKafkaAdapterService {
                 .sorted()
                 .toList();
         return selfLinksList.get(0);
-
-
     }
 }
