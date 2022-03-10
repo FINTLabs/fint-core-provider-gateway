@@ -71,11 +71,11 @@ public class ProviderController {
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
         entities.getResources().forEach(resource -> {
-                    try {
-                        fintCoreKafkaAdapterService.entity(entities.getMetadata().getOrgId(), domain, packageName, entity, resource);
-                    } catch (JsonProcessingException e) {
-                        handleJsonProcessingException(e);
-                    }
+                    //try {
+                        //fintCoreKafkaAdapterService.entity(entities.getMetadata().getOrgId(), domain, packageName, entity, resource);
+                    //} catch (JsonProcessingException e) {
+                      //  handleJsonProcessingException(e);
+                    //}
                 }
 
         );
