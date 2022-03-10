@@ -76,3 +76,6 @@ spec:
               value: /provider
             - name: spring.codec.max-in-memory-size
               value: 200MB
+            - {name: server.tomcat.max-threads, value: '400'}
+            - {name: server.tomcat.max-connections, value: '30000'}
+            - {name: server.netty.connection-timeout, value: '600000'}
