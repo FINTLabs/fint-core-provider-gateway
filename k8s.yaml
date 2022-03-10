@@ -74,3 +74,5 @@ spec:
               value: '-XX:+ExitOnOutOfMemoryError -Xmx3G -verbose:gc'
             - name: spring.webflux.base-path
               value: /provider
+            - name: spring.codec.max-in-memory-size
+              value: 200MB
