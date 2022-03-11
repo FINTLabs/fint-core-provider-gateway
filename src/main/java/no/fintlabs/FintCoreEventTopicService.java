@@ -16,8 +16,8 @@ public class FintCoreEventTopicService {
         this.providerProperties = providerProperties;
     }
 
-    public String ensureAdapterPingTopic(AdapterPing adapterPing) {
-        return eventTopicService.ensureTopic(EventTopicNameParameters
+    public void ensureAdapterPingTopic(AdapterPing adapterPing) {
+         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterPing.getOrgId())
                         .domainContext("fint-core")
@@ -27,8 +27,8 @@ public class FintCoreEventTopicService {
         );
     }
 
-    public String ensureAdapterRegisterTopic(AdapterContract adapterContract) {
-        return eventTopicService.ensureTopic(EventTopicNameParameters
+    public void ensureAdapterRegisterTopic(AdapterContract adapterContract) {
+         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterContract.getOrgId())
                         .domainContext("fint-core")

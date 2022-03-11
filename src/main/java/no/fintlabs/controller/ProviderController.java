@@ -6,18 +6,24 @@ import no.fintlabs.AdapterRequestValidator;
 import no.fintlabs.FintCoreEntityTopicService;
 import no.fintlabs.FintCoreEventTopicService;
 import no.fintlabs.FintCoreKafkaAdapterService;
-import no.fintlabs.adapter.models.*;
+import no.fintlabs.adapter.models.AdapterContract;
+import no.fintlabs.adapter.models.AdapterPing;
+import no.fintlabs.adapter.models.DeltaSyncEntityOfObject;
+import no.fintlabs.adapter.models.FullSyncEntityMapOfObject;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RestController
@@ -69,17 +75,47 @@ public class ProviderController {
         log.info("Full sync: {}, {}, {}, {}", entities.getMetadata().getOrgId(), domain, packageName, entity);
 
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
+        Instant start = Instant.now();
+        entities.getResources().forEach(
+                resource ->
 
-        entities.getResources().forEach(resource -> {
-                    //try {
-                        //fintCoreKafkaAdapterService.entity(entities.getMetadata().getOrgId(), domain, packageName, entity, resource);
-                    //} catch (JsonProcessingException e) {
-                      //  handleJsonProcessingException(e);
-                    //}
+                {
+                    try {
+                        fintCoreKafkaAdapterService
+                                .entity(
+                                        entities.getMetadata().getOrgId(),
+                                        domain,
+                                        packageName,
+                                        entity, resource
+                                ).get();
+                        //log.info(stringObjectSendResult.toString());
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
                 }
-
+//                        fintCoreKafkaAdapterService
+//                                .entity(
+//                                        entities.getMetadata().getOrgId(),
+//                                        domain,
+//                                        packageName,
+//                                        entity, resource
+//                                )
+//                                .addCallback(new ListenableFutureCallback<Object>(){
+//
+//                                    @Override
+//                                    public void onSuccess(Object result) {
+//                                        log.info("Data sent to Kafka successfully!");
+//                                    }
+//
+//                                    @Override
+//                                    public void onFailure(Throwable ex) {
+//                                        log.error("An error occurred sending data to Kafka!");
+//                                    }
+//                                })
         );
-
+        Instant finish = Instant.now();
+        Duration timeElapsed = Duration.between(start, finish);
+        log.info("End full sync. It took {} hours, {} minutes, {} seconds to complete", timeElapsed.toHoursPart(), timeElapsed.toMinutesPart(), timeElapsed.toSecondsPart());
         return ResponseEntity.ok().build();
     }
 
@@ -98,9 +134,18 @@ public class ProviderController {
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
 
-        for (HashMap<String, ?> resource : entities.getResources()) {
-            fintCoreKafkaAdapterService.entity(entities.getMetadata().getOrgId(), domain, packageName, entity, resource);
-        }
+        entities.getResources().forEach(
+                resource ->
+                        fintCoreKafkaAdapterService
+                                .entity(
+                                        entities.getMetadata().getOrgId(),
+                                        domain,
+                                        packageName,
+                                        entity,
+                                        resource
+                                )
+        );
+
 
         return ResponseEntity.ok().build();
     }
