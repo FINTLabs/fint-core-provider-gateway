@@ -42,8 +42,9 @@ dependencies {
 
 
     implementation('no.fint:fint-event-model:3.0.1')
-    implementation 'no.fintlabs:fint-core-infra-models:1.0.0-rc-1'
-    implementation("no.fintlabs:fint-kafka:1.2.0")
+    //implementation 'no.fintlabs:fint-core-infra-models:1.0.0-rc-1'
+    implementation 'no.fintlabs:fint-core-infra-models:0-SNAPSHOT'
+    implementation("no.fintlabs:fint-kafka:1.6.0")
     //implementation("no.fintlabs:fint-kafka:0-SNAPSHOT")
 
 

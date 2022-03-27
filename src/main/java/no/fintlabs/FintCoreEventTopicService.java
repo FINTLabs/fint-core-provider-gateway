@@ -17,7 +17,7 @@ public class FintCoreEventTopicService {
     }
 
     public void ensureAdapterPingTopic(AdapterPing adapterPing) {
-         eventTopicService.ensureTopic(EventTopicNameParameters
+        eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterPing.getOrgId())
                         .domainContext("fint-core")
@@ -28,13 +28,35 @@ public class FintCoreEventTopicService {
     }
 
     public void ensureAdapterRegisterTopic(AdapterContract adapterContract) {
-         eventTopicService.ensureTopic(EventTopicNameParameters
+        eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterContract.getOrgId())
                         .domainContext("fint-core")
                         .eventName("adapter-register")
                         .build(),
                 providerProperties.getAdapterRegisterRetentionTimeMs()
+        );
+    }
+
+    public void ensureAdapterFullSyncTopic(AdapterContract adapterContract) {
+        eventTopicService.ensureTopic(EventTopicNameParameters
+                        .builder()
+                        .orgId(adapterContract.getOrgId())
+                        .domainContext("fint-core")
+                        .eventName("adapter-full-sync")
+                        .build(),
+                providerProperties.getAdapterFullSyncRetentionTimeMs()
+        );
+    }
+
+    public void ensureAdapterDeltaSyncTopic(AdapterContract adapterContract) {
+        eventTopicService.ensureTopic(EventTopicNameParameters
+                        .builder()
+                        .orgId(adapterContract.getOrgId())
+                        .domainContext("fint-core")
+                        .eventName("adapter-delta-sync")
+                        .build(),
+                providerProperties.getAdapterDeltaSyncRetentionTimeMs()
         );
     }
 }
