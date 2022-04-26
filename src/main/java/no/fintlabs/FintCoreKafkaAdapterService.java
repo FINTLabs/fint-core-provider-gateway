@@ -102,7 +102,7 @@ public class FintCoreKafkaAdapterService {
                                 domain,
                                 packageName,
                                 entity,
-                                (HashMap<String, Object>) resource
+                                resource
                         ).get();
                     } catch (InterruptedException | ExecutionException e) {
                         log.error(e.getMessage());
@@ -115,7 +115,7 @@ public class FintCoreKafkaAdapterService {
         log.info("End full sync. It took {} hours, {} minutes, {} seconds to complete", timeElapsed.toHoursPart(), timeElapsed.toMinutesPart(), timeElapsed.toSecondsPart());
     }
 
-    private ListenableFuture<SendResult<String, Object>> entity(String orgId, String domain, String packageName, String entityName, HashMap<String, Object> entity) {
+    private ListenableFuture<SendResult<String, Object>> entity(String orgId, String domain, String packageName, String entityName, Object entity) {
         return entityProducer.send(
                 EntityProducerRecord.builder()
                         .topicNameParameters(EntityTopicNameParameters
@@ -131,8 +131,8 @@ public class FintCoreKafkaAdapterService {
     }
 
     @SuppressWarnings("unchecked")
-    private String getKey(HashMap<?, ?> resource) {
-        HashMap<?, ?> links = (HashMap<?, ?>) resource.get("_links");
+    private String getKey(Object resource) {
+        HashMap<String, ?> links = (HashMap<String, ?>) ((HashMap<String, ?>)resource).get("_links");
         List<HashMap<String, String>> selfLinks = (List<HashMap<String, String>>) links.get("self");
         List<String> selfLinksList = selfLinks.stream()
                 .filter(o -> o.containsKey("href"))
