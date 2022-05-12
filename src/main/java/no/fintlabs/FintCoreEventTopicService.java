@@ -2,8 +2,8 @@ package no.fintlabs;
 
 import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.adapter.models.AdapterPing;
-import no.fintlabs.kafka.event.EventTopicNameParameters;
-import no.fintlabs.kafka.event.EventTopicService;
+import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
+import no.fintlabs.kafka.event.topic.EventTopicService;
 import org.springframework.stereotype.Service;
 
 @Service

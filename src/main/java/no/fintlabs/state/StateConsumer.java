@@ -1,20 +1,22 @@
 package no.fintlabs.state;
 
 import no.fintlabs.adapter.models.FullSyncPage;
-import no.fintlabs.kafka.event.FintKafkaEventConsumerFactory;
+import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
+import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
+import no.fintlabs.kafka.event.EventConsumerFactoryService;
+import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.listener.CommonLoggingErrorHandler;
 
 import javax.annotation.PostConstruct;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 public class StateConsumer {
 
-    private final FintKafkaEventConsumerFactory consumerFactory;
+    private final EventConsumerFactoryService consumerFactory;
     private final StateRepository stateRepository;
 
-    public StateConsumer(FintKafkaEventConsumerFactory consumerFactory, StateRepository stateRepository) {
+    public StateConsumer(EventConsumerFactoryService consumerFactory, StateRepository stateRepository) {
         this.consumerFactory = consumerFactory;
         this.stateRepository = stateRepository;
     }
@@ -22,13 +24,21 @@ public class StateConsumer {
 
     @PostConstruct
     public void init() {
-
-        consumerFactory.createConsumerWithResetOffset(
-                Pattern.compile(".*.fint-core\\.event\\.adapter-full-sync"),
+        //Pattern.compile(".*.fint-core\\.event\\.adapter-full-sync")
+        consumerFactory.createFactory(
                 FullSyncPage.Metadata.class,
                 onAdapterPing(),
-                new CommonLoggingErrorHandler()
+                new CommonLoggingErrorHandler(),
+                true
+        ).createContainer(
+                EventTopicNamePatternParameters
+                        .builder()
+                        .orgId(FormattedTopicComponentPattern.any())
+                        .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
+                        .eventName(ValidatedTopicComponentPattern.anyOf("adapter-full-sync"))
+                        .build()
         );
+
     }
 
     private Consumer<ConsumerRecord<String, FullSyncPage.Metadata>> onAdapterPing() {

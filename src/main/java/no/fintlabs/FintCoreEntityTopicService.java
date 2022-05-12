@@ -2,8 +2,8 @@ package no.fintlabs;
 
 import no.fintlabs.adapter.models.AdapterCapability;
 import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.kafka.entity.EntityTopicNameParameters;
-import no.fintlabs.kafka.entity.EntityTopicService;
+import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.kafka.entity.topic.EntityTopicService;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;

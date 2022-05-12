@@ -6,13 +6,13 @@ import no.fintlabs.adapter.models.AdapterPing;
 import no.fintlabs.adapter.models.FullSyncPage;
 import no.fintlabs.adapter.models.FullSyncPageMapOfObject;
 import no.fintlabs.kafka.entity.EntityProducer;
+import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
-import no.fintlabs.kafka.entity.EntityTopicNameParameters;
-import no.fintlabs.kafka.entity.FintKafkaEntityProducerFactory;
+import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.kafka.event.EventProducer;
+import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;
-import no.fintlabs.kafka.event.EventTopicNameParameters;
-import no.fintlabs.kafka.event.FintKafkaEventProducerFactory;
+import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -30,10 +30,10 @@ public class FintCoreKafkaAdapterService {
     private final EventProducer<FullSyncPage.Metadata> adapterFullSyncStatusEventProducer;
     private final EventProducer<AdapterContract> adapterContractEventProducer;
     private final EntityProducer<Object> entityProducer;
-    private final FintKafkaEntityProducerFactory entityProducerFactory;
-    private final FintKafkaEventProducerFactory eventProducerFactory;
+    private final EntityProducerFactory entityProducerFactory;
+    private final EventProducerFactory eventProducerFactory;
 
-    public FintCoreKafkaAdapterService(FintKafkaEntityProducerFactory entityProducerFactory, FintKafkaEventProducerFactory eventProducerFactory) {
+    public FintCoreKafkaAdapterService(EntityProducerFactory entityProducerFactory, EventProducerFactory eventProducerFactory) {
         this.adapterPingEventProducer = eventProducerFactory.createProducer(AdapterPing.class);
         this.adapterContractEventProducer = eventProducerFactory.createProducer(AdapterContract.class);
         this.adapterFullSyncStatusEventProducer = eventProducerFactory.createProducer(FullSyncPage.Metadata.class);
