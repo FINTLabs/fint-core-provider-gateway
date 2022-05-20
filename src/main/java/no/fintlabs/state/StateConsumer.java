@@ -1,6 +1,6 @@
 package no.fintlabs.state;
 
-import no.fintlabs.adapter.models.FullSyncPage;
+import no.fintlabs.adapter.models.SyncPageMetadata;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
@@ -26,7 +26,7 @@ public class StateConsumer {
     public void init() {
         //Pattern.compile(".*.fint-core\\.event\\.adapter-full-sync")
         consumerFactory.createFactory(
-                FullSyncPage.Metadata.class,
+                SyncPageMetadata.class,
                 onAdapterPing(),
                 new CommonLoggingErrorHandler(),
                 true
@@ -41,9 +41,9 @@ public class StateConsumer {
 
     }
 
-    private Consumer<ConsumerRecord<String, FullSyncPage.Metadata>> onAdapterPing() {
-        return (ConsumerRecord<String, FullSyncPage.Metadata> record) -> {
-            FullSyncPage.Metadata metadata = record.value();
+    private Consumer<ConsumerRecord<String, SyncPageMetadata>> onAdapterPing() {
+        return (ConsumerRecord<String, SyncPageMetadata> record) -> {
+            SyncPageMetadata metadata = record.value();
             if (stateRepository.has(metadata.getCorrId())) {
                 stateRepository.update(metadata);
             }

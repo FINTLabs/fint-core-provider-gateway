@@ -1,10 +1,7 @@
 package no.fintlabs;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.adapter.models.AdapterPing;
-import no.fintlabs.adapter.models.FullSyncPage;
-import no.fintlabs.adapter.models.FullSyncPageMapOfObject;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.kafka.entity.EntityProducer;
 import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
@@ -13,6 +10,7 @@ import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -27,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class FintCoreKafkaAdapterService {
     private final EventProducer<AdapterPing> adapterPingEventProducer;
-    private final EventProducer<FullSyncPage.Metadata> adapterFullSyncStatusEventProducer;
+    private final EventProducer<SyncPageMetadata> adapterFullSyncStatusEventProducer;
     private final EventProducer<AdapterContract> adapterContractEventProducer;
     private final EntityProducer<Object> entityProducer;
     private final EntityProducerFactory entityProducerFactory;
@@ -36,7 +34,7 @@ public class FintCoreKafkaAdapterService {
     public FintCoreKafkaAdapterService(EntityProducerFactory entityProducerFactory, EventProducerFactory eventProducerFactory) {
         this.adapterPingEventProducer = eventProducerFactory.createProducer(AdapterPing.class);
         this.adapterContractEventProducer = eventProducerFactory.createProducer(AdapterContract.class);
-        this.adapterFullSyncStatusEventProducer = eventProducerFactory.createProducer(FullSyncPage.Metadata.class);
+        this.adapterFullSyncStatusEventProducer = eventProducerFactory.createProducer(SyncPageMetadata.class);
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
         this.entityProducerFactory = entityProducerFactory;
         this.eventProducerFactory = eventProducerFactory;
@@ -73,10 +71,10 @@ public class FintCoreKafkaAdapterService {
     }
 
 
-    public void sendFullSyncStatus(FullSyncPage.Metadata metadata) {
+    public void sendFullSyncStatus(SyncPageMetadata metadata) {
         try {
             adapterFullSyncStatusEventProducer.send(
-                    EventProducerRecord.<FullSyncPage.Metadata>builder()
+                    EventProducerRecord.<SyncPageMetadata>builder()
                             .topicNameParameters(EventTopicNameParameters
                                     .builder()
                                     .orgId(metadata.getOrgId())
@@ -91,14 +89,21 @@ public class FintCoreKafkaAdapterService {
         }
     }
 
-    public void sendEntity(FullSyncPageMapOfObject entities, String domain, String packageName, String entity) {
+    public void  doFullSync(FullSyncPageOfObject page,  String domain, String packageName, String entity) {
+        sendEntities(page, domain, packageName, entity);
+    }
+
+    public void doDeltaSync(DeltaSyncPageOfObject page, String domain, String packageName, String entity) {
+        //sendEntities(page.getResources());
+    }
+    private  <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
 
         Instant start = Instant.now();
-        entities.getResources().forEach(
+        page.getResources().forEach(
                 resource -> {
                     try {
-                        entity(
-                                entities.getMetadata().getOrgId(),
+                        sendEntity(
+                                page.getMetadata().getOrgId(),
                                 domain,
                                 packageName,
                                 entity,
@@ -112,10 +117,10 @@ public class FintCoreKafkaAdapterService {
         );
         Instant finish = Instant.now();
         Duration timeElapsed = Duration.between(start, finish);
-        log.info("End full sync. It took {} hours, {} minutes, {} seconds to complete", timeElapsed.toHoursPart(), timeElapsed.toMinutesPart(), timeElapsed.toSecondsPart());
+        log.info("End full sync ({}). It took {} hours, {} minutes, {} seconds to complete", page.getMetadata().getCorrId(), timeElapsed.toHoursPart(), timeElapsed.toMinutesPart(), timeElapsed.toSecondsPart());
     }
 
-    private ListenableFuture<SendResult<String, Object>> entity(String orgId, String domain, String packageName, String entityName, Object entity) {
+    private ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
         return entityProducer.send(
                 EntityProducerRecord.builder()
                         .topicNameParameters(EntityTopicNameParameters
@@ -124,8 +129,8 @@ public class FintCoreKafkaAdapterService {
                                 .domainContext("fint-core")
                                 .resource(String.format("%s-%s-%s", domain, packageName, entityName))
                                 .build())
-                        .value(entity)
-                        .key(getKey(entity))
+                        .key(entity.getIdentifier())
+                        .value(entity.getResource())
                         .build()
         );
     }

@@ -6,10 +6,7 @@ import no.fintlabs.AdapterRequestValidator;
 import no.fintlabs.FintCoreEntityTopicService;
 import no.fintlabs.FintCoreEventTopicService;
 import no.fintlabs.FintCoreKafkaAdapterService;
-import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.adapter.models.AdapterPing;
-import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
-import no.fintlabs.adapter.models.FullSyncPageMapOfObject;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
@@ -39,7 +36,7 @@ public class ProviderController {
 
     @PostMapping("ping")
     public ResponseEntity<String> ping(@AuthenticationPrincipal Jwt principal,
-                                       @RequestBody AdapterPing adapterPing) throws JsonProcessingException {
+                                       @RequestBody AdapterPing adapterPing) {
 
 
         log.info("Ping from adapter id: {}, orgIds: {}, username: {}",
@@ -54,25 +51,33 @@ public class ProviderController {
         fintCoreEventTopicService.ensureAdapterPingTopic(adapterPing);
         fintCoreKafkaAdapterService.ping(adapterPing);
 
-        return ResponseEntity.ok("pong");
+        return ResponseEntity.ok("💗");
 
     }
 
     @PostMapping("{domain}/{packageName}/{entity}")
-    public ResponseEntity<Void> postEntities(@AuthenticationPrincipal Jwt principal,
-                                             @RequestBody FullSyncPageMapOfObject entities,
-                                             @PathVariable final String domain,
-                                             @PathVariable final String packageName,
-                                             @PathVariable final String entity) {
+    public ResponseEntity<Void> fullSync(@AuthenticationPrincipal Jwt principal,
+                                         @RequestBody FullSyncPageOfObject entities,
+                                         @PathVariable final String domain,
+                                         @PathVariable final String packageName,
+                                         @PathVariable final String entity) {
 
 
-        log.info("Full sync: {}, {}, {}, {}", entities.getMetadata().getOrgId(), domain, packageName, entity);
+        log.info("Full sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
+                entities.getMetadata().getCorrId(),
+                entities.getMetadata().getOrgId(),
+                entities.getMetadata().getUriRef(),
+                entities.getMetadata().getTotalSize(),
+                entities.getResources().size(),
+                entities.getMetadata().getPage(),
+                entities.getMetadata().getTotalPages()
+                );
 
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
 
         fintCoreKafkaAdapterService.sendFullSyncStatus(entities.getMetadata());
-        fintCoreKafkaAdapterService.sendEntity(entities, domain, packageName, entity);
+        fintCoreKafkaAdapterService.doFullSync(entities, domain, packageName, entity);
 
 
         return ResponseEntity.status(HttpStatus.CREATED).build();

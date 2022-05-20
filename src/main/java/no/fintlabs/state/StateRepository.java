@@ -1,6 +1,7 @@
 package no.fintlabs.state;
 
 import no.fintlabs.adapter.models.FullSyncPage;
+import no.fintlabs.adapter.models.SyncPageMetadata;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -8,7 +9,7 @@ import java.util.*;
 @Repository
 public class StateRepository {
 
-    private Map<String, List<FullSyncPage.Metadata>> state;
+    private Map<String, List<SyncPageMetadata>> state;
 
     public StateRepository() {
         state = new HashMap<>();
@@ -18,16 +19,16 @@ public class StateRepository {
         return state.containsKey(corrId);
     }
 
-    public void update(FullSyncPage.Metadata metadata) {
-        List<FullSyncPage.Metadata> states = state.get(metadata.getCorrId());
+    public void update(SyncPageMetadata metadata) {
+        List<SyncPageMetadata> states = state.get(metadata.getCorrId());
         states.add(metadata);
     }
 
-    public void add(FullSyncPage.Metadata metadata) {
+    public void add(SyncPageMetadata metadata) {
         state.put(metadata.getCorrId(), Collections.singletonList(metadata));
     }
 
-    public List<FullSyncPage.Metadata> get(String corrId) {
+    public List<SyncPageMetadata> get(String corrId) {
         return Optional.ofNullable(state.get(corrId)).orElse(Collections.emptyList());
     }
 

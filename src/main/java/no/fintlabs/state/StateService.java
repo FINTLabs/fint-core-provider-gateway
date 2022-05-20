@@ -1,6 +1,6 @@
 package no.fintlabs.state;
 
-import no.fintlabs.adapter.models.FullSyncPage;
+import no.fintlabs.adapter.models.SyncPageMetadata;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -16,7 +16,7 @@ public class StateService {
         this.stateRepository = stateRepository;
     }
 
-    public void validate(FullSyncPage.Metadata metadata) {
+    public void validate(SyncPageMetadata metadata) {
 
         metadataValuesIsValide(metadata);
         ifWeAreInTheMidleOfASyncWeShouldHaveAState(metadata);
@@ -28,7 +28,7 @@ public class StateService {
         }
     }
 
-    private void metadataValuesIsValide(FullSyncPage.Metadata metadata) {
+    private void metadataValuesIsValide(SyncPageMetadata metadata) {
         pageCannotBeGreaterThanTotalPage(metadata);
         pageCannotBeZero(metadata);
         totalPageCannotBeZero(metadata);
@@ -40,7 +40,7 @@ public class StateService {
         return stateRepository.has(corrId);
     }
 
-    private void pageAlreadySent(FullSyncPage.Metadata metadata) {
+    private void pageAlreadySent(SyncPageMetadata metadata) {
         stateRepository.get(metadata.getCorrId())
                 .stream()
                 .filter(md -> metadata.getPage() == md.getPage())
@@ -50,31 +50,31 @@ public class StateService {
                 });
     }
 
-    private void corrIdCannotBeEmpty(FullSyncPage.Metadata metadata) {
+    private void corrIdCannotBeEmpty(SyncPageMetadata metadata) {
         if (!StringUtils.hasText(metadata.getCorrId())) {
             throw new IllegalArgumentException("corrId cannot be empty");
         }
     }
 
-    private void totalSizeCannotBeZero(FullSyncPage.Metadata metadata) {
+    private void totalSizeCannotBeZero(SyncPageMetadata metadata) {
         if (metadata.getTotalSize() == 0) {
             throw new IllegalArgumentException("Total size cannot be 0");
         }
     }
 
-    private void totalPageCannotBeZero(FullSyncPage.Metadata metadata) {
+    private void totalPageCannotBeZero(SyncPageMetadata metadata) {
         if (metadata.getTotalPages() == 0) {
             throw new IllegalArgumentException("Total page cannot be 0");
         }
     }
 
-    private void pageCannotBeZero(FullSyncPage.Metadata metadata) {
+    private void pageCannotBeZero(SyncPageMetadata metadata) {
         if (metadata.getPage() == 0) {
             throw new IllegalArgumentException("Page cannot be 0");
         }
     }
 
-    private void pageCannotBeGreaterThanTotalPage(FullSyncPage.Metadata metadata) {
+    private void pageCannotBeGreaterThanTotalPage(SyncPageMetadata metadata) {
         if (metadata.getPage() > metadata.getTotalPages()) {
             throw new IllegalArgumentException(
                     String.format(
@@ -86,7 +86,7 @@ public class StateService {
         }
     }
 
-    private void ifWeAreInTheMidleOfASyncWeShouldHaveAState(FullSyncPage.Metadata metadata) {
+    private void ifWeAreInTheMidleOfASyncWeShouldHaveAState(SyncPageMetadata metadata) {
         if (metadata.getPage() > 1) {
             if (!stateRepository.has(metadata.getCorrId())) {
                 throw new SyncStateNotFound();
@@ -94,31 +94,31 @@ public class StateService {
         }
     }
 
-    private void pageOrderIsImproper(FullSyncPage.Metadata metadata) {
-        FullSyncPage.Metadata lastState = getLastState(metadata.getCorrId());
+    private void pageOrderIsImproper(SyncPageMetadata metadata) {
+        SyncPageMetadata lastState = getLastState(metadata.getCorrId());
         if (metadata.getPage() <= lastState.getPage()) {
             throw new ImproperPageOrder();
         }
     }
 
     private void syncIsFinished(String corrId) {
-        FullSyncPage.Metadata lastState = getLastState(corrId);
+        SyncPageMetadata lastState = getLastState(corrId);
 
         if (lastState.getPage() == lastState.getTotalPages()) {
             throw new SyncStateGone();
         }
     }
 
-    private List<FullSyncPage.Metadata> getSortedState(String corrId) {
-        List<FullSyncPage.Metadata> metadata = stateRepository.get(corrId);
+    private List<SyncPageMetadata> getSortedState(String corrId) {
+        List<SyncPageMetadata> metadata = stateRepository.get(corrId);
 
         return metadata.stream()
-                .sorted(Comparator.comparingLong(FullSyncPage.Metadata::getPage))
+                .sorted(Comparator.comparingLong(SyncPageMetadata::getPage))
                 .toList();
     }
 
-    private FullSyncPage.Metadata getLastState(String corrId) {
-        List<FullSyncPage.Metadata> sortedState = getSortedState(corrId);
+    private SyncPageMetadata getLastState(String corrId) {
+        List<SyncPageMetadata> sortedState = getSortedState(corrId);
 
         return sortedState.get(sortedState.size() - 1);
     }
