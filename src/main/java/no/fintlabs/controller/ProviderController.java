@@ -6,24 +6,15 @@ import no.fintlabs.AdapterRequestValidator;
 import no.fintlabs.FintCoreEntityTopicService;
 import no.fintlabs.FintCoreEventTopicService;
 import no.fintlabs.FintCoreKafkaAdapterService;
-import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.adapter.models.AdapterPing;
-import no.fintlabs.adapter.models.DeltaSyncEntityOfObject;
-import no.fintlabs.adapter.models.FullSyncEntityMapOfObject;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RestController
@@ -45,7 +36,7 @@ public class ProviderController {
 
     @PostMapping("ping")
     public ResponseEntity<String> ping(@AuthenticationPrincipal Jwt principal,
-                                       @RequestBody AdapterPing adapterPing) throws JsonProcessingException {
+                                       @RequestBody AdapterPing adapterPing) {
 
 
         log.info("Ping from adapter id: {}, orgIds: {}, username: {}",
@@ -60,100 +51,58 @@ public class ProviderController {
         fintCoreEventTopicService.ensureAdapterPingTopic(adapterPing);
         fintCoreKafkaAdapterService.ping(adapterPing);
 
-        return ResponseEntity.ok("pong");
+        return ResponseEntity.ok("💗");
 
     }
 
     @PostMapping("{domain}/{packageName}/{entity}")
-    public ResponseEntity<Void> postEntities(@AuthenticationPrincipal Jwt principal,
-                                             @RequestBody FullSyncEntityMapOfObject entities,
-                                             @PathVariable final String domain,
-                                             @PathVariable final String packageName,
-                                             @PathVariable final String entity) throws JsonProcessingException {
+    public ResponseEntity<Void> fullSync(@AuthenticationPrincipal Jwt principal,
+                                         @RequestBody FullSyncPageOfObject entities,
+                                         @PathVariable final String domain,
+                                         @PathVariable final String packageName,
+                                         @PathVariable final String entity) {
 
 
-        log.info("Full sync: {}, {}, {}, {}", entities.getMetadata().getOrgId(), domain, packageName, entity);
+        log.info("Full sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
+                entities.getMetadata().getCorrId(),
+                entities.getMetadata().getOrgId(),
+                entities.getMetadata().getUriRef(),
+                entities.getMetadata().getTotalSize(),
+                entities.getResources().size(),
+                entities.getMetadata().getPage(),
+                entities.getMetadata().getTotalPages()
+                );
 
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
-        Instant start = Instant.now();
-        entities.getResources().forEach(
-                resource ->
 
-                {
-                    try {
-                        fintCoreKafkaAdapterService
-                                .entity(
-                                        entities.getMetadata().getOrgId(),
-                                        domain,
-                                        packageName,
-                                        entity, resource
-                                ).get();
-                        //log.info(stringObjectSendResult.toString());
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                }
-//                        fintCoreKafkaAdapterService
-//                                .entity(
-//                                        entities.getMetadata().getOrgId(),
-//                                        domain,
-//                                        packageName,
-//                                        entity, resource
-//                                )
-//                                .addCallback(new ListenableFutureCallback<Object>(){
-//
-//                                    @Override
-//                                    public void onSuccess(Object result) {
-//                                        log.info("Data sent to Kafka successfully!");
-//                                    }
-//
-//                                    @Override
-//                                    public void onFailure(Throwable ex) {
-//                                        log.error("An error occurred sending data to Kafka!");
-//                                    }
-//                                })
-        );
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        log.info("End full sync. It took {} hours, {} minutes, {} seconds to complete", timeElapsed.toHoursPart(), timeElapsed.toMinutesPart(), timeElapsed.toSecondsPart());
-        return ResponseEntity.ok().build();
+
+        fintCoreKafkaAdapterService.sendFullSyncStatus(entities.getMetadata());
+        fintCoreKafkaAdapterService.doFullSync(entities, domain, packageName, entity);
+
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
 
     @PatchMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deltaSync(
             @AuthenticationPrincipal Jwt principal,
-            @RequestBody DeltaSyncEntityOfObject entities,
+            @RequestBody DeltaSyncPageOfObject entities,
             @PathVariable final String domain,
             @PathVariable final String packageName,
-            @PathVariable final String entity
-    ) throws JsonProcessingException {
+            @PathVariable final String entity) {
 
 
         log.info("Delta sync: {}, {}, {}, {}", entities.getMetadata().getOrgId(), domain, packageName, entity);
 
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
-
-        entities.getResources().forEach(
-                resource ->
-                        fintCoreKafkaAdapterService
-                                .entity(
-                                        entities.getMetadata().getOrgId(),
-                                        domain,
-                                        packageName,
-                                        entity,
-                                        resource
-                                )
-        );
-
-
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("register")
     public ResponseEntity<Void> register(@AuthenticationPrincipal Jwt jwt,
-                                         @RequestBody final AdapterContract adapterContract
-    ) throws JsonProcessingException {
+                                         @RequestBody final AdapterContract adapterContract) {
 
 
         log.info("Adapter registered {}", adapterContract);
@@ -165,6 +114,8 @@ public class ProviderController {
 
         fintCoreKafkaAdapterService.register(adapterContract);
         fintCoreEntityTopicService.ensureAdapterEntityTopics(adapterContract);
+        fintCoreEventTopicService.ensureAdapterFullSyncTopic(adapterContract);
+        fintCoreEventTopicService.ensureAdapterDeltaSyncTopic(adapterContract);
 
         return ResponseEntity.ok().build();
     }
