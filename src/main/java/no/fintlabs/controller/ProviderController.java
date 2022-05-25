@@ -76,7 +76,7 @@ public class ProviderController {
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
 
-        fintCoreKafkaAdapterService.sendFullSyncStatus(entities.getMetadata());
+        //fintCoreKafkaAdapterService.sendFullSyncStatus(entities.getMetadata());
         fintCoreKafkaAdapterService.doFullSync(entities, domain, packageName, entity);
 
 
@@ -93,11 +93,21 @@ public class ProviderController {
             @PathVariable final String entity) {
 
 
-        log.info("Delta sync: {}, {}, {}, {}", entities.getMetadata().getOrgId(), domain, packageName, entity);
-
+        log.info("Delta sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
+                entities.getMetadata().getCorrId(),
+                entities.getMetadata().getOrgId(),
+                entities.getMetadata().getUriRef(),
+                entities.getMetadata().getTotalSize(),
+                entities.getResources().size(),
+                entities.getMetadata().getPage(),
+                entities.getMetadata().getTotalPages()
+        );
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
-        return ResponseEntity.ok().build();
+        //fintCoreKafkaAdapterService.sendDeltaSyncStatus(entities.getMetadata());
+        fintCoreKafkaAdapterService.doDeltaSync(entities, domain, packageName, entity);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("register")

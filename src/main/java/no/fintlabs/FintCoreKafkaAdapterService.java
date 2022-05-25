@@ -10,7 +10,6 @@ import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -71,7 +70,7 @@ public class FintCoreKafkaAdapterService {
     }
 
 
-    public void sendFullSyncStatus(SyncPageMetadata metadata) {
+    private void sendFullSyncStatus(SyncPageMetadata metadata) {
         try {
             adapterFullSyncStatusEventProducer.send(
                     EventProducerRecord.<SyncPageMetadata>builder()
@@ -89,16 +88,58 @@ public class FintCoreKafkaAdapterService {
         }
     }
 
-    public void  doFullSync(FullSyncPageOfObject page,  String domain, String packageName, String entity) {
+    private void sendDeltaSyncStatus(SyncPageMetadata metadata) {
+        try {
+            adapterFullSyncStatusEventProducer.send(
+                    EventProducerRecord.<SyncPageMetadata>builder()
+                            .topicNameParameters(EventTopicNameParameters
+                                    .builder()
+                                    .orgId(metadata.getOrgId())
+                                    .domainContext("fint-core")
+                                    .eventName("adapter-delta-sync")
+                                    .build())
+                            .value(metadata)
+                            .build()
+            ).get();
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public void doFullSync(FullSyncPageOfObject page, String domain, String packageName, String entity) {
+        Instant start = Instant.now();
+
+        sendFullSyncStatus(page.getMetadata());
         sendEntities(page, domain, packageName, entity);
+
+        Instant finish = Instant.now();
+        Duration timeElapsed = Duration.between(start, finish);
+        log.info("End full sync ({}). It took {} hours, {} minutes, {} seconds to complete",
+                page.getMetadata().getCorrId(),
+                timeElapsed.toHoursPart(),
+                timeElapsed.toMinutesPart(),
+                timeElapsed.toSecondsPart()
+        );
     }
 
     public void doDeltaSync(DeltaSyncPageOfObject page, String domain, String packageName, String entity) {
-        //sendEntities(page.getResources());
-    }
-    private  <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
-
         Instant start = Instant.now();
+
+        sendDeltaSyncStatus(page.getMetadata());
+        sendEntities(page, domain, packageName, entity);
+
+        Instant finish = Instant.now();
+        Duration timeElapsed = Duration.between(start, finish);
+        log.info("End delta sync ({}). It took {} hours, {} minutes, {} seconds to complete",
+                page.getMetadata().getCorrId(),
+                timeElapsed.toHoursPart(),
+                timeElapsed.toMinutesPart(),
+                timeElapsed.toSecondsPart()
+        );
+    }
+
+    private <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
+
         page.getResources().forEach(
                 resource -> {
                     try {
@@ -115,9 +156,6 @@ public class FintCoreKafkaAdapterService {
                     }
                 }
         );
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        log.info("End full sync ({}). It took {} hours, {} minutes, {} seconds to complete", page.getMetadata().getCorrId(), timeElapsed.toHoursPart(), timeElapsed.toMinutesPart(), timeElapsed.toSecondsPart());
     }
 
     private ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
@@ -137,7 +175,7 @@ public class FintCoreKafkaAdapterService {
 
     @SuppressWarnings("unchecked")
     private String getKey(Object resource) {
-        HashMap<String, ?> links = (HashMap<String, ?>) ((HashMap<String, ?>)resource).get("_links");
+        HashMap<String, ?> links = (HashMap<String, ?>) ((HashMap<String, ?>) resource).get("_links");
         List<HashMap<String, String>> selfLinks = (List<HashMap<String, String>>) links.get("self");
         List<String> selfLinksList = selfLinks.stream()
                 .filter(o -> o.containsKey("href"))
