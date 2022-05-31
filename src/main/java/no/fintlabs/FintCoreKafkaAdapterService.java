@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 @Service
 public class FintCoreKafkaAdapterService {
-    private final EventProducer<AdapterPing> adapterPingEventProducer;
+    private final EventProducer<AdapterHeartbeat> adapterHeartbeatEventProducer;
     private final EventProducer<SyncPageMetadata> adapterFullSyncStatusEventProducer;
     private final EventProducer<AdapterContract> adapterContractEventProducer;
     private final EntityProducer<Object> entityProducer;
@@ -31,7 +31,7 @@ public class FintCoreKafkaAdapterService {
     private final EventProducerFactory eventProducerFactory;
 
     public FintCoreKafkaAdapterService(EntityProducerFactory entityProducerFactory, EventProducerFactory eventProducerFactory) {
-        this.adapterPingEventProducer = eventProducerFactory.createProducer(AdapterPing.class);
+        this.adapterHeartbeatEventProducer = eventProducerFactory.createProducer(AdapterHeartbeat.class);
         this.adapterContractEventProducer = eventProducerFactory.createProducer(AdapterContract.class);
         this.adapterFullSyncStatusEventProducer = eventProducerFactory.createProducer(SyncPageMetadata.class);
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
@@ -40,17 +40,16 @@ public class FintCoreKafkaAdapterService {
     }
 
 
-    public void ping(AdapterPing adapterPing) {
-        //EventProducer<AdapterPing> adapterPingEventProducer = eventProducerFactory.createProducer(AdapterPing.class);
-        adapterPingEventProducer.send(
-                EventProducerRecord.<AdapterPing>builder()
+    public void heartbeat(AdapterHeartbeat adapterHeartbeat) {
+        adapterHeartbeatEventProducer.send(
+                EventProducerRecord.<AdapterHeartbeat>builder()
                         .topicNameParameters(EventTopicNameParameters
                                 .builder()
-                                .orgId(adapterPing.getOrgId())
+                                .orgId(adapterHeartbeat.getOrgId())
                                 .domainContext("fint-core")
                                 .eventName("adapter-health")
                                 .build())
-                        .value(adapterPing)
+                        .value(adapterHeartbeat)
                         .build()
         );
     }

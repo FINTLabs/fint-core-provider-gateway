@@ -1,7 +1,7 @@
 package no.fintlabs;
 
 import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.adapter.models.AdapterPing;
+import no.fintlabs.adapter.models.AdapterHeartbeat;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
 import org.springframework.stereotype.Service;
@@ -16,14 +16,14 @@ public class FintCoreEventTopicService {
         this.providerProperties = providerProperties;
     }
 
-    public void ensureAdapterPingTopic(AdapterPing adapterPing) {
+    public void ensureAdapterHeartbeatTopic(AdapterHeartbeat adapterHeartbeat) {
         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
-                        .orgId(adapterPing.getOrgId())
+                        .orgId(adapterHeartbeat.getOrgId())
                         .domainContext("fint-core")
                         .eventName("adapter-health")
                         .build(),
-                providerProperties.getAdapterPingRetentionTimeMs()
+                providerProperties.getAdapterHeartbeatRetentionTimeMs()
         );
     }
 

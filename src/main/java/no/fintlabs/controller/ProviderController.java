@@ -6,7 +6,10 @@ import no.fintlabs.AdapterRequestValidator;
 import no.fintlabs.FintCoreEntityTopicService;
 import no.fintlabs.FintCoreEventTopicService;
 import no.fintlabs.FintCoreKafkaAdapterService;
-import no.fintlabs.adapter.models.*;
+import no.fintlabs.adapter.models.AdapterContract;
+import no.fintlabs.adapter.models.AdapterHeartbeat;
+import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
+import no.fintlabs.adapter.models.FullSyncPageOfObject;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
@@ -34,22 +37,22 @@ public class ProviderController {
         this.fintCoreKafkaAdapterService = fintCoreKafkaAdapterService;
     }
 
-    @PostMapping("ping")
-    public ResponseEntity<String> ping(@AuthenticationPrincipal Jwt principal,
-                                       @RequestBody AdapterPing adapterPing) {
+    @PostMapping("heartbeat")
+    public ResponseEntity<String> heartbeat(@AuthenticationPrincipal Jwt principal,
+                                            @RequestBody AdapterHeartbeat adapterHeartbeat) {
 
 
-        log.info("Ping from adapter id: {}, orgIds: {}, username: {}",
-                adapterPing.getAdapterId(),
-                adapterPing.getOrgId(),
-                adapterPing.getUsername()
+        log.info("Heartbeat from adapter id: {}, orgIds: {}, username: {}",
+                adapterHeartbeat.getAdapterId(),
+                adapterHeartbeat.getOrgId(),
+                adapterHeartbeat.getUsername()
         );
 
-        AdapterRequestValidator.validateOrgId(principal, adapterPing.getOrgId());
-        AdapterRequestValidator.validateUsername(principal, adapterPing.getUsername());
+        AdapterRequestValidator.validateOrgId(principal, adapterHeartbeat.getOrgId());
+        AdapterRequestValidator.validateUsername(principal, adapterHeartbeat.getUsername());
 
-        fintCoreEventTopicService.ensureAdapterPingTopic(adapterPing);
-        fintCoreKafkaAdapterService.ping(adapterPing);
+        fintCoreEventTopicService.ensureAdapterHeartbeatTopic(adapterHeartbeat);
+        fintCoreKafkaAdapterService.heartbeat(adapterHeartbeat);
 
         return ResponseEntity.ok("💗");
 
@@ -71,7 +74,7 @@ public class ProviderController {
                 entities.getResources().size(),
                 entities.getMetadata().getPage(),
                 entities.getMetadata().getTotalPages()
-                );
+        );
 
         AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
