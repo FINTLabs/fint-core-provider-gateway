@@ -23,9 +23,9 @@ public class FintCoreEntityTopicService {
                         .domainContext("fint-core")
                         .resource(String.format(
                                         "%s-%s-%s",
-                                        adapterCapability.getDomain(),
+                                        adapterCapability.getDomainName(),
                                         adapterCapability.getPackageName(),
-                                        adapterCapability.getClazz()
+                                        adapterCapability.getResourceName()
                                 )
                         )
                         .build(),
