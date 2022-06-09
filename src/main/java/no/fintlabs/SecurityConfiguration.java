@@ -1,5 +1,6 @@
 package no.fintlabs;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -17,7 +18,17 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    SecurityWebFilterChain springSecurityFilterChain(
+            ServerHttpSecurity http,
+            @Value("${fint.security.resourceserver.disabled:false}") boolean disabled
+    ) {
+        return disabled
+                ? createPermitAllFilterChain(http)
+                : createOauth2FilterChain(http);
+    }
+
+    //@Bean
+    private SecurityWebFilterChain createOauth2FilterChain(ServerHttpSecurity http) {
         http
                 .authorizeExchange((authorize) -> authorize
                         .pathMatchers("/**").hasAnyAuthority(getScopeAuthority())
@@ -27,6 +38,16 @@ public class SecurityConfiguration {
                         .jwt(withDefaults())
                 );
         return http.build();
+    }
+
+    private SecurityWebFilterChain createPermitAllFilterChain(ServerHttpSecurity http) {
+        return http
+                .csrf().disable()
+                .authorizeExchange()
+                .anyExchange()
+                .permitAll()
+                .and()
+                .build();
     }
 
     private String getScopeAuthority() {
