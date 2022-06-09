@@ -22,6 +22,9 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.scope:fint-adapter}")
     private String scope;
 
+    @Value("${fint.security.resourceserver.disabled:false}")
+    private boolean resourceServerSecurityDisabled;
+
 
 
 }

@@ -1,6 +1,5 @@
 package no.fintlabs;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -19,10 +18,10 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(
-            ServerHttpSecurity http,
-            @Value("${fint.security.resourceserver.disabled:false}") boolean disabled
+            ServerHttpSecurity http
+            /*@Value("${fint.security.resourceserver.disabled:false}") boolean disabled*/
     ) {
-        return disabled
+        return properties.isResourceServerSecurityDisabled()
                 ? createPermitAllFilterChain(http)
                 : createOauth2FilterChain(http);
     }

@@ -4,12 +4,22 @@ package no.fintlabs;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Component;
 
 import java.util.stream.Stream;
 
+@Component
 public class AdapterRequestValidator {
 
-    public static void validateOrgId(Jwt jwt, String requestedOrgId) {
+    private final ProviderProperties properties;
+
+    public AdapterRequestValidator(ProviderProperties properties) {
+        this.properties = properties;
+    }
+
+    public  void validateOrgId(Jwt jwt, String requestedOrgId) {
+        if (properties.isResourceServerSecurityDisabled()) return;
+
         if (Stream.of(jwt.getClaims().get("fintAssetIDs").toString().split(",")).noneMatch(asset -> asset.equals(requestedOrgId))) {
             throw new InvalidOrgId(
                     String.format(
@@ -20,7 +30,9 @@ public class AdapterRequestValidator {
         }
     }
 
-    public static void validateUsername(Jwt jwt, String requestedUsername) {
+    public  void validateUsername(Jwt jwt, String requestedUsername) {
+        if (properties.isResourceServerSecurityDisabled()) return;
+
         if (!jwt.getClaims().get("cn").toString().equals(requestedUsername)) {
             throw new InvalidUsername("Username in token is not the same as the username in the payload!");
         }
