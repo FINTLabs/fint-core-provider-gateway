@@ -1,4 +1,4 @@
-name: publish image to ACR
+name: publish
 on:
   repository_dispatch:
     types: [ trigger-to-publish ]
@@ -10,7 +10,7 @@ env:
   NAMESPACE: default
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
