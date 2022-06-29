@@ -42,7 +42,7 @@ jobs:
           resource-group: ${{ env.ALPHA_CLUSTER_RESOURCE_GROUP }}
 
       - name: Deploy to Alpha
-        uses: azure/k8s-deploy@v3.1
+        uses: azure/k8s-deploy@v4.1
         with:
           manifests: |
             k8s/alpha/fintlabs-no.yaml
