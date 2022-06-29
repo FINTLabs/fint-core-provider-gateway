@@ -7,16 +7,10 @@ on:
 
 env:
   REGISTRY_NAME: fintlabsacr
-  ALPHA_CLUSTER_NAME: aks-alpha-fint-2021-11-18
-  ALPHA_CLUSTER_RESOURCE_GROUP: rg-aks-alpha
-  BETA_CLUSTER_NAME: aks-beta-fint-2021-11-23
-  BETA_CLUSTER_RESOURCE_GROUP: rg-aks-beta
-  API_CLUSTER_NAME: aks-api-fint-2022-02-08
-  API_CLUSTER_RESOURCE_GROUP: rg-aks-api
   NAMESPACE: default
 
 jobs:
-  publish:
+  builds:
     runs-on: ubuntu-latest
 
     steps:
