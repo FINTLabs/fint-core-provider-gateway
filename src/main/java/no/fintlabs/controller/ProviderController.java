@@ -28,13 +28,16 @@ public class ProviderController {
     private final FintCoreEventTopicService fintCoreEventTopicService;
     private final FintCoreKafkaAdapterService fintCoreKafkaAdapterService;
 
+    private final AdapterRequestValidator validator;
+
 
     public ProviderController(FintCoreEntityTopicService fintCoreEntityTopicService,
                               FintCoreEventTopicService fintCoreEventTopicService,
-                              FintCoreKafkaAdapterService fintCoreKafkaAdapterService) {
+                              FintCoreKafkaAdapterService fintCoreKafkaAdapterService, AdapterRequestValidator validator) {
         this.fintCoreEntityTopicService = fintCoreEntityTopicService;
         this.fintCoreEventTopicService = fintCoreEventTopicService;
         this.fintCoreKafkaAdapterService = fintCoreKafkaAdapterService;
+        this.validator = validator;
     }
 
     @PostMapping("heartbeat")
@@ -48,8 +51,8 @@ public class ProviderController {
                 adapterHeartbeat.getUsername()
         );
 
-        AdapterRequestValidator.validateOrgId(principal, adapterHeartbeat.getOrgId());
-        AdapterRequestValidator.validateUsername(principal, adapterHeartbeat.getUsername());
+        validator.validateOrgId(principal, adapterHeartbeat.getOrgId());
+        validator.validateUsername(principal, adapterHeartbeat.getUsername());
 
         fintCoreEventTopicService.ensureAdapterHeartbeatTopic(adapterHeartbeat);
         fintCoreKafkaAdapterService.heartbeat(adapterHeartbeat);
@@ -76,7 +79,7 @@ public class ProviderController {
                 entities.getMetadata().getTotalPages()
         );
 
-        AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
+        validator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
 
         //fintCoreKafkaAdapterService.sendFullSyncStatus(entities.getMetadata());
@@ -105,7 +108,7 @@ public class ProviderController {
                 entities.getMetadata().getPage(),
                 entities.getMetadata().getTotalPages()
         );
-        AdapterRequestValidator.validateOrgId(principal, entities.getMetadata().getOrgId());
+        validator.validateOrgId(principal, entities.getMetadata().getOrgId());
 
         //fintCoreKafkaAdapterService.sendDeltaSyncStatus(entities.getMetadata());
         fintCoreKafkaAdapterService.doDeltaSync(entities, domain, packageName, entity);
@@ -120,8 +123,8 @@ public class ProviderController {
 
         log.info("Adapter registered {}", adapterContract);
 
-        AdapterRequestValidator.validateOrgId(jwt, adapterContract.getOrgId());
-        AdapterRequestValidator.validateUsername(jwt, adapterContract.getUsername());
+        validator.validateOrgId(jwt, adapterContract.getOrgId());
+        validator.validateUsername(jwt, adapterContract.getUsername());
 
         fintCoreEventTopicService.ensureAdapterRegisterTopic(adapterContract);
 
