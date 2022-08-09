@@ -18,6 +18,22 @@ spec:
   selector:
     io.kompose.service: fint-core-provider-gateway-service
 ---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: fint-core-provider-gateway-service
+  #namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`beta.felleskomponent.no`) && PathPrefix(`/provider`)
+      kind: Rule
+      services:
+        - name: fint-core-provider-gateway-service
+          #namespace: default
+          port: 8080
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
