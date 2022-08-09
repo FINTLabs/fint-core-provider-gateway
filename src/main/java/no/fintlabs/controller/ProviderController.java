@@ -19,6 +19,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping
@@ -38,6 +40,13 @@ public class ProviderController {
         this.fintCoreEventTopicService = fintCoreEventTopicService;
         this.fintCoreKafkaAdapterService = fintCoreKafkaAdapterService;
         this.validator = validator;
+    }
+
+    @GetMapping("status")
+    public ResponseEntity<Map<String, Object>> status(@AuthenticationPrincipal Jwt principal) {
+        return ResponseEntity.ok(Map.of(
+                "status", "Greetings form FINTLabs 👋",
+                "principal", principal));
     }
 
     @PostMapping("heartbeat")
