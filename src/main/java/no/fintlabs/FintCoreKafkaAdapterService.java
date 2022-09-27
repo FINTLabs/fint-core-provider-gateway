@@ -113,11 +113,13 @@ public class FintCoreKafkaAdapterService {
 
         Instant finish = Instant.now();
         Duration timeElapsed = Duration.between(start, finish);
-        log.info("End full sync ({}). It took {} hours, {} minutes, {} seconds to complete",
-                page.getMetadata().getCorrId(),
-                timeElapsed.toHoursPart(),
-                timeElapsed.toMinutesPart(),
-                timeElapsed.toSecondsPart()
+        log.info("End full sync ({}) for page {}. It took {}:{}:{} to complete ({})",
+                page.getMetadata().getOrgId(),
+                page.getMetadata().getPage(),
+                String.format("%02d", timeElapsed.toHoursPart()),
+                String.format("%02d", timeElapsed.toMinutesPart()),
+                String.format("%02d", timeElapsed.toSecondsPart()),
+                page.getMetadata().getCorrId()
         );
     }
 
