@@ -8,8 +8,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
   labels:
     io.kompose.service: fint-core-provider-gateway
   name: fint-core-provider-gateway
@@ -17,9 +15,25 @@ spec:
   ports:
     - name: "8080"
       port: 8080
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     io.kompose.service: fint-core-provider-gateway
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: fint-core-provider-gateway
+  #namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`alpha.felleskomponent.no`) && PathPrefix(`/provider`)
+      kind: Rule
+      services:
+        - name: fint-core-provider-gateway
+          #namespace: default
+          port: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
