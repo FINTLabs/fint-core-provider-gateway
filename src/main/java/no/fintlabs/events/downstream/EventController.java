@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RequiredArgsConstructor
-@RestController(value = "/event")
+@RestController()
 public class EventController {
 
     private final EventService eventService;
 
-    @GetMapping
+    @GetMapping("/event/{domainName}/{packageName}/{resourceName}")
     public List<RequestFintEventCastable> getEvents(
             @PathVariable(required = false) String domainName,
             @PathVariable(required = false) String packageName,

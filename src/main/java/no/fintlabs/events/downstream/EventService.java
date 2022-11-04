@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEventCastable;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
+import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import org.apache.commons.lang3.StringUtils;
@@ -35,13 +36,17 @@ public class EventService {
         EventTopicNamePatternParameters eventTopicNameParameters = EventTopicNamePatternParameters
                 .builder()
                 .orgId(FormattedTopicComponentPattern.any())
-                .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))  // Optional if set as application property
+                .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
                 .eventName(ValidatedTopicComponentPattern.endingWith("-request"))
                 .build();
 
         eventConsumerFactoryService.createFactory(
                 RequestFintEventCastable.class,
-                this::processEvent
+                this::processEvent,
+                EventConsumerConfiguration
+                        .builder()
+                        .seekingOffsetResetOnAssignment(true)
+                        .build()
         ).createContainer(eventTopicNameParameters);
     }
 
