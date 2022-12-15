@@ -1,7 +1,7 @@
 package no.fintlabs.events.downstream;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.RequestFintEventCastable;
+import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
@@ -22,7 +22,7 @@ public class EventService {
 
     private final EventConsumerFactoryService eventConsumerFactoryService;
 
-    private final ArrayList<RequestFintEventCastable> events;
+    private final ArrayList<RequestFintEvent> events;
 
     public EventService(EventConsumerFactoryService eventConsumerFactoryService) {
         this.eventConsumerFactoryService = eventConsumerFactoryService;
@@ -41,7 +41,7 @@ public class EventService {
                 .build();
 
         eventConsumerFactoryService.createFactory(
-                RequestFintEventCastable.class,
+                RequestFintEvent.class,
                 this::processEvent,
                 EventConsumerConfiguration
                         .builder()
@@ -50,12 +50,12 @@ public class EventService {
         ).createContainer(eventTopicNameParameters);
     }
 
-    private void processEvent(ConsumerRecord<String, RequestFintEventCastable> consumerRecord) {
+    private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
         log.info("You got a " + consumerRecord.value().getValue().getClass().getName());
         events.add(consumerRecord.value());
     }
 
-    public List<RequestFintEventCastable> getEvents(String domainName, String packageName, String resourceName){
+    public List<RequestFintEvent> getEvents(String domainName, String packageName, String resourceName) {
         return events
                 .stream()
                 .filter(events -> StringUtils.isBlank(domainName) || events.getDomainName().equalsIgnoreCase(domainName))
