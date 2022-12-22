@@ -1,4 +1,4 @@
-package no.fintlabs.events.downstream;
+package no.fintlabs.events;
 
 import no.fintlabs.adapter.models.RequestFintEvent;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +14,7 @@ public class EventController {
 
     private final EventService eventService;
 
-    // TODO: 15/11/2022 burde være unødvendig. Metoden under feiler på event/
-    @GetMapping("/event/")
-    public List<RequestFintEvent> getEventsWithoutPath(
-    ) {
-        return eventService.getEvents(null, null, null);
-    }
-
-    @GetMapping("/event/{domainName}/{packageName}/{resourceName}")
+    @GetMapping(value = {"/event", "/event/{domainName}","/event/{domainName}/{packageName}","/event/{domainName}/{packageName}/{resourceName}"})
     public List<RequestFintEvent> getEvents(
             @PathVariable(required = false) String domainName,
             @PathVariable(required = false) String packageName,

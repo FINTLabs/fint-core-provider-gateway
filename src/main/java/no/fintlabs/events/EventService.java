@@ -1,4 +1,4 @@
-package no.fintlabs.events.downstream;
+package no.fintlabs.events;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
@@ -51,7 +51,7 @@ public class EventService {
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.info("You got a " + consumerRecord.value().getValue().getClass().getName());
+        log.debug("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
         events.add(consumerRecord.value());
     }
 
