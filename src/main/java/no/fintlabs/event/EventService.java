@@ -1,4 +1,4 @@
-package no.fintlabs.events;
+package no.fintlabs.event;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
@@ -9,12 +9,14 @@ import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -22,11 +24,16 @@ public class EventService {
 
     private final EventConsumerFactoryService eventConsumerFactoryService;
 
-    private final ArrayList<RequestFintEvent> events;
+    private final List<RequestFintEvent> events;
 
+    @Autowired
     public EventService(EventConsumerFactoryService eventConsumerFactoryService) {
+        this(eventConsumerFactoryService, new ArrayList<>());
+    }
+
+    public EventService(EventConsumerFactoryService eventConsumerFactoryService, List<RequestFintEvent> events) {
         this.eventConsumerFactoryService = eventConsumerFactoryService;
-        events = new ArrayList<>();
+        this.events = events;
     }
 
     @PostConstruct
@@ -55,12 +62,16 @@ public class EventService {
         events.add(consumerRecord.value());
     }
 
-    public List<RequestFintEvent> getEvents(String domainName, String packageName, String resourceName) {
-        return events
-                .stream()
+    public List<RequestFintEvent> getEvents(String domainName, String packageName, String resourceName, int size) {
+        Stream<RequestFintEvent> stream = events.stream()
                 .filter(events -> StringUtils.isBlank(domainName) || events.getDomainName().equalsIgnoreCase(domainName))
                 .filter(events -> StringUtils.isBlank(packageName) || events.getPackageName().equalsIgnoreCase(packageName))
-                .filter(events -> StringUtils.isBlank(resourceName) || events.getPackageName().equalsIgnoreCase(resourceName))
-                .collect(Collectors.toList());
+                .filter(events -> StringUtils.isBlank(resourceName) || events.getResourceName().equalsIgnoreCase(resourceName));
+
+
+        if (size > 0) stream = stream.limit(size);
+
+        List<RequestFintEvent> list = stream.collect(Collectors.toList());
+        return list;
     }
 }
