@@ -62,12 +62,12 @@ public class EventService {
         events.add(consumerRecord.value());
     }
 
-    public List<RequestFintEvent> getEvents(String domainName, String packageName, String resourceName, int size) {
+    public List<RequestFintEvent> getEvents(String orgId, String domainName, String packageName, String resourceName, int size) {
         Stream<RequestFintEvent> stream = events.stream()
-                .filter(events -> StringUtils.isBlank(domainName) || events.getDomainName().equalsIgnoreCase(domainName))
-                .filter(events -> StringUtils.isBlank(packageName) || events.getPackageName().equalsIgnoreCase(packageName))
-                .filter(events -> StringUtils.isBlank(resourceName) || events.getResourceName().equalsIgnoreCase(resourceName));
-
+                .filter(event -> event.getOrgId().equals(orgId))
+                .filter(event -> StringUtils.isBlank(domainName) || event.getDomainName().equalsIgnoreCase(domainName))
+                .filter(event -> StringUtils.isBlank(packageName) || event.getPackageName().equalsIgnoreCase(packageName))
+                .filter(event -> StringUtils.isBlank(resourceName) || event.getResourceName().equalsIgnoreCase(resourceName));
 
         if (size > 0) stream = stream.limit(size);
 
