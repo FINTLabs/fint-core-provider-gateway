@@ -1,23 +1,25 @@
 package no.fintlabs.event
 
 import no.fintlabs.adapter.models.RequestFintEvent
-import no.fintlabs.kafka.event.EventConsumerFactoryService
 import spock.lang.Specification
 
 class EventServiceSpec extends Specification {
 
     private final String ORG_ID = "vigoiks.no";
 
+    private EventService eventService;
+
+    void setup() {
+        eventService = new EventService()
+    }
+
     def "Test getEvents"() {
         given:
-        def events = new ArrayList<>();
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("okonomi", "kodeverk", "vare"));
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("okonomi", "kodeverk", "vare"));
-        events.add(createEvent("utdanning", "vurdering", "fravarsoversikt"));
-
-        def eventService = new EventService(Mock(EventConsumerFactoryService), events)
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("okonomi", "kodeverk", "vare"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("okonomi", "kodeverk", "vare"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravarsoversikt"));
 
         when:
         def result = eventService.getEvents(ORG_ID, "", "", "", 0)
@@ -28,14 +30,11 @@ class EventServiceSpec extends Specification {
 
     def "Test getEvents with org filter"() {
         given:
-        def events = new ArrayList<>();
-        events.add(createEvent("test.no","utdanning", "vurdering", "fravar"));
-        events.add(createEvent("vigoiks.no", "okonomi", "kodeverk", "vare"));
-        events.add(createEvent("test.no", "utdanning", "vurdering", "fravar"));
-        events.add(createEvent("test.no", "okonomi", "kodeverk", "vare"));
-        events.add(createEvent("vigoiks.no", "utdanning", "vurdering", "fravarsoversikt"));
-
-        def eventService = new EventService(Mock(EventConsumerFactoryService), events)
+        eventService.addEvent(createEvent("test.no", "utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("vigoiks.no", "okonomi", "kodeverk", "vare"));
+        eventService.addEvent(createEvent("test.no", "utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("test.no", "okonomi", "kodeverk", "vare"));
+        eventService.addEvent(createEvent("vigoiks.no", "utdanning", "vurdering", "fravarsoversikt"));
 
         when:
         def result = eventService.getEvents("vigoiks.no", "", "", "", 0)
@@ -46,17 +45,14 @@ class EventServiceSpec extends Specification {
 
     def "Test getEvents with domain-package-resource filter"() {
         given:
-        def events = new ArrayList<>();
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("okonomi", "kodeverk", "vare"));
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("okonomi", "kodeverk", "vare"));
-        events.add(createEvent("utdanning", "vurdering", "fravarsoversikt"));
-
-        def eventService = new EventService(Mock(EventConsumerFactoryService), events)
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("okonomi", "kodeverk", "vare"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("okonomi", "kodeverk", "vare"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravarsoversikt"));
 
         when:
-        def result = eventService.getEvents(ORG_ID,"utdanning", "vurdering", "fravar", 0)
+        def result = eventService.getEvents(ORG_ID, "utdanning", "vurdering", "fravar", 0)
 
         then:
         result.size() == 2
@@ -64,18 +60,14 @@ class EventServiceSpec extends Specification {
 
     def "Test getEvents with size limit"() {
         given:
-        List<RequestFintEvent> events = new ArrayList<>();
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-        events.add(createEvent("utdanning", "vurdering", "fravar"));
-
-        EventConsumerFactoryService kafkaFactoryService = Mock()
-        EventService eventService = new EventService(kafkaFactoryService, events)
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
+        eventService.addEvent(createEvent("utdanning", "vurdering", "fravar"));
 
         when:
-        def result = eventService.getEvents(ORG_ID,"utdanning", "vurdering", "fravar", 3)
+        def result = eventService.getEvents(ORG_ID, "utdanning", "vurdering", "fravar", 3)
 
         then:
         result.size() == 3

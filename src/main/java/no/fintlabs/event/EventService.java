@@ -22,44 +22,10 @@ import java.util.stream.Stream;
 @Service
 public class EventService {
 
-    private final EventConsumerFactoryService eventConsumerFactoryService;
+    private final List<RequestFintEvent> events = new ArrayList<>();
 
-    private final List<RequestFintEvent> events;
-
-    @Autowired
-    public EventService(EventConsumerFactoryService eventConsumerFactoryService) {
-        this(eventConsumerFactoryService, new ArrayList<>());
-    }
-
-    public EventService(EventConsumerFactoryService eventConsumerFactoryService, List<RequestFintEvent> events) {
-        this.eventConsumerFactoryService = eventConsumerFactoryService;
-        this.events = events;
-    }
-
-    @PostConstruct
-    private void init() {
-
-        // Topic example: fintlabs-no.fint-core.event.personvern-samtykke-samtykke-create-request
-        EventTopicNamePatternParameters eventTopicNameParameters = EventTopicNamePatternParameters
-                .builder()
-                .orgId(FormattedTopicComponentPattern.any())
-                .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                .eventName(ValidatedTopicComponentPattern.endingWith("-request"))
-                .build();
-
-        eventConsumerFactoryService.createFactory(
-                RequestFintEvent.class,
-                this::processEvent,
-                EventConsumerConfiguration
-                        .builder()
-                        .seekingOffsetResetOnAssignment(true)
-                        .build()
-        ).createContainer(eventTopicNameParameters);
-    }
-
-    private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.debug("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
-        events.add(consumerRecord.value());
+    public void addEvent(RequestFintEvent event) {
+        events.add(event);
     }
 
     public List<RequestFintEvent> getEvents(String orgId, String domainName, String packageName, String resourceName, int size) {
