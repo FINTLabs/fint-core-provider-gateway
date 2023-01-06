@@ -13,7 +13,9 @@ import java.util.List;
 @RestController()
 public class EventController {
 
-    private final EventService eventService;
+    private final RequestEventService requestEventService;
+
+    private final ResponseEventService responseEventService;
 
     @GetMapping(value = {"/event/{orgId}", "/event/{orgId}/{domainName}","/event/{orgId}/{domainName}/{packageName}","/event/{orgId}/{domainName}/{packageName}/{resourceName}"})
     public ResponseEntity<List<RequestFintEvent>> getEvents(
@@ -26,15 +28,13 @@ public class EventController {
         if (StringUtils.isBlank(orgId)) return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(
-                eventService.getEvents(orgId, domainName, packageName, resourceName, size)
+                requestEventService.getEvents(orgId, domainName, packageName, resourceName, size)
         );
     }
 
     @PostMapping("/event")
     public ResponseEntity<Void> postEvent(@RequestBody ResponseFintEvent responseFintEvent){
-        // update events
-        // send reponse to consumer
-        // send entity
+        responseEventService.handleEvent(responseFintEvent);
         return ResponseEntity.ok().build();
     }
 }

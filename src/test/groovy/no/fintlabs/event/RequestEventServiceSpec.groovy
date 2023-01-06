@@ -3,14 +3,14 @@ package no.fintlabs.event
 import no.fintlabs.adapter.models.RequestFintEvent
 import spock.lang.Specification
 
-class EventServiceSpec extends Specification {
+class RequestEventServiceSpec extends Specification {
 
     private final String ORG_ID = "vigoiks.no";
 
-    private EventService eventService;
+    private RequestEventService eventService;
 
     void setup() {
-        eventService = new EventService()
+        eventService = new RequestEventService()
     }
 
     def "Test getEvents"() {

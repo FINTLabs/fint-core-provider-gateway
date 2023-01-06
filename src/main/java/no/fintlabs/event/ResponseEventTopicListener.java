@@ -1,7 +1,7 @@
 package no.fintlabs.event;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.RequestFintEvent;
+import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
@@ -14,15 +14,14 @@ import javax.annotation.PostConstruct;
 
 @Slf4j
 @Service
-public class EventRequestTopicListener {
-
+public class ResponseEventTopicListener {
     private final EventConsumerFactoryService eventConsumerFactoryService;
 
-    private final EventService eventService;
+    private final RequestEventService requestEventService;
 
-    public EventRequestTopicListener(EventConsumerFactoryService eventConsumerFactoryService, EventService eventService) {
+    public ResponseEventTopicListener(EventConsumerFactoryService eventConsumerFactoryService, RequestEventService requestEventService) {
         this.eventConsumerFactoryService = eventConsumerFactoryService;
-        this.eventService = eventService;
+        this.requestEventService = requestEventService;
     }
 
     @PostConstruct
@@ -33,11 +32,11 @@ public class EventRequestTopicListener {
                 .builder()
                 .orgId(FormattedTopicComponentPattern.any())
                 .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                .eventName(ValidatedTopicComponentPattern.endingWith("-request"))
+                .eventName(ValidatedTopicComponentPattern.endingWith("-response"))
                 .build();
 
         eventConsumerFactoryService.createFactory(
-                RequestFintEvent.class,
+                ResponseFintEvent.class,
                 this::processEvent,
                 EventConsumerConfiguration
                         .builder()
@@ -46,8 +45,8 @@ public class EventRequestTopicListener {
         ).createContainer(eventTopicNameParameters);
     }
 
-    private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.debug("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
-        eventService.addEvent(consumerRecord.value());
+    private void processEvent(ConsumerRecord<String, ResponseFintEvent> consumerRecord) {
+        log.debug("ResponseFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
+        requestEventService.removeEvent(consumerRecord.value().getCorrId());
     }
 }
