@@ -159,7 +159,7 @@ public class FintCoreKafkaAdapterService {
         );
     }
 
-    private ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
+    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
         return entityProducer.send(
                 EntityProducerRecord.builder()
                         .topicNameParameters(EntityTopicNameParameters
