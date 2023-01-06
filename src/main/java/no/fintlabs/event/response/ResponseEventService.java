@@ -1,8 +1,9 @@
-package no.fintlabs.event;
+package no.fintlabs.event.response;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.event.request.RequestEventService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

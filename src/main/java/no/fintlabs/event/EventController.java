@@ -3,6 +3,8 @@ package no.fintlabs.event;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import lombok.RequiredArgsConstructor;
 import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.event.request.RequestEventService;
+import no.fintlabs.event.response.ResponseEventService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

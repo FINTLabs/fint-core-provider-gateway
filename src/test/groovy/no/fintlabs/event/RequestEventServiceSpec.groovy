@@ -1,6 +1,7 @@
 package no.fintlabs.event
 
 import no.fintlabs.adapter.models.RequestFintEvent
+import no.fintlabs.event.request.RequestEventService
 import spock.lang.Specification
 
 class RequestEventServiceSpec extends Specification {

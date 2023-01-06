@@ -1,4 +1,4 @@
-package no.fintlabs.event;
+package no.fintlabs.event.response;
 
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
