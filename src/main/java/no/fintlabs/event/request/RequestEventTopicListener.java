@@ -1,4 +1,4 @@
-package no.fintlabs.events.downstream;
+package no.fintlabs.event.request;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
@@ -7,26 +7,22 @@ import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class EventService {
+public class RequestEventTopicListener {
 
     private final EventConsumerFactoryService eventConsumerFactoryService;
 
-    private final ArrayList<RequestFintEvent> events;
+    private final RequestEventService requestEventService;
 
-    public EventService(EventConsumerFactoryService eventConsumerFactoryService) {
+    public RequestEventTopicListener(EventConsumerFactoryService eventConsumerFactoryService, RequestEventService requestEventService) {
         this.eventConsumerFactoryService = eventConsumerFactoryService;
-        events = new ArrayList<>();
+        this.requestEventService = requestEventService;
     }
 
     @PostConstruct
@@ -51,16 +47,7 @@ public class EventService {
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.info("You got a " + consumerRecord.value().getValue().getClass().getName());
-        events.add(consumerRecord.value());
-    }
-
-    public List<RequestFintEvent> getEvents(String domainName, String packageName, String resourceName) {
-        return events
-                .stream()
-                .filter(events -> StringUtils.isBlank(domainName) || events.getDomainName().equalsIgnoreCase(domainName))
-                .filter(events -> StringUtils.isBlank(packageName) || events.getPackageName().equalsIgnoreCase(packageName))
-                .filter(events -> StringUtils.isBlank(resourceName) || events.getPackageName().equalsIgnoreCase(resourceName))
-                .collect(Collectors.toList());
+        log.debug("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
+        requestEventService.addEvent(consumerRecord.value());
     }
 }
