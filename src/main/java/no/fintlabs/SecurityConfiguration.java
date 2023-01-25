@@ -1,5 +1,6 @@
 package no.fintlabs;
 
+import no.vigoiks.resourceserver.security.FintJwtCoreConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -33,7 +34,7 @@ public class SecurityConfiguration {
                 )
                 .oauth2ResourceServer((resourceServer) -> resourceServer
                         .jwt()
-                        .jwtAuthenticationConverter(new CustomUserConverter()));
+                        .jwtAuthenticationConverter(new FintJwtCoreConverter()));
         return http.build();
     }
 

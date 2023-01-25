@@ -1,6 +1,7 @@
 package no.fintlabs.event;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.event.request.RequestEventService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController()
 public class EventController {
@@ -31,7 +33,10 @@ public class EventController {
             @RequestParam(defaultValue = "0") int size
     ) {
         String orgId = FintJwtEndUserPrincipal.from(jwt).getOrgId();
-        if (StringUtils.isBlank(orgId)) return ResponseEntity.notFound().build();
+        if (StringUtils.isBlank(orgId)) {
+            log.info("Orgid not found");
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok(
                 requestEventService.getEvents(orgId, domainName, packageName, resourceName, size)
