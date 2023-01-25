@@ -5,8 +5,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 @EnableWebFluxSecurity
 public class SecurityConfiguration {
 
@@ -34,8 +32,8 @@ public class SecurityConfiguration {
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt(withDefaults())
-                );
+                        .jwt()
+                        .jwtAuthenticationConverter(new CustomUserConverter()));
         return http.build();
     }
 
