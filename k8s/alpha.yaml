@@ -85,7 +85,7 @@ spec:
             - name: TZ
               value: Europe/Oslo
             - name: JAVA_TOOL_OPTIONS
-              value: '-XX:+ExitOnOutOfMemoryError -Xmx3G -verbose:gc'
+              value: '-XX:+ExitOnOutOfMemoryError -Xmx3G'
             - name: spring.webflux.base-path
               value: /provider
             - name: spring.codec.max-in-memory-size
@@ -94,3 +94,4 @@ spec:
             - {name: server.tomcat.max-connections, value: '30000'}
             - {name: server.netty.connection-timeout, value: '600000'}
             - {name: server.connection-timeout, value: '600000'}
+            - {name: logging.level.no.fintlabs.event, value: 'debug'}

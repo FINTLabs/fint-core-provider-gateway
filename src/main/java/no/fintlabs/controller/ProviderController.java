@@ -54,7 +54,7 @@ public class ProviderController {
                                             @RequestBody AdapterHeartbeat adapterHeartbeat) {
 
 
-        log.info("Heartbeat from adapter id: {}, orgIds: {}, username: {}",
+        log.debug("Heartbeat from adapter id: {}, orgIds: {}, username: {}",
                 adapterHeartbeat.getAdapterId(),
                 adapterHeartbeat.getOrgId(),
                 adapterHeartbeat.getUsername()
