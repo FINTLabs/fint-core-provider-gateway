@@ -5,6 +5,8 @@ import no.fintlabs.FintCoreKafkaAdapterService;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.event.request.RequestEventService;
+import no.fintlabs.exception.InvalidOrgIdException;
+import no.fintlabs.exception.NoRequestFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,19 +27,20 @@ public class ResponseEventService {
         this.kafkaAdapterService = kafkaAdapterService;
     }
 
-    public void handleEvent(ResponseFintEvent responseFintEvent) {
+    public void handleEvent(ResponseFintEvent responseFintEvent) throws NoRequestFoundException, InvalidOrgIdException {
 
         Optional<RequestFintEvent> optionalRequestEvent = requestEventService.getEvent(responseFintEvent.getCorrId());
 
         if (optionalRequestEvent.isEmpty()) {
             log.error("Recieved event response, but did not find request for corr-id: {}", responseFintEvent.getCorrId());
-            throw new NullPointerException("No corresponding request found for response.");
+            throw new NoRequestFoundException(responseFintEvent.getCorrId());
         }
 
         RequestFintEvent requestEvent = optionalRequestEvent.get();
 
         if (!responseFintEvent.getOrgId().equals(requestEvent.getOrgId())) {
-            throw new IllegalArgumentException("OrgId for response did not match the request.");
+            log.error("Recieved event response, did not match org-id: {}", responseFintEvent.getOrgId());
+            throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
