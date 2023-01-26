@@ -6,6 +6,7 @@ import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.event.request.RequestEventService;
 import no.fintlabs.event.response.ResponseEventService;
+import no.vigoiks.resourceserver.security.FintJwtCorePrincipal;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class EventController {
             @PathVariable(required = false) String resourceName,
             @RequestParam(defaultValue = "0") int size
     ) {
-        String orgId = FintJwtEndUserPrincipal.from(jwt).getOrgId();
+        String orgId = FintJwtCorePrincipal.from(jwt).getOrgId();
         if (StringUtils.isBlank(orgId)) {
             log.info("Orgid not found");
             return ResponseEntity.notFound().build();
