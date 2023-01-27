@@ -6,6 +6,7 @@ import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.event.request.RequestEventService;
 import no.fintlabs.event.response.ResponseEventService;
+import no.fintlabs.exception.InvalidJwtException;
 import no.fintlabs.exception.InvalidOrgIdException;
 import no.fintlabs.exception.NoRequestFoundException;
 import no.vigoiks.resourceserver.security.FintJwtCorePrincipal;
@@ -35,12 +36,8 @@ public class EventController {
             @PathVariable(required = false) String packageName,
             @PathVariable(required = false) String resourceName,
             @RequestParam(defaultValue = "0") int size
-    ) {
-        String orgId = FintJwtCorePrincipal.from(jwt).getOrgId();
-        if (StringUtils.isBlank(orgId)) {
-            log.info("Orgid not found");
-            return ResponseEntity.notFound().build();
-        }
+    ) throws InvalidJwtException {
+        String orgId = getJwtOrgId(jwt);
 
         return ResponseEntity.ok(
                 requestEventService.getEvents(orgId, domainName, packageName, resourceName, size)
@@ -50,12 +47,11 @@ public class EventController {
     @PostMapping("/event")
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody ResponseFintEvent responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
+            @RequestBody ResponseFintEvent responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException, InvalidJwtException {
 
-        String jwtOrgId = FintJwtCorePrincipal.from(jwt).getOrgId();
-        if (responseFintEvent.getOrgId().equalsIgnoreCase(jwtOrgId)) {
-            log.error("Response event orgId did not match jwt orgid " +
-                    "\nResponse: {}, jwt: {}", responseFintEvent.getOrgId(), jwtOrgId);
+        String jwtOrgId = getJwtOrgId(jwt);
+        if (notMatchingOrgIds(jwtOrgId, responseFintEvent)) {
+            log.error("Response event orgId did not match jwt orgid. Response: {}, jwt: {}", responseFintEvent.getOrgId(), jwtOrgId);
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
@@ -64,14 +60,34 @@ public class EventController {
         return ResponseEntity.ok().build();
     }
 
+    private String getJwtOrgId(Jwt jwt) throws InvalidJwtException {
+        String jwtOrgId = FintJwtCorePrincipal.from(jwt).getOrgId();
+        if (StringUtils.isBlank(jwtOrgId)) {
+            log.error("Orgid not found in JWT.");
+            throw new InvalidJwtException("OrgId not found.");
+        }
+
+        return jwtOrgId;
+    }
+
+    private boolean notMatchingOrgIds(String jwtOrgId, ResponseFintEvent responseFintEvent) {
+        String responseOrgId = responseFintEvent.getOrgId().trim();
+        return !responseOrgId.equalsIgnoreCase(jwtOrgId.trim());
+    }
+
     @ExceptionHandler({NoRequestFoundException.class})
-    public ResponseEntity handleEmployeeIdException(NoRequestFoundException exception) {
+    public ResponseEntity handleNoRequestFoundException(NoRequestFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler({InvalidOrgIdException.class})
-    public ResponseEntity handleEmployeeIdException(InvalidOrgIdException exception) {
+    public ResponseEntity handleInvalidOrgIdException(InvalidOrgIdException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler({InvalidJwtException.class})
+    public ResponseEntity handleInvalidJwtException(InvalidJwtException exception) {
+        return ResponseEntity.badRequest().build();
     }
 
 }
