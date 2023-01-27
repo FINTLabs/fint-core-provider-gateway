@@ -53,9 +53,9 @@ public class EventController {
             @RequestBody ResponseFintEvent responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
 
         String jwtOrgId = FintJwtCorePrincipal.from(jwt).getOrgId();
-        if (responseFintEvent.getOrgId().equals(jwtOrgId)) {
+        if (responseFintEvent.getOrgId().equalsIgnoreCase(jwtOrgId)) {
             log.error("Response event orgId did not match jwt orgid " +
-                    "\nResponse: {}, jwt: {}", responseFintEvent.getCorrId(), jwtOrgId);
+                    "\nResponse: {}, jwt: {}", responseFintEvent.getOrgId(), jwtOrgId);
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
