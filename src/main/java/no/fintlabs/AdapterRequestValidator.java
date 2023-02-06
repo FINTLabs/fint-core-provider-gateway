@@ -1,6 +1,7 @@
 package no.fintlabs;
 
 
+import no.fintlabs.config.ProviderProperties;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.springframework.security.oauth2.jwt.Jwt;

@@ -1,7 +1,7 @@
 package no.fintlabs.event.response;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.FintCoreKafkaAdapterService;
+import no.fintlabs.SyncPageService;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.event.request.RequestEventService;
@@ -19,9 +19,9 @@ public class ResponseEventService {
 
     private final RequestEventService requestEventService;
 
-    private final FintCoreKafkaAdapterService kafkaAdapterService;
+    private final SyncPageService kafkaAdapterService;
 
-    public ResponseEventService(ResponseEventTopicProducer responseEventTopicProducer, RequestEventService requestEventService, FintCoreKafkaAdapterService kafkaAdapterService) {
+    public ResponseEventService(ResponseEventTopicProducer responseEventTopicProducer, RequestEventService requestEventService, SyncPageService kafkaAdapterService) {
         this.responseEventTopicProducer = responseEventTopicProducer;
         this.requestEventService = requestEventService;
         this.kafkaAdapterService = kafkaAdapterService;

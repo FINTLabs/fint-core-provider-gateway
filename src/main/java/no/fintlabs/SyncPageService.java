@@ -2,14 +2,13 @@ package no.fintlabs;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.*;
+import no.fintlabs.kafka.DeltaSyncProducer;
+import no.fintlabs.kafka.FullSyncProducer;
 import no.fintlabs.kafka.entity.EntityProducer;
 import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
-import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
-import no.fintlabs.kafka.event.EventProducerRecord;
-import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -22,93 +21,25 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
-public class FintCoreKafkaAdapterService {
-    private final EventProducer<AdapterHeartbeat> adapterHeartbeatEventProducer;
-    private final EventProducer<SyncPageMetadata> adapterFullSyncStatusEventProducer;
-    private final EventProducer<AdapterContract> adapterContractEventProducer;
+public class SyncPageService {
     private final EntityProducer<Object> entityProducer;
-    private final EntityProducerFactory entityProducerFactory;
-    private final EventProducerFactory eventProducerFactory;
+    private final FullSyncProducer fullSyncProducer;
+    private final DeltaSyncProducer deltaSyncProducer;
 
-    public FintCoreKafkaAdapterService(EntityProducerFactory entityProducerFactory, EventProducerFactory eventProducerFactory) {
-        this.adapterHeartbeatEventProducer = eventProducerFactory.createProducer(AdapterHeartbeat.class);
-        this.adapterContractEventProducer = eventProducerFactory.createProducer(AdapterContract.class);
-        this.adapterFullSyncStatusEventProducer = eventProducerFactory.createProducer(SyncPageMetadata.class);
+    public SyncPageService(
+            EntityProducerFactory entityProducerFactory,
+            EventProducerFactory eventProducerFactory,
+            FullSyncProducer fullSyncProducer,
+            DeltaSyncProducer deltaSyncProducer) {
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
-        this.entityProducerFactory = entityProducerFactory;
-        this.eventProducerFactory = eventProducerFactory;
-    }
-
-
-    public void heartbeat(AdapterHeartbeat adapterHeartbeat) {
-        adapterHeartbeatEventProducer.send(
-                EventProducerRecord.<AdapterHeartbeat>builder()
-                        .topicNameParameters(EventTopicNameParameters
-                                .builder()
-                                .orgId(adapterHeartbeat.getOrgId())
-                                .domainContext("fint-core")
-                                .eventName("adapter-health")
-                                .build())
-                        .value(adapterHeartbeat)
-                        .build()
-        );
-    }
-
-    public void register(AdapterContract adapterContract) {
-        adapterContractEventProducer.send(
-                EventProducerRecord.<AdapterContract>builder()
-                        .topicNameParameters(EventTopicNameParameters
-                                .builder()
-                                .orgId(adapterContract.getOrgId())
-                                .domainContext("fint-core")
-                                .eventName("adapter-register")
-                                .build())
-                        .value(adapterContract)
-                        .build()
-        );
-    }
-
-
-    private void sendFullSyncStatus(SyncPageMetadata metadata) {
-        try {
-            adapterFullSyncStatusEventProducer.send(
-                    EventProducerRecord.<SyncPageMetadata>builder()
-                            .topicNameParameters(EventTopicNameParameters
-                                    .builder()
-                                    .orgId(metadata.getOrgId())
-                                    .domainContext("fint-core")
-                                    .eventName("adapter-full-sync")
-                                    .build())
-                            .value(metadata)
-                            .build()
-            ).get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void sendDeltaSyncStatus(SyncPageMetadata metadata) {
-        try {
-            adapterFullSyncStatusEventProducer.send(
-                    EventProducerRecord.<SyncPageMetadata>builder()
-                            .topicNameParameters(EventTopicNameParameters
-                                    .builder()
-                                    .orgId(metadata.getOrgId())
-                                    .domainContext("fint-core")
-                                    .eventName("adapter-delta-sync")
-                                    .build())
-                            .value(metadata)
-                            .build()
-            ).get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getMessage());
-        }
+        this.fullSyncProducer = fullSyncProducer;
+        this.deltaSyncProducer = deltaSyncProducer;
     }
 
     public void doFullSync(FullSyncPageOfObject page, String domain, String packageName, String entity) {
         Instant start = Instant.now();
 
-        sendFullSyncStatus(page.getMetadata());
+        fullSyncProducer.sendAndGet(page.getMetadata());
         sendEntities(page, domain, packageName, entity);
 
         Instant finish = Instant.now();
@@ -126,7 +57,7 @@ public class FintCoreKafkaAdapterService {
     public void doDeltaSync(DeltaSyncPageOfObject page, String domain, String packageName, String entity) {
         Instant start = Instant.now();
 
-        sendDeltaSyncStatus(page.getMetadata());
+        deltaSyncProducer.sendAndGet(page.getMetadata());
         sendEntities(page, domain, packageName, entity);
 
         Instant finish = Instant.now();
@@ -165,7 +96,6 @@ public class FintCoreKafkaAdapterService {
                         .topicNameParameters(EntityTopicNameParameters
                                 .builder()
                                 .orgId(orgId)
-                                .domainContext("fint-core")
                                 .resource(String.format("%s-%s-%s", domain, packageName, entityName))
                                 .build())
                         .key(entity.getIdentifier())

@@ -3,15 +3,14 @@ package no.fintlabs.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.AdapterRequestValidator;
-import no.fintlabs.FintCoreEntityTopicService;
-import no.fintlabs.FintCoreEventTopicService;
-import no.fintlabs.FintCoreKafkaAdapterService;
-import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.adapter.models.AdapterHeartbeat;
-import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
-import no.fintlabs.adapter.models.FullSyncPageOfObject;
+import no.fintlabs.kafka.RegisterKafkaProducer;
+import no.fintlabs.kafka.ensure.FintCoreEntityTopicService;
+import no.fintlabs.kafka.ensure.FintCoreEventTopicService;
+import no.fintlabs.SyncPageService;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
+import no.fintlabs.kafka.HeartbeatKafkaProducer;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,17 +27,24 @@ public class ProviderController {
 
     private final FintCoreEntityTopicService fintCoreEntityTopicService;
     private final FintCoreEventTopicService fintCoreEventTopicService;
-    private final FintCoreKafkaAdapterService fintCoreKafkaAdapterService;
+    private final SyncPageService syncPageService;
+    private final HeartbeatKafkaProducer heartbeatKafkaProducer;
+    private final RegisterKafkaProducer registerKafkaProducer;
 
     private final AdapterRequestValidator validator;
 
 
     public ProviderController(FintCoreEntityTopicService fintCoreEntityTopicService,
                               FintCoreEventTopicService fintCoreEventTopicService,
-                              FintCoreKafkaAdapterService fintCoreKafkaAdapterService, AdapterRequestValidator validator) {
+                              SyncPageService syncPageService,
+                              HeartbeatKafkaProducer heartbeatKafkaProducer,
+                              RegisterKafkaProducer registerKafkaProducer,
+                              AdapterRequestValidator validator) {
         this.fintCoreEntityTopicService = fintCoreEntityTopicService;
         this.fintCoreEventTopicService = fintCoreEventTopicService;
-        this.fintCoreKafkaAdapterService = fintCoreKafkaAdapterService;
+        this.syncPageService = syncPageService;
+        this.heartbeatKafkaProducer = heartbeatKafkaProducer;
+        this.registerKafkaProducer = registerKafkaProducer;
         this.validator = validator;
     }
 
@@ -64,7 +70,7 @@ public class ProviderController {
         validator.validateUsername(principal, adapterHeartbeat.getUsername());
 
         fintCoreEventTopicService.ensureAdapterHeartbeatTopic(adapterHeartbeat);
-        fintCoreKafkaAdapterService.heartbeat(adapterHeartbeat);
+        heartbeatKafkaProducer.send(adapterHeartbeat, adapterHeartbeat.getOrgId());
 
         return ResponseEntity.ok("💗");
 
@@ -77,27 +83,11 @@ public class ProviderController {
                                          @PathVariable final String packageName,
                                          @PathVariable final String entity) {
 
-
-        log.info("Full sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
-                entities.getMetadata().getCorrId(),
-                entities.getMetadata().getOrgId(),
-                entities.getMetadata().getUriRef(),
-                entities.getMetadata().getTotalSize(),
-                entities.getResources().size(),
-                entities.getMetadata().getPage(),
-                entities.getMetadata().getTotalPages()
-        );
-
+        logEntities("Full sync", entities.getMetadata(), entities.getResources().size());
         validator.validateOrgId(principal, entities.getMetadata().getOrgId());
-
-
-        //fintCoreKafkaAdapterService.sendFullSyncStatus(entities.getMetadata());
-        fintCoreKafkaAdapterService.doFullSync(entities, domain, packageName, entity);
-
-
+        syncPageService.doFullSync(entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-
 
     @PatchMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deltaSync(
@@ -107,28 +97,15 @@ public class ProviderController {
             @PathVariable final String packageName,
             @PathVariable final String entity) {
 
-
-        log.info("Delta sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
-                entities.getMetadata().getCorrId(),
-                entities.getMetadata().getOrgId(),
-                entities.getMetadata().getUriRef(),
-                entities.getMetadata().getTotalSize(),
-                entities.getResources().size(),
-                entities.getMetadata().getPage(),
-                entities.getMetadata().getTotalPages()
-        );
+        logEntities("Delta sync", entities.getMetadata(), entities.getResources().size());
         validator.validateOrgId(principal, entities.getMetadata().getOrgId());
-
-        //fintCoreKafkaAdapterService.sendDeltaSyncStatus(entities.getMetadata());
-        fintCoreKafkaAdapterService.doDeltaSync(entities, domain, packageName, entity);
-
+        syncPageService.doDeltaSync(entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("register")
     public ResponseEntity<Void> register(@AuthenticationPrincipal Jwt jwt,
                                          @RequestBody final AdapterContract adapterContract) {
-
 
         log.info("Adapter registered {}", adapterContract);
 
@@ -137,12 +114,25 @@ public class ProviderController {
 
         fintCoreEventTopicService.ensureAdapterRegisterTopic(adapterContract);
 
-        fintCoreKafkaAdapterService.register(adapterContract);
+        registerKafkaProducer.send(adapterContract);
         fintCoreEntityTopicService.ensureAdapterEntityTopics(adapterContract);
         fintCoreEventTopicService.ensureAdapterFullSyncTopic(adapterContract);
         fintCoreEventTopicService.ensureAdapterDeltaSyncTopic(adapterContract);
 
         return ResponseEntity.ok().build();
+    }
+
+    private static void logEntities(String syncType, SyncPageMetadata metadata, int resourceSize){
+        log.info("{}: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
+                syncType,
+                metadata.getCorrId(),
+                metadata.getOrgId(),
+                metadata.getUriRef(),
+                metadata.getTotalSize(),
+                resourceSize,
+                metadata.getPage(),
+                metadata.getTotalPages()
+        );
     }
 
     @ExceptionHandler(JsonProcessingException.class)

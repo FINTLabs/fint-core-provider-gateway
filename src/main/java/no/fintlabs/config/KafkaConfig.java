@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.config;
 
 import org.springframework.context.annotation.Configuration;
 

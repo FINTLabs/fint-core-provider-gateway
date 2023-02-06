@@ -3,6 +3,8 @@ server:
 
 fint:
   kafka:
+    topic:
+      domain-context: fint-core
     application-id: provider
     enable-ssl: true
 

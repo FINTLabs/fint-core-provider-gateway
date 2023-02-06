@@ -1,7 +1,8 @@
-package no.fintlabs;
+package no.fintlabs.kafka.ensure;
 
 import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.adapter.models.AdapterHeartbeat;
+import no.fintlabs.config.ProviderProperties;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ public class FintCoreEventTopicService {
         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterHeartbeat.getOrgId())
-                        .domainContext("fint-core")
                         .eventName("adapter-health")
                         .build(),
                 providerProperties.getAdapterHeartbeatRetentionTimeMs()
@@ -31,7 +31,6 @@ public class FintCoreEventTopicService {
         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterContract.getOrgId())
-                        .domainContext("fint-core")
                         .eventName("adapter-register")
                         .build(),
                 providerProperties.getAdapterRegisterRetentionTimeMs()
@@ -42,7 +41,6 @@ public class FintCoreEventTopicService {
         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterContract.getOrgId())
-                        .domainContext("fint-core")
                         .eventName("adapter-full-sync")
                         .build(),
                 providerProperties.getAdapterFullSyncRetentionTimeMs()
@@ -53,7 +51,6 @@ public class FintCoreEventTopicService {
         eventTopicService.ensureTopic(EventTopicNameParameters
                         .builder()
                         .orgId(adapterContract.getOrgId())
-                        .domainContext("fint-core")
                         .eventName("adapter-delta-sync")
                         .build(),
                 providerProperties.getAdapterDeltaSyncRetentionTimeMs()

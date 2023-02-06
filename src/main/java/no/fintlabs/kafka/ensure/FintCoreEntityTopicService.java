@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.kafka.ensure;
 
 import no.fintlabs.adapter.models.AdapterCapability;
 import no.fintlabs.adapter.models.AdapterContract;
@@ -20,7 +20,6 @@ public class FintCoreEntityTopicService {
         entityTopicService.ensureTopic(EntityTopicNameParameters
                         .builder()
                         .orgId(orgId)
-                        .domainContext("fint-core")
                         .resource(String.format(
                                         "%s-%s-%s",
                                         adapterCapability.getDomainName(),
