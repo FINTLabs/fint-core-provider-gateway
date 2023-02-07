@@ -7,21 +7,21 @@ import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
 import org.springframework.util.concurrent.ListenableFuture;
 
-public abstract class KafkaEventProducer<T> {
+public abstract class EventProducerKafka<T> {
 
-    private final EventProducer<T> adapterEventProducer;
+    private final EventProducer<T> eventProducer;
     private final EventTopicService eventTopicService;
     private String eventName;
 
-    public KafkaEventProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService, Class<T> valueClass, String eventName) {
+    public EventProducerKafka(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService, Class<T> valueClass, String eventName) {
         this.eventTopicService = eventTopicService;
         this.eventName = eventName;
-        this.adapterEventProducer = eventProducerFactory.createProducer(valueClass);
+        this.eventProducer = eventProducerFactory.createProducer(valueClass);
     }
 
     public ListenableFuture send(T value, String orgId) {
         EventTopicNameParameters eventTopicNameParameters = generateTopicName(orgId);
-        return adapterEventProducer.send(createEventProducerRecord(value, eventTopicNameParameters));
+        return eventProducer.send(createEventProducerRecord(value, eventTopicNameParameters));
     }
 
     public void ensureTopic(String ordId, long retentionTimeMs) {
@@ -36,7 +36,6 @@ public abstract class KafkaEventProducer<T> {
                 .build();
     }
 
-
     public EventTopicNameParameters generateTopicName(String orgId) {
         return EventTopicNameParameters
                 .builder()
@@ -45,4 +44,18 @@ public abstract class KafkaEventProducer<T> {
                 .build();
     }
 
+
+//    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
+//        return entityProducer.send(
+//                EntityProducerRecord.builder()
+//                        .topicNameParameters(EntityTopicNameParameters
+//                                .builder()
+//                                .orgId(orgId)
+//                                .resource(String.format("%s-%s-%s", domain, packageName, entityName))
+//                                .build())
+//                        .key(entity.getIdentifier())
+//                        .value(entity.getResource())
+//                        .build()
+//        );
+//    }
 }

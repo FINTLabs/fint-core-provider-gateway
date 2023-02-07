@@ -11,9 +11,9 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Service
-public class FullSyncProducer extends KafkaEventProducer<SyncPageMetadata> {
+public class FullSyncProducerKafka extends EventProducerKafka<SyncPageMetadata> {
 
-    public FullSyncProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
+    public FullSyncProducerKafka(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
         super(eventProducerFactory, eventTopicService, SyncPageMetadata.class, "adapter-full-sync");
     }
 
@@ -23,7 +23,7 @@ public class FullSyncProducer extends KafkaEventProducer<SyncPageMetadata> {
 
     public void sendAndGet(SyncPageMetadata metadata) {
         try {
-            this.send(metadata).get();
+            send(metadata).get();
         } catch (InterruptedException | ExecutionException e) {
             log.error(e.getMessage());
         }
