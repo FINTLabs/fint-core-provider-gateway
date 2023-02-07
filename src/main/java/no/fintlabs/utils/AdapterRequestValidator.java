@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.utils;
 
 
 import no.fintlabs.config.ProviderProperties;

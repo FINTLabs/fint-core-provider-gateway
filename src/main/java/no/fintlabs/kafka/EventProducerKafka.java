@@ -43,19 +43,4 @@ public abstract class EventProducerKafka<T> {
                 .eventName(eventName)
                 .build();
     }
-
-
-//    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
-//        return entityProducer.send(
-//                EntityProducerRecord.builder()
-//                        .topicNameParameters(EntityTopicNameParameters
-//                                .builder()
-//                                .orgId(orgId)
-//                                .resource(String.format("%s-%s-%s", domain, packageName, entityName))
-//                                .build())
-//                        .key(entity.getIdentifier())
-//                        .value(entity.getResource())
-//                        .build()
-//        );
-//    }
 }

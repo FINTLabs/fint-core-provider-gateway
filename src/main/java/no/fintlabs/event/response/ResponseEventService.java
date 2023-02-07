@@ -6,7 +6,7 @@ import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.event.request.RequestEventService;
 import no.fintlabs.exception.InvalidOrgIdException;
 import no.fintlabs.exception.NoRequestFoundException;
-import no.fintlabs.kafka.EntityProducerKafka;
+import no.fintlabs.datasync.EntityProducerKafka;
 import org.springframework.stereotype.Service;
 
 @Slf4j

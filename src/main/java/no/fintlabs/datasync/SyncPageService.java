@@ -1,12 +1,12 @@
-package no.fintlabs;
+package no.fintlabs.datasync;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
 import no.fintlabs.adapter.models.FullSyncPageOfObject;
 import no.fintlabs.adapter.models.SyncPage;
-import no.fintlabs.kafka.DeltaSyncProducerKafka;
-import no.fintlabs.kafka.EntityProducerKafka;
-import no.fintlabs.kafka.FullSyncProducerKafka;
+import no.fintlabs.datasync.DeltaSyncProducerKafka;
+import no.fintlabs.datasync.EntityProducerKafka;
+import no.fintlabs.datasync.FullSyncProducerKafka;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;

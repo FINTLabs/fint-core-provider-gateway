@@ -1,4 +1,4 @@
-package no.fintlabs.kafka;
+package no.fintlabs.datasync;
 
 import no.fintlabs.adapter.models.SyncPageEntry;
 import no.fintlabs.kafka.entity.EntityProducer;

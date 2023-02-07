@@ -1,6 +1,7 @@
-package no.fintlabs.kafka;
+package no.fintlabs.register;
 
 import no.fintlabs.adapter.models.AdapterContract;
+import no.fintlabs.kafka.EventProducerKafka;
 import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.topic.EventTopicService;
 import org.springframework.stereotype.Service;
