@@ -1,4 +1,4 @@
-package no.fintlabs.controller;
+package no.fintlabs.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

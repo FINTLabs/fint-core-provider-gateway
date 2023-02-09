@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

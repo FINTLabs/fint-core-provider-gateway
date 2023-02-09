@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.config;
 
 import no.vigoiks.resourceserver.security.FintJwtCoreConverter;
 import org.springframework.context.annotation.Bean;
