@@ -76,7 +76,6 @@ public class SyncPageService {
                         ).get();
                     } catch (InterruptedException | ExecutionException e) {
                         log.error(e.getMessage());
-                        //throw new InvalidOrgId("");
                     }
                 }
         );
