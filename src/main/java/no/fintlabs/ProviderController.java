@@ -8,6 +8,7 @@ import no.fintlabs.adapter.models.AdapterHeartbeat;
 import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
 import no.fintlabs.adapter.models.FullSyncPageOfObject;
 import no.fintlabs.datasync.DataSyncService;
+import no.fintlabs.datasync.DeleteSyncPageOfObject;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import no.fintlabs.heartbeat.HeartbeatService;
@@ -67,6 +68,18 @@ public class ProviderController {
 
         dataSyncService.registerDeltaSync(principal, entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("{domain}/{packageName}/{entity}")
+    public ResponseEntity<Void> deleteSync(
+            @AuthenticationPrincipal Jwt principal,
+            @RequestBody DeleteSyncPageOfObject entities,
+            @PathVariable final String domain,
+            @PathVariable final String packageName,
+            @PathVariable final String entity) {
+
+        dataSyncService.registerDeleteSync(principal, entities, domain, packageName, entity);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("register")
