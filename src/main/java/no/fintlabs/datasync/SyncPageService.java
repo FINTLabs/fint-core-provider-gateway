@@ -22,7 +22,8 @@ public class SyncPageService {
     public SyncPageService(
             EntityProducerKafka entityProducerKafka,
             FullSyncProducerKafka fullSyncProducer,
-            DeltaSyncProducerKafka deltaSyncProducer, DeleteSyncProducerKafka deleteSyncProducer) {
+            DeltaSyncProducerKafka deltaSyncProducer,
+            DeleteSyncProducerKafka deleteSyncProducer) {
         this.entityProducerKafka = entityProducerKafka;
         this.fullSyncProducer = fullSyncProducer;
         this.deltaSyncProducer = deltaSyncProducer;
