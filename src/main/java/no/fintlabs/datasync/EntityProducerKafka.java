@@ -18,7 +18,7 @@ public class EntityProducerKafka {
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
     }
 
-    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> entity) {
+    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
         return entityProducer.send(
                 EntityProducerRecord.builder()
                         .topicNameParameters(EntityTopicNameParameters
@@ -26,8 +26,8 @@ public class EntityProducerKafka {
                                 .orgId(orgId)
                                 .resource(String.format("%s-%s-%s", domain, packageName, entityName))
                                 .build())
-                        .key(entity.getIdentifier())
-                        .value(entity.getResource())
+                        .key(syncPageEntry.getIdentifier())
+                        .value(syncPageEntry.getResource())
                         .build()
         );
     }

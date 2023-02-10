@@ -3,10 +3,7 @@ package no.fintlabs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.adapter.models.AdapterHeartbeat;
-import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
-import no.fintlabs.adapter.models.FullSyncPageOfObject;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.datasync.DataSyncService;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
@@ -67,6 +64,18 @@ public class ProviderController {
 
         dataSyncService.registerDeltaSync(principal, entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("{domain}/{packageName}/{entity}")
+    public ResponseEntity<Void> deleteSync(
+            @AuthenticationPrincipal Jwt principal,
+            @RequestBody DeleteSyncPageOfObject entities,
+            @PathVariable final String domain,
+            @PathVariable final String packageName,
+            @PathVariable final String entity) {
+
+        dataSyncService.registerDeleteSync(principal, entities, domain, packageName, entity);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("register")
