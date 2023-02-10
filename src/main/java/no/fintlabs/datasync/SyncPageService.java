@@ -1,6 +1,7 @@
 package no.fintlabs.datasync;
 
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.adapter.models.DeleteSyncPageOfObject;
 import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
 import no.fintlabs.adapter.models.FullSyncPageOfObject;
 import no.fintlabs.adapter.models.SyncPage;
@@ -53,6 +54,8 @@ public class SyncPageService {
     public void doDeleteSync(DeleteSyncPageOfObject page, String domain, String packageName, String entity) {
         Instant start = Instant.now();
 
+        page.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
+
         deleteSyncProducer.send(page.getMetadata());
         sendEntities(page, domain, packageName, entity);
 
@@ -63,14 +66,14 @@ public class SyncPageService {
 
     private <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
         page.getResources().forEach(
-                resource -> {
+                syncPageEntry -> {
                     try {
                         entityProducerKafka.sendEntity(
                                 page.getMetadata().getOrgId(),
                                 domain,
                                 packageName,
                                 entity,
-                                resource
+                                syncPageEntry
                         ).get();
                     } catch (InterruptedException | ExecutionException e) {
                         log.error(e.getMessage());
