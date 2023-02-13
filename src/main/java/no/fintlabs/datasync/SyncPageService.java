@@ -1,10 +1,7 @@
 package no.fintlabs.datasync;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.DeleteSyncPageOfObject;
-import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
-import no.fintlabs.adapter.models.FullSyncPageOfObject;
-import no.fintlabs.adapter.models.SyncPage;
+import no.fintlabs.adapter.models.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -15,54 +12,36 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class SyncPageService {
     private final EntityProducerKafka entityProducerKafka;
-    private final FullSyncProducerKafka fullSyncProducer;
-    private final DeltaSyncProducerKafka deltaSyncProducer;
-    private final DeleteSyncProducerKafka deleteSyncProducer;
+    private final FullSyncProducerKafka fullSyncProducerKafka;
+    private final DeltaSyncProducerKafka deltaSyncProducerKafka;
+    private final DeleteSyncProducerKafka deleteSyncProducerKafka;
 
-    public SyncPageService(
-            EntityProducerKafka entityProducerKafka,
-            FullSyncProducerKafka fullSyncProducer,
-            DeltaSyncProducerKafka deltaSyncProducer,
-            DeleteSyncProducerKafka deleteSyncProducer) {
+    public SyncPageService(EntityProducerKafka entityProducerKafka, FullSyncProducerKafka fullSyncProducerKafka, DeltaSyncProducerKafka deltaSyncProducerKafka, DeleteSyncProducerKafka deleteSyncProducerKafka) {
         this.entityProducerKafka = entityProducerKafka;
-        this.fullSyncProducer = fullSyncProducer;
-        this.deltaSyncProducer = deltaSyncProducer;
-        this.deleteSyncProducer = deleteSyncProducer;
+        this.fullSyncProducerKafka = fullSyncProducerKafka;
+        this.deltaSyncProducerKafka = deltaSyncProducerKafka;
+        this.deleteSyncProducerKafka = deleteSyncProducerKafka;
     }
 
-    public void doFullSync(FullSyncPageOfObject page, String domain, String packageName, String entity) {
+
+    public <T extends SyncPage<Object>> void doSync(T syncPage, String domain, String packageName, String entity) {
         Instant start = Instant.now();
+        SyncType syncType = syncPage.getSyncType();
 
-        fullSyncProducer.sendAndGet(page.getMetadata());
-        sendEntities(page, domain, packageName, entity);
+        switch (syncType) {
+            case FULL -> fullSyncProducerKafka.sendAndGet(syncPage.getMetadata());
+            case DELTA -> deltaSyncProducerKafka.sendAndGet(syncPage.getMetadata());
+            case DELETE -> {
+                syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
+                deleteSyncProducerKafka.send(syncPage.getMetadata());
+            }
+        }
 
+        sendEntities(syncPage, domain, packageName, entity);
         Instant finish = Instant.now();
         Duration timeElapsed = Duration.between(start, finish);
-        logDuration("full", page.getMetadata().getCorrId(), timeElapsed);
-    }
 
-    public void doDeltaSync(DeltaSyncPageOfObject page, String domain, String packageName, String entity) {
-        Instant start = Instant.now();
-
-        deltaSyncProducer.sendAndGet(page.getMetadata());
-        sendEntities(page, domain, packageName, entity);
-
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        logDuration("delta", page.getMetadata().getCorrId(), timeElapsed);
-    }
-
-    public void doDeleteSync(DeleteSyncPageOfObject page, String domain, String packageName, String entity) {
-        Instant start = Instant.now();
-
-        page.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
-
-        deleteSyncProducer.send(page.getMetadata());
-        sendEntities(page, domain, packageName, entity);
-
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        logDuration("delete", page.getMetadata().getCorrId(), timeElapsed);
+        logDuration(syncType, syncPage.getMetadata().getCorrId(), timeElapsed);
     }
 
     private <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
@@ -83,9 +62,9 @@ public class SyncPageService {
         );
     }
 
-    private void logDuration(String dataSyncMethod, String corrId, Duration timeTaken) {
+    private void logDuration(SyncType syncType, String corrId, Duration timeTaken) {
         log.info("End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
-                dataSyncMethod,
+                syncType.toString().toLowerCase(),
                 corrId,
                 timeTaken.toHoursPart(),
                 timeTaken.toMinutesPart(),

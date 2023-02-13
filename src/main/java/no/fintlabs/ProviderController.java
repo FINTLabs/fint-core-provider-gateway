@@ -50,7 +50,7 @@ public class ProviderController {
                                          @PathVariable final String packageName,
                                          @PathVariable final String entity) {
 
-        dataSyncService.registerFullSync(principal, entities, domain, packageName, entity);
+        dataSyncService.registerSync(principal, entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -62,7 +62,7 @@ public class ProviderController {
             @PathVariable final String packageName,
             @PathVariable final String entity) {
 
-        dataSyncService.registerDeltaSync(principal, entities, domain, packageName, entity);
+        dataSyncService.registerSync(principal, entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -74,7 +74,7 @@ public class ProviderController {
             @PathVariable final String packageName,
             @PathVariable final String entity) {
 
-        dataSyncService.registerDeleteSync(principal, entities, domain, packageName, entity);
+        dataSyncService.registerSync(principal, entities, domain, packageName, entity);
         return ResponseEntity.ok().build();
     }
 
