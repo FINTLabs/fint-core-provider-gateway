@@ -30,5 +30,6 @@ public class RegisterService {
         fintCoreEntityTopicService.ensureAdapterEntityTopics(adapterContract);
         fintCoreEventTopicService.ensureAdapterFullSyncTopic(adapterContract);
         fintCoreEventTopicService.ensureAdapterDeltaSyncTopic(adapterContract);
+        fintCoreEventTopicService.ensureAdapterDeleteSyncTopic(adapterContract);
     }
 }

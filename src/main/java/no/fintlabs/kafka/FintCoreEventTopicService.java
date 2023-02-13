@@ -33,6 +33,10 @@ public class FintCoreEventTopicService {
         ensureTopic(adapterContract, "adapter-delta-sync", providerProperties.getAdapterDeltaSyncRetentionTimeMs());
     }
 
+    public void ensureAdapterDeleteSyncTopic(AdapterContract adapterContract) {
+        ensureTopic(adapterContract, "adapter-delete-sync", providerProperties.getAdapterDeleteSyncRetentionTimeMs());
+    }
+
     private void ensureTopic(AdapterContract adapterContract, String eventName, long retentionTime) {
         ensureTopic(adapterContract.getOrgId(), eventName, retentionTime);
     }

@@ -85,7 +85,7 @@ spec:
             - name: TZ
               value: Europe/Oslo
             - name: JAVA_TOOL_OPTIONS
-              value: '-XX:+ExitOnOutOfMemoryError -Xmx3G -verbose:gc'
+              value: '-XX:+ExitOnOutOfMemoryError -Xmx3G'
             - name: spring.webflux.base-path
               value: /provider
             - name: spring.codec.max-in-memory-size
