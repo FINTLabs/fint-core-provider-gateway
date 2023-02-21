@@ -19,7 +19,7 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.delta-sync.retention-time-ms:86400000}")
     private long adapterDeltaSyncRetentionTimeMs;
 
-    @Value("${fint.provider.adapter.delta-sync.retention-time-ms:86400000}")
+    @Value("${fint.provider.adapter.delete-sync.retention-time-ms:86400000}")
     private long adapterDeleteSyncRetentionTimeMs;
 
     @Value("${fint.provider.adapter.scope:fint-adapter}")
