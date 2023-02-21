@@ -32,7 +32,7 @@ public class SyncPageService {
         logDuration(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), timeTaken);
     }
 
-    private <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
+    private void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
         page.getResources().forEach(syncPageEntry -> {
             ListenableFuture<SendResult<String, Object>> future = entityProducerKafka.sendEntity(
                     page.getMetadata().getOrgId(),
