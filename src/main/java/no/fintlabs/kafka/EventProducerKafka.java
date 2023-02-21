@@ -11,32 +11,31 @@ public abstract class EventProducerKafka<T> {
 
     private final EventProducer<T> eventProducer;
     private final EventTopicService eventTopicService;
-    private String eventName;
 
-    public EventProducerKafka(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService, Class<T> valueClass, String eventName) {
+    public EventProducerKafka(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService, Class<T> valueClass) {
         this.eventTopicService = eventTopicService;
-        this.eventName = eventName;
         this.eventProducer = eventProducerFactory.createProducer(valueClass);
     }
 
-    public ListenableFuture send(T value, String orgId) {
-        EventTopicNameParameters eventTopicNameParameters = generateTopicName(orgId);
-        return eventProducer.send(createEventProducerRecord(value, eventTopicNameParameters));
+    public ListenableFuture<?> send(T value, String orgId, String eventName) {
+        EventTopicNameParameters eventTopicNameParameters = generateTopicName(orgId, eventName);
+        EventProducerRecord<T> eventProducerRecord = createEventProducerRecord(value, eventTopicNameParameters);
+        return eventProducer.send(eventProducerRecord);
     }
 
-    public void ensureTopic(String ordId, long retentionTimeMs) {
+    public void ensureTopic(String ordId, String eventName, long retentionTimeMs) {
         // Todo See CT-457 for reference
-        eventTopicService.ensureTopic(generateTopicName(ordId), retentionTimeMs);
+        eventTopicService.ensureTopic(generateTopicName(ordId, eventName), retentionTimeMs);
     }
 
-    public EventProducerRecord createEventProducerRecord(T value, EventTopicNameParameters topicName) {
-        return EventProducerRecord.builder()
+    public EventProducerRecord<T> createEventProducerRecord(T value, EventTopicNameParameters topicName) {
+        return EventProducerRecord.<T>builder()
                 .topicNameParameters(topicName)
                 .value(value)
                 .build();
     }
 
-    public EventTopicNameParameters generateTopicName(String orgId) {
+    public EventTopicNameParameters generateTopicName(String orgId, String eventName) {
         return EventTopicNameParameters
                 .builder()
                 .orgId(orgId)

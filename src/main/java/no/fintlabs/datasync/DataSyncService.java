@@ -21,7 +21,6 @@ public class DataSyncService {
         syncPageService.doSync(syncPageOfObject, domain, packageName, entity);
     }
 
-
     private static void logEntities(String syncType, SyncPageMetadata metadata, int resourceSize) {
         log.info("{}: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
                 syncType,
@@ -34,5 +33,4 @@ public class DataSyncService {
                 metadata.getTotalPages()
         );
     }
-
 }

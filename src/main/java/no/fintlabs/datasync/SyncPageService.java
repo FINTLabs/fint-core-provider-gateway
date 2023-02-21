@@ -1,65 +1,52 @@
 package no.fintlabs.datasync;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.*;
+import no.fintlabs.adapter.models.SyncPage;
+import no.fintlabs.adapter.models.SyncType;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ExecutionException;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class SyncPageService {
     private final EntityProducerKafka entityProducerKafka;
-    private final FullSyncProducerKafka fullSyncProducerKafka;
-    private final DeltaSyncProducerKafka deltaSyncProducerKafka;
-    private final DeleteSyncProducerKafka deleteSyncProducerKafka;
-
-    public SyncPageService(EntityProducerKafka entityProducerKafka, FullSyncProducerKafka fullSyncProducerKafka, DeltaSyncProducerKafka deltaSyncProducerKafka, DeleteSyncProducerKafka deleteSyncProducerKafka) {
-        this.entityProducerKafka = entityProducerKafka;
-        this.fullSyncProducerKafka = fullSyncProducerKafka;
-        this.deltaSyncProducerKafka = deltaSyncProducerKafka;
-        this.deleteSyncProducerKafka = deleteSyncProducerKafka;
-    }
-
+    private final MetaDataKafkaProducer metaDataKafkaProducer;
 
     public <T extends SyncPage<Object>> void doSync(T syncPage, String domain, String packageName, String entity) {
         Instant start = Instant.now();
-        SyncType syncType = syncPage.getSyncType();
+        String eventName = String.format("adapter-%s-sync", syncPage.getSyncType().toString().toLowerCase());
 
-        switch (syncType) {
-            case FULL -> fullSyncProducerKafka.sendAndGet(syncPage.getMetadata());
-            case DELTA -> deltaSyncProducerKafka.sendAndGet(syncPage.getMetadata());
-            case DELETE -> {
-                syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
-                deleteSyncProducerKafka.send(syncPage.getMetadata());
-            }
+        if (syncPage.getSyncType() == SyncType.DELETE) {
+            syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
         }
-
+        metaDataKafkaProducer.send(syncPage.getMetadata(), syncPage.getMetadata().getOrgId(), eventName);
         sendEntities(syncPage, domain, packageName, entity);
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
 
-        logDuration(syncType, syncPage.getMetadata().getCorrId(), timeElapsed);
+        Duration timeTaken = Duration.between(start, Instant.now());
+        logDuration(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), timeTaken);
     }
 
     private <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
-        page.getResources().forEach(
-                syncPageEntry -> {
-                    try {
-                        entityProducerKafka.sendEntity(
-                                page.getMetadata().getOrgId(),
-                                domain,
-                                packageName,
-                                entity,
-                                syncPageEntry
-                        ).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error(e.getMessage());
-                    }
-                }
-        );
+        page.getResources().forEach(syncPageEntry -> {
+            ListenableFuture<SendResult<String, Object>> future = entityProducerKafka.sendEntity(
+                    page.getMetadata().getOrgId(),
+                    domain,
+                    packageName,
+                    entity,
+                    syncPageEntry
+            );
+
+            future.addCallback(
+                    result -> log.debug("Entity sent successfully"),
+                    error -> log.error("Error sending entity: " + error.getMessage(), error)
+            );
+        });
     }
 
     private void logDuration(SyncType syncType, String corrId, Duration timeTaken) {
@@ -71,5 +58,4 @@ public class SyncPageService {
                 timeTaken.toSecondsPart()
         );
     }
-
 }
