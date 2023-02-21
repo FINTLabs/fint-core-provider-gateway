@@ -8,13 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class HeartbeatKafkaProducer extends EventProducerKafka<AdapterHeartbeat> {
-
     public HeartbeatKafkaProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
-        super(eventProducerFactory, eventTopicService, AdapterHeartbeat.class, "adapter-health");
+        super(eventProducerFactory, eventTopicService, AdapterHeartbeat.class);
     }
-
-    public void send(AdapterHeartbeat adapterHeartbeat) {
-        super.send(adapterHeartbeat, adapterHeartbeat.getOrgId());
-    }
-
 }

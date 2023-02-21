@@ -8,13 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RegisterKafkaProducer extends EventProducerKafka<AdapterContract> {
-
     public RegisterKafkaProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
-        super(eventProducerFactory, eventTopicService, AdapterContract.class, "adapter-register");
+        super(eventProducerFactory, eventTopicService, AdapterContract.class);
     }
-
-    public void send(AdapterContract adapterContract) {
-        super.send(adapterContract, adapterContract.getOrgId());
-    }
-
 }
