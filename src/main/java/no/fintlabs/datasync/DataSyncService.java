@@ -2,10 +2,7 @@ package no.fintlabs.datasync;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.DeleteSyncPageOfObject;
-import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
-import no.fintlabs.adapter.models.FullSyncPageOfObject;
-import no.fintlabs.adapter.models.SyncPageMetadata;
+import no.fintlabs.adapter.models.*;
 import no.fintlabs.utils.AdapterRequestValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -18,24 +15,11 @@ public class DataSyncService {
     private final AdapterRequestValidator validator;
     private final SyncPageService syncPageService;
 
-    public void registerDeltaSync(Jwt jwt, DeltaSyncPageOfObject entities, final String domain, final String packageName, final String entity) {
-        logEntities("Delta sync", entities.getMetadata(), entities.getResources().size());
-        validator.validateOrgId(jwt, entities.getMetadata().getOrgId());
-        syncPageService.doDeltaSync(entities, domain, packageName, entity);
+    public <T extends SyncPage<Object>> void registerSync(Jwt jwt, T syncPageOfObject, final String domain, final String packageName, final String entity) {
+        logEntities(syncPageOfObject.getClass().toString(), syncPageOfObject.getMetadata(), syncPageOfObject.getResources().size());
+        validator.validateOrgId(jwt, syncPageOfObject.getMetadata().getOrgId());
+        syncPageService.doSync(syncPageOfObject, domain, packageName, entity);
     }
-
-    public void registerFullSync(Jwt jwt, FullSyncPageOfObject entities, final String domain, final String packageName, final String entity) {
-        logEntities("Full sync", entities.getMetadata(), entities.getResources().size());
-        validator.validateOrgId(jwt, entities.getMetadata().getOrgId());
-        syncPageService.doFullSync(entities, domain, packageName, entity);
-    }
-
-    public void registerDeleteSync(Jwt jwt, DeleteSyncPageOfObject entities, final String domain, final String packageName, final String entity) {
-        logEntities("Delete sync", entities.getMetadata(), entities.getResources().size());
-        validator.validateOrgId(jwt, entities.getMetadata().getOrgId());
-        syncPageService.doDeleteSync(entities, domain, packageName, entity);
-    }
-
 
     private static void logEntities(String syncType, SyncPageMetadata metadata, int resourceSize) {
         log.info("{}: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
@@ -49,5 +33,4 @@ public class DataSyncService {
                 metadata.getTotalPages()
         );
     }
-
 }

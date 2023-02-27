@@ -1,96 +1,61 @@
 package no.fintlabs.datasync;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.DeleteSyncPageOfObject;
-import no.fintlabs.adapter.models.DeltaSyncPageOfObject;
-import no.fintlabs.adapter.models.FullSyncPageOfObject;
 import no.fintlabs.adapter.models.SyncPage;
+import no.fintlabs.adapter.models.SyncType;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ExecutionException;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class SyncPageService {
     private final EntityProducerKafka entityProducerKafka;
-    private final FullSyncProducerKafka fullSyncProducer;
-    private final DeltaSyncProducerKafka deltaSyncProducer;
-    private final DeleteSyncProducerKafka deleteSyncProducer;
+    private final MetaDataKafkaProducer metaDataKafkaProducer;
 
-    public SyncPageService(
-            EntityProducerKafka entityProducerKafka,
-            FullSyncProducerKafka fullSyncProducer,
-            DeltaSyncProducerKafka deltaSyncProducer,
-            DeleteSyncProducerKafka deleteSyncProducer) {
-        this.entityProducerKafka = entityProducerKafka;
-        this.fullSyncProducer = fullSyncProducer;
-        this.deltaSyncProducer = deltaSyncProducer;
-        this.deleteSyncProducer = deleteSyncProducer;
-    }
-
-    public void doFullSync(FullSyncPageOfObject page, String domain, String packageName, String entity) {
+    public <T extends SyncPage<Object>> void doSync(T syncPage, String domain, String packageName, String entity) {
         Instant start = Instant.now();
+        String eventName = String.format("adapter-%s-sync", syncPage.getSyncType().toString().toLowerCase());
 
-        fullSyncProducer.sendAndGet(page.getMetadata());
-        sendEntities(page, domain, packageName, entity);
+        if (syncPage.getSyncType() == SyncType.DELETE) {
+            syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
+        }
+        metaDataKafkaProducer.send(syncPage.getMetadata(), syncPage.getMetadata().getOrgId(), eventName);
+        sendEntities(syncPage, domain, packageName, entity);
 
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        logDuration("full", page.getMetadata().getCorrId(), timeElapsed);
+        Duration timeTaken = Duration.between(start, Instant.now());
+        logDuration(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), timeTaken);
     }
 
-    public void doDeltaSync(DeltaSyncPageOfObject page, String domain, String packageName, String entity) {
-        Instant start = Instant.now();
+    private void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
+        page.getResources().forEach(syncPageEntry -> {
+            ListenableFuture<SendResult<String, Object>> future = entityProducerKafka.sendEntity(
+                    page.getMetadata().getOrgId(),
+                    domain,
+                    packageName,
+                    entity,
+                    syncPageEntry
+            );
 
-        deltaSyncProducer.sendAndGet(page.getMetadata());
-        sendEntities(page, domain, packageName, entity);
-
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        logDuration("delta", page.getMetadata().getCorrId(), timeElapsed);
+            future.addCallback(
+                    result -> log.debug("Entity sent successfully"),
+                    error -> log.error("Error sending entity: " + error.getMessage(), error)
+            );
+        });
     }
 
-    public void doDeleteSync(DeleteSyncPageOfObject page, String domain, String packageName, String entity) {
-        Instant start = Instant.now();
-
-        page.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
-
-        deleteSyncProducer.send(page.getMetadata());
-        sendEntities(page, domain, packageName, entity);
-
-        Instant finish = Instant.now();
-        Duration timeElapsed = Duration.between(start, finish);
-        logDuration("delete", page.getMetadata().getCorrId(), timeElapsed);
-    }
-
-    private <T> void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
-        page.getResources().forEach(
-                syncPageEntry -> {
-                    try {
-                        entityProducerKafka.sendEntity(
-                                page.getMetadata().getOrgId(),
-                                domain,
-                                packageName,
-                                entity,
-                                syncPageEntry
-                        ).get();
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error(e.getMessage());
-                    }
-                }
-        );
-    }
-
-    private void logDuration(String dataSyncMethod, String corrId, Duration timeTaken) {
+    private void logDuration(SyncType syncType, String corrId, Duration timeTaken) {
         log.info("End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
-                dataSyncMethod,
+                syncType.toString().toLowerCase(),
                 corrId,
                 timeTaken.toHoursPart(),
                 timeTaken.toMinutesPart(),
                 timeTaken.toSecondsPart()
         );
     }
-
 }

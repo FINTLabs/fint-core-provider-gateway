@@ -21,14 +21,14 @@ public class AdapterRequestValidator {
     public  void validateOrgId(Jwt jwt, String requestedOrgId) {
         if (properties.isResourceServerSecurityDisabled()) return;
 
-        if (Stream.of(jwt.getClaims().get("fintAssetIDs").toString().split(",")).noneMatch(asset -> asset.equals(requestedOrgId))) {
-            throw new InvalidOrgId(
-                    String.format(
-                            "OrgId %s is not a part of the authorized OrgIds for this adapter!",
-                            requestedOrgId
-                    )
-            );
+        if (requestedOrgIdNotInFintAssetIDs(jwt, requestedOrgId)) {
+            throw new InvalidOrgId(String.format("OrgId %s is not a part of the authorized OrgIds for this adapter!", requestedOrgId));
         }
+    }
+
+    private static boolean requestedOrgIdNotInFintAssetIDs(Jwt jwt, String requestedOrgId) {
+        return Stream.of(jwt.getClaims().get("fintAssetIDs").toString().split(","))
+                .noneMatch(asset -> asset.equals(requestedOrgId));
     }
 
     public  void validateUsername(Jwt jwt, String requestedUsername) {

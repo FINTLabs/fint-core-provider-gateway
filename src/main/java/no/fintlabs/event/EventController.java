@@ -10,7 +10,6 @@ import no.fintlabs.exception.InvalidJwtException;
 import no.fintlabs.exception.InvalidOrgIdException;
 import no.fintlabs.exception.NoRequestFoundException;
 import no.vigoiks.resourceserver.security.FintJwtCorePrincipal;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +46,7 @@ public class EventController {
     @PostMapping("/event")
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody ResponseFintEvent responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException, InvalidJwtException {
+            @RequestBody ResponseFintEvent<?> responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException, InvalidJwtException {
 
         String jwtOrgId = getJwtOrgId(jwt);
         if (notMatchingOrgIds(jwtOrgId, responseFintEvent)) {
@@ -70,23 +69,23 @@ public class EventController {
         return jwtOrgId;
     }
 
-    private boolean notMatchingOrgIds(String jwtOrgId, ResponseFintEvent responseFintEvent) {
+    private boolean notMatchingOrgIds(String jwtOrgId, ResponseFintEvent<?> responseFintEvent) {
         String responseOrgId = responseFintEvent.getOrgId().trim();
         return !responseOrgId.equalsIgnoreCase(jwtOrgId.trim());
     }
 
     @ExceptionHandler({NoRequestFoundException.class})
-    public ResponseEntity handleNoRequestFoundException(NoRequestFoundException exception) {
+    public ResponseEntity<?> handleNoRequestFoundException(NoRequestFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler({InvalidOrgIdException.class})
-    public ResponseEntity handleInvalidOrgIdException(InvalidOrgIdException exception) {
+    public ResponseEntity<?> handleInvalidOrgIdException(InvalidOrgIdException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
     @ExceptionHandler({InvalidJwtException.class})
-    public ResponseEntity handleInvalidJwtException(InvalidJwtException exception) {
+    public ResponseEntity<?> handleInvalidJwtException(InvalidJwtException exception) {
         return ResponseEntity.badRequest().build();
     }
 

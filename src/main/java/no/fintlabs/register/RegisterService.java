@@ -26,7 +26,7 @@ public class RegisterService {
 
         fintCoreEventTopicService.ensureAdapterRegisterTopic(adapterContract);
 
-        registerKafkaProducer.send(adapterContract);
+        registerKafkaProducer.send(adapterContract, adapterContract.getOrgId());
         fintCoreEntityTopicService.ensureAdapterEntityTopics(adapterContract);
         fintCoreEventTopicService.ensureAdapterFullSyncTopic(adapterContract);
         fintCoreEventTopicService.ensureAdapterDeltaSyncTopic(adapterContract);
