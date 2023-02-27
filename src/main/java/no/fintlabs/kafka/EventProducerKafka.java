@@ -32,7 +32,7 @@ public abstract class EventProducerKafka<T> {
     }
 
     public ListenableFuture<?> send(T value, String orgId, String eventName) {
-        validateEventName();
+        validateEventName(eventName);
         EventTopicNameParameters eventTopicNameParameters = generateTopicName(orgId, eventName);
         EventProducerRecord<T> eventProducerRecord = createEventProducerRecord(value, eventTopicNameParameters);
         return eventProducer.send(eventProducerRecord);
@@ -44,7 +44,7 @@ public abstract class EventProducerKafka<T> {
 
     public void ensureTopic(String ordId, String eventName, long retentionTimeMs) {
         // Todo See CT-457 for reference
-        validateEventName();
+        validateEventName(eventName);
         eventTopicService.ensureTopic(generateTopicName(ordId, eventName), retentionTimeMs);
     }
 
@@ -67,7 +67,7 @@ public abstract class EventProducerKafka<T> {
                 .build();
     }
 
-    private void validateEventName() {
+    private void validateEventName(String eventName) {
         if (eventName == null) {
             throw new InvalidEventNameException("eventName is not set");
         }

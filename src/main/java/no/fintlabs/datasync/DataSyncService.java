@@ -16,14 +16,14 @@ public class DataSyncService {
     private final SyncPageService syncPageService;
 
     public <T extends SyncPage<Object>> void registerSync(Jwt jwt, T syncPageOfObject, final String domain, final String packageName, final String entity) {
-        logEntities(syncPageOfObject.getClass().toString(), syncPageOfObject.getMetadata(), syncPageOfObject.getResources().size());
+        logEntities(syncPageOfObject.getSyncType(), syncPageOfObject.getMetadata(), syncPageOfObject.getResources().size());
         validator.validateOrgId(jwt, syncPageOfObject.getMetadata().getOrgId());
         syncPageService.doSync(syncPageOfObject, domain, packageName, entity);
     }
 
-    private static void logEntities(String syncType, SyncPageMetadata metadata, int resourceSize) {
-        log.info("{}: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
-                syncType,
+    private static void logEntities(SyncType syncType, SyncPageMetadata metadata, int resourceSize) {
+        log.info("Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
+                syncType.toString().toLowerCase(),
                 metadata.getCorrId(),
                 metadata.getOrgId(),
                 metadata.getUriRef(),
