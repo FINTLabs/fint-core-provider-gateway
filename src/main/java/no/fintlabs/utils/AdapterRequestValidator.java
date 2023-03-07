@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.config.ProviderProperties;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
-import no.vigoiks.resourceserver.security.FintJwtCorePrincipal;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
