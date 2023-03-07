@@ -5,10 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.config.ProviderProperties;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
+import no.vigoiks.resourceserver.security.FintJwtCorePrincipal;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -22,15 +25,14 @@ public class AdapterRequestValidator {
     }
 
     public void validateRole(Jwt jwt, String domain, String packageName) {
-        HashSet<String> roles = (HashSet<String>) jwt.getClaims().get("Roles");
-
-        if (rolesDoesNotMatchResource(domain, packageName, roles)) {
-            // TODO Throw unauthorized error
+        List<String> roles = jwt.getClaimAsStringList("Roles");
+        if (resourcesDoesntMatchRoles(domain, packageName, roles)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Resource does not match role");
         }
     }
 
-    private static boolean rolesDoesNotMatchResource(String domain, String packageName, HashSet<String> roles) {
-        return roles.add(String.format("FINT_Client_%s_%s", domain, packageName));
+    private static boolean resourcesDoesntMatchRoles(String domain, String packageName, List<String> roles) {
+        return roles.stream().noneMatch(role -> role.contains(String.format("FINT_Adapter_%s_%s", domain, packageName)));
     }
 
     public void validateOrgId(Jwt jwt, String requestedOrgId) {
