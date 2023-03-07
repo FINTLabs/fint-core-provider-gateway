@@ -1,14 +1,19 @@
 package no.fintlabs.utils;
 
 
+import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.config.ProviderProperties;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.stream.Stream;
 
+@Slf4j
 @Component
 public class AdapterRequestValidator {
 
@@ -18,7 +23,18 @@ public class AdapterRequestValidator {
         this.properties = properties;
     }
 
-    public  void validateOrgId(Jwt jwt, String requestedOrgId) {
+    public void validateRole(Jwt jwt, String domain, String packageName) {
+        List<String> roles = jwt.getClaimAsStringList("Roles");
+        if (resourcesDoesntMatchRoles(domain, packageName, roles)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Resource does not match role");
+        }
+    }
+
+    private static boolean resourcesDoesntMatchRoles(String domain, String packageName, List<String> roles) {
+        return roles.stream().noneMatch(role -> role.contains(String.format("FINT_Adapter_%s_%s", domain, packageName)));
+    }
+
+    public void validateOrgId(Jwt jwt, String requestedOrgId) {
         if (properties.isResourceServerSecurityDisabled()) return;
 
         if (requestedOrgIdNotInFintAssetIDs(jwt, requestedOrgId)) {
@@ -31,7 +47,7 @@ public class AdapterRequestValidator {
                 .noneMatch(asset -> asset.equals(requestedOrgId));
     }
 
-    public  void validateUsername(Jwt jwt, String requestedUsername) {
+    public void validateUsername(Jwt jwt, String requestedUsername) {
         if (properties.isResourceServerSecurityDisabled()) return;
 
         if (!jwt.getClaims().get("cn").toString().equals(requestedUsername)) {
