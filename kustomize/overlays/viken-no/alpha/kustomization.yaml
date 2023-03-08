@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: viken-no
+resources:
+  - ../../../base
+patchesStrategicMerge:
+  - config-map.yaml
+commonLabels:
+  app.kubernetes.io/name: fint-core-provider-gateway
+  app.kubernetes.io/instance: fint-core-provider-gateway_viken-no
+  app.kubernetes.io/version: latest
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/part-of: fint-core
+  fintlabs.no/team: core
+  fintlabs.no/org-id: viken.no
+patches:
+  - patch: |-
+      - op: replace
+        path: "/spec/acls/0/topic"
+        value: "viken-no.core.*"
+    target:
+      kind: KafkaUserAndAcl
+      name: fint-core-provider-gateway
+
