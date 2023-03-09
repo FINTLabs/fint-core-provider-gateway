@@ -21,7 +21,7 @@ metadata:
     fintlabs.no/org-id: fintlabs.no
     fintlabs.no/team: core
   name: fint-core-provider-gateway
-  namespace: fintlabs-no
+  namespace: fint-core
 ---
 apiVersion: v1
 kind: Service
@@ -35,7 +35,7 @@ metadata:
     fintlabs.no/org-id: fintlabs.no
     fintlabs.no/team: core
   name: fint-core-provider-gateway
-  namespace: fintlabs-no
+  namespace: fint-core
 spec:
   ports:
   - port: 8080
@@ -61,7 +61,7 @@ metadata:
     fintlabs.no/org-id: fintlabs.no
     fintlabs.no/team: core
   name: fint-core-provider-gateway
-  namespace: fintlabs-no
+  namespace: fint-core
 spec:
   replicas: 1
   selector:
@@ -124,7 +124,7 @@ metadata:
     fintlabs.no/org-id: fintlabs.no
     fintlabs.no/team: core
   name: fint-core-provider-gateway
-  namespace: fintlabs-no
+  namespace: fint-core
 spec:
   acls:
   - permission: admin
@@ -142,7 +142,7 @@ metadata:
     fintlabs.no/org-id: fintlabs.no
     fintlabs.no/team: core
   name: fint-core-provider-gateway
-  namespace: fintlabs-no
+  namespace: fint-core
 spec:
   entryPoints:
   - web
