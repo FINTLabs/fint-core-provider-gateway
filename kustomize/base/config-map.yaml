@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fint-core-provider-gateway
+data:
+  TZ: Europe/Oslo
+  JAVA_TOOL_OPTIONS: '-XX:+ExitOnOutOfMemoryError -Xmx3GB'
+  spring.webflux.base-path: /provider
+  spring.codec.max-in-memory-size: 200MB
+  server.tomcat.max-threads: 400
+  server.tomcat.max-connections: 30000
+  server.netty.connection-timeout: 600000
+  server.connection-timeout: 600000

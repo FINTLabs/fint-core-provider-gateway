@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fint-core-provider-gateway
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      restartPolicy: Always
+      volumes:
+        - name: credentials
+          secret:
+            secretName: fint-core-provider-gateway-kafka-certificates
+      containers:
+        - image: ghcr.io/fintlabs/fint-core-provider-gateway:sha-0000000
+          name: fint-core-provider-gateway
+          volumeMounts:
+            - name: credentials
+              mountPath: /credentials
+          resources:
+            limits:
+              memory: "1152Mi"
+              cpu: "1"
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: fint-core-provider-gateway-kafka
+            - configMapRef:
+                name: fint-core-provider-gateway
