@@ -4,7 +4,7 @@ metadata:
   name: fint-core-provider-gateway
 data:
   TZ: 'Europe/Oslo'
-  JAVA_TOOL_OPTIONS: '-XX:+ExitOnOutOfMemoryError -Xmx786MB'
+  JAVA_TOOL_OPTIONS: '-XX:+ExitOnOutOfMemoryError -Xmx786m'
   spring.webflux.base-path: '/provider'
   spring.codec.max-in-memory-size: '200MB'
   server.tomcat.max-threads: '400'
