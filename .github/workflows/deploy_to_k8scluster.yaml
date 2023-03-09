@@ -42,7 +42,7 @@ jobs:
       - name: Deploy to Alpha
         uses: azure/k8s-deploy@v4.1
         with:
-          manifests: kustomize/overlays/fintlabs-no/alpha/
+          manifests: kustomize/overlays/fintlabs-no/alpha/alpha.yaml
           images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
           namespace: ${{ env.NAMESPACE }}
           action: deploy
