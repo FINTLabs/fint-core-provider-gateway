@@ -16,8 +16,15 @@ commonLabels:
 patches:
   - patch: |-
       - op: replace
+        path: "/spec/routes/0/match"
+        value: "Host(`alpha.felleskomponent.no`) && PathPrefix(`/provider`)"
+    target:
+      kind: IngressRoute
+      name: fint-core-provider-gateway
+  - patch: |-
+      - op: replace
         path: "/spec/acls/0/topic"
-        value: "viken-no.core.*"
+        value: "viken-no.fint-core.*"
     target:
       kind: KafkaUserAndAcl
       name: fint-core-provider-gateway

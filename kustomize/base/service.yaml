@@ -6,3 +6,5 @@ spec:
   ports:
     - port: 8080
   type: ClusterIP
+  selector:
+    io.kompose.service: fint-core-provider-gateway

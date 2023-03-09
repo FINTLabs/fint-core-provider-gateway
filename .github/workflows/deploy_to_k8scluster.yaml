@@ -7,13 +7,8 @@ on:
 
 env:
   ALPHA_CLUSTER_NAME: aks-alpha-fint-2021-11-18
-  ALPHA_CLUSTER_RESOURCE_GROUP: rg-aks-alpha
   BETA_CLUSTER_NAME: aks-beta-fint-2021-11-23
-  BETA_CLUSTER_RESOURCE_GROUP: rg-aks-beta
   API_CLUSTER_NAME: aks-api-fint-2022-02-08
-  API_CLUSTER_RESOURCE_GROUP: rg-aks-api
-  PWF_CLUSTER_NAME: aks-pwf-fint-2021-10-20
-  PWF_CLUSTER_RESOURCE_GROUP: rg-aks-pwf
   NAMESPACE: fint-core
   REGISTRY_NAME: fintlabsacr
 
@@ -33,6 +28,13 @@ jobs:
       ## Enable the clusters you want to deploy to
       ##
 
+      - name: Bake manifests with Kustomize
+        uses: azure/k8s-bake@v2.2
+        with:
+          renderEngine: 'kustomize'
+          kustomizationPath: 'kustomize/overlays/${{ env.ORG}}/${{ steps.environment.outputs.result }}'
+        id: bake
+
       ## Alpha cluster ##
       - name: Set the target Alpha cluster.
         uses: azure/aks-set-context@v1
@@ -42,28 +44,29 @@ jobs:
           resource-group: ${{ env.ALPHA_CLUSTER_RESOURCE_GROUP }}
 
       - name: Deploy to Alpha
-        uses: azure/k8s-deploy@v4.1
+        uses: azure/k8s-deploy@v4.4
         with:
-          manifests: k8s/alpha.yaml
-          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
-          namespace: ${{ env.NAMESPACE }}
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          images: |
+            ${{ steps.meta.outputs.tags }}
+          namespace: ${{ env.ORG }}
           action: deploy
 
           ## Beta cluster ##
-      - name: Set the target Beta cluster.
-        uses: azure/aks-set-context@v1
-        with:
-          creds: '${{ secrets.AKS_BETA_FINT_GITHUB }}'
-          cluster-name: ${{ env.BETA_CLUSTER_NAME }}
-          resource-group: ${{ env.BETA_CLUSTER_RESOURCE_GROUP }}
-
-      - name: Deploy to Beta
-        uses: azure/k8s-deploy@v4.1
-        with:
-          manifests: k8s/beta.yaml
-          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
-          namespace: ${{ env.NAMESPACE }}
-          action: deploy
+#      - name: Set the target Beta cluster.
+#        uses: azure/aks-set-context@v1
+#        with:
+#          creds: '${{ secrets.AKS_BETA_FINT_GITHUB }}'
+#          cluster-name: ${{ env.BETA_CLUSTER_NAME }}
+#          resource-group: ${{ env.BETA_CLUSTER_RESOURCE_GROUP }}
+#
+#      - name: Deploy to Beta
+#        uses: azure/k8s-deploy@v4.1
+#        with:
+#          manifests: k8s/beta.yaml
+#          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
+#          namespace: ${{ env.NAMESPACE }}
+#          action: deploy
 
       ## Api cluster ##
       #      - name: Set the target Api cluster.
@@ -102,11 +105,11 @@ jobs:
       #         action: deploy
 
 
-      - name: Update FINT slack channel
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_CHANNEL: release
-          SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: '${{steps.get_repo.outputs.REPO}} :rocket:'
-          SLACK_TITLE: New release
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+#      - name: Update FINT slack channel
+#        uses: rtCamp/action-slack-notify@v2
+#        env:
+#          SLACK_CHANNEL: release
+#          SLACK_COLOR: ${{ job.status }}
+#          SLACK_MESSAGE: '${{steps.get_repo.outputs.REPO}} :rocket:'
+#          SLACK_TITLE: New release
+#          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

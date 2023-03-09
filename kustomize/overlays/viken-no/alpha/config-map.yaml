@@ -3,6 +3,4 @@ kind: ConfigMap
 metadata:
   name: fint-core-provider-gateway
 data:
-  TZ: 'Europe/Oslo'
-  JAVA_TOOL_OPTIONS: '-XX:+ExitOnOutOfMemoryError -Xmx3G'
   fint.org-id: 'viken.no'
