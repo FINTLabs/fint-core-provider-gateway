@@ -1,4 +1,4 @@
-name: Create and publish a Docker image
+name: deploy-to-kubernetes
 
 on:
   push:
@@ -15,9 +15,10 @@ env:
   API_CLUSTER_RESOURCE_GROUP: rg-aks-api
   PWF_CLUSTER_NAME: aks-pwf-fint-2021-10-20
   PWF_CLUSTER_RESOURCE_GROUP: rg-aks-pwf
+  NAMESPACE: fint-core
 
 jobs:
-  build-and-push-image:
+  deploy-to-kubernetes:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -69,7 +70,7 @@ jobs:
         with:
           manifests: ${{ steps.bake-alpha.outputs.manifestsBundle }}
           images: ${{ steps.meta.outputs.tags }}
-          namespace: operators
+          namespace: ${{ env.NAMESPACE }}
           action: deploy
 
       ## Beta cluster ##
@@ -92,7 +93,7 @@ jobs:
           manifests: ${{ steps.bake-beta.outputs.manifestsBundle }}
           images: |
             ${{ steps.meta.outputs.tags }}
-          namespace: operators
+          namespace: ${{ env.NAMESPACE }}
           action: deploy
 #
 #      ## Api cluster ##
