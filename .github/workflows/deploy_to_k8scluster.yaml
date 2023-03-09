@@ -80,7 +80,8 @@ jobs:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/beta'
         id: bake-beta
-      - name: Set the target Alpha cluster.
+
+      - name: Set the target Beta cluster.
         uses: azure/aks-set-context@v1
         with:
           creds: '${{ secrets.AKS_BETA_FINT_GITHUB }}'
