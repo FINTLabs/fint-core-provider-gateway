@@ -1,8 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: fintlabs-no
 resources:
-  - ../../../base
+  - ../../base
 patchesStrategicMerge:
   - config-map.yaml
 commonLabels:
@@ -12,12 +11,11 @@ commonLabels:
   app.kubernetes.io/component: backend
   app.kubernetes.io/part-of: fint-core
   fintlabs.no/team: core
-  fintlabs.no/org-id: fintlabs.no
 patches:
   - patch: |-
       - op: replace
         path: "/spec/routes/0/match"
-        value: "Host(`alpha.felleskomponent.no`) && PathPrefix(`/provider`)"
+        value: "Host(`beta.felleskomponent.no`) && PathPrefix(`/provider`)"
     target:
       kind: IngressRoute
       name: fint-core-provider-gateway

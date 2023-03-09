@@ -1,37 +1,62 @@
-name: deploy
-on:
-  repository_dispatch:
-    types: [ trigger-to-deploy ]
+name: Create and publish a Docker image
 
-  workflow_dispatch:
+on:
+  push:
+    branches: ['main']
 
 env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
   ALPHA_CLUSTER_NAME: aks-alpha-fint-2021-11-18
   ALPHA_CLUSTER_RESOURCE_GROUP: rg-aks-alpha
   BETA_CLUSTER_NAME: aks-beta-fint-2021-11-23
   BETA_CLUSTER_RESOURCE_GROUP: rg-aks-beta
   API_CLUSTER_NAME: aks-api-fint-2022-02-08
   API_CLUSTER_RESOURCE_GROUP: rg-aks-api
-  NAMESPACE: fint-core
-  REGISTRY_NAME: fintlabsacr
+  PWF_CLUSTER_NAME: aks-pwf-fint-2021-10-20
+  PWF_CLUSTER_RESOURCE_GROUP: rg-aks-pwf
 
 jobs:
-  deploy:
+  build-and-push-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
 
-      - name: Get repo name
-        id: get_repo
-        run: echo ::set-output name=REPO::${GITHUB_REPOSITORY#*/}
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      ##
-      ## Enable the clusters you want to deploy to
-      ##
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: type=sha,enable=true,priority=100,prefix=shaF-,suffix=,format=short
 
-      ## Alpha cluster ##
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3.1.1
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # Alpha cluster ##
+      - name: Bake alpha manifests with Kustomize
+        uses: azure/k8s-bake@v2.2
+        with:
+          renderEngine: 'kustomize'
+          kustomizationPath: 'kustomize/overlays/alpha'
+        id: bake-alpha
+
       - name: Set the target Alpha cluster.
         uses: azure/aks-set-context@v1
         with:
@@ -40,15 +65,21 @@ jobs:
           resource-group: ${{ env.ALPHA_CLUSTER_RESOURCE_GROUP }}
 
       - name: Deploy to Alpha
-        uses: azure/k8s-deploy@v4.1
+        uses: azure/k8s-deploy@v4.4
         with:
-          manifests: kustomize/overlays/fintlabs-no/alpha/alpha.yaml
-          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
-          namespace: ${{ env.NAMESPACE }}
+          manifests: ${{ steps.bake-alpha.outputs.manifestsBundle }}
+          images: ${{ steps.meta.outputs.tags }}
+          namespace: operators
           action: deploy
 
-      ## Beta cluster ##
-#      - name: Set the target Beta cluster.
+#      ## Beta cluster ##
+#      - name: Bake beta manifests with Kustomize
+#        uses: azure/k8s-bake@v2.2
+#        with:
+#          renderEngine: 'kustomize'
+#          kustomizationPath: 'kustomize/overlays/beta'
+#        id: bake-beta
+#      - name: Set the target Alpha cluster.
 #        uses: azure/aks-set-context@v1
 #        with:
 #          creds: '${{ secrets.AKS_BETA_FINT_GITHUB }}'
@@ -56,55 +87,56 @@ jobs:
 #          resource-group: ${{ env.BETA_CLUSTER_RESOURCE_GROUP }}
 #
 #      - name: Deploy to Beta
-#        uses: azure/k8s-deploy@v4.1
+#        uses: azure/k8s-deploy@v4.4
 #        with:
-#          manifests: k8s/beta.yaml
-#          images: ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
-#          namespace: ${{ env.NAMESPACE }}
+#          manifests: ${{ steps.bake-beta.outputs.manifestsBundle }}
+#          images: |
+#            ${{ steps.meta.outputs.tags }}
+#          namespace: operators
+#          action: deploy
+#
+#      ## Api cluster ##
+#      - name: Bake api manifests with Kustomize - backend
+#        uses: azure/k8s-bake@v2.2
+#        with:
+#          renderEngine: 'kustomize'
+#          kustomizationPath: 'kustomize/backend/overlays/viken-no-api'
+#        id: bake-api-backend
+#      - name: Set the target Api cluster.
+#        uses: azure/aks-set-context@v1
+#        with:
+#          creds: '${{ secrets.AKS_API_FINT_GITHUB }}'
+#          cluster-name: ${{ env.API_CLUSTER_NAME }}
+#          resource-group: ${{ env.API_CLUSTER_RESOURCE_GROUP }}
+#
+#      - name: Deploy to API - backend
+#        uses: azure/k8s-deploy@v4.4
+#        with:
+#          manifests: ${{ steps.bake-api-backend.outputs.manifestsBundle }}
+#          images: |
+#            ${{ steps.meta.outputs.tags }}
+#          namespace: viken-no
 #          action: deploy
 
-      ## Api cluster ##
-      #      - name: Set the target Api cluster.
-      #        uses: azure/aks-set-context@v1
-      #        with:
-      #          creds: '${{ secrets.AKS_API_FINT_GITHUB }}'
-      #          cluster-name: ${{ env.API_CLUSTER_NAME }}
-      #          resource-group: ${{ env.API_CLUSTER_RESOURCE_GROUP }}
-      #
-      #      - name: Deploy to Api
-      #        uses: azure/k8s-deploy@v3.1
-      #        with:
-      #          manifests: |
-      #            k8s/api.yaml
-      #          images: |
-      #            ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
-      #          namespace: ${{ env.NAMESPACE }}
-      #          action: deploy
+#      - name: Bake api manifests with Kustomize - auth-forward
+#        uses: azure/k8s-bake@v2.2
+#        with:
+#          renderEngine: 'kustomize'
+#          kustomizationPath: 'kustomize/auth-forward/overlays/viken-no-api'
+#        id: bake-api-auth-forward
 
-      ## PWF cluster ##
-      #      - name: Set the target PWF cluster.
-      #        uses: azure/aks-set-context@v1
-      #        with:
-      #         creds: '${{ secrets.AKS_PWF_FINT_GITHUB }}'
-      #         cluster-name: ${{ env.PWF_CLUSTER_NAME }}
-      #         resource-group: ${{ env.PWF_CLUSTER_RESOURCE_GROUP }}
-      #
-      #      - name: Deploy to PWF
-      #        uses: azure/k8s-deploy@v3.1
-      #        with:
-      #         manifests: |
-      #            k8s/pwf.yaml
-      #         images: |
-      #           ${{ env.REGISTRY_NAME }}.azurecr.io/${{steps.get_repo.outputs.REPO}}:${{ github.sha }}
-      #         namespace: ${{ env.NAMESPACE }}
-      #         action: deploy
-
-
-#      - name: Update FINT slack channel
-#        uses: rtCamp/action-slack-notify@v2
-#        env:
-#          SLACK_CHANNEL: release
-#          SLACK_COLOR: ${{ job.status }}
-#          SLACK_MESSAGE: '${{steps.get_repo.outputs.REPO}} :rocket:'
-#          SLACK_TITLE: New release
-#          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+#      - name: Set the target Api cluster.
+#        uses: azure/aks-set-context@v1
+#        with:
+#          creds: '${{ secrets.AKS_API_FINT_GITHUB }}'
+#          cluster-name: ${{ env.API_CLUSTER_NAME }}
+#          resource-group: ${{ env.API_CLUSTER_RESOURCE_GROUP }}
+#
+#      - name: Deploy to API - auth-forward
+#        uses: azure/k8s-deploy@v4.4
+#        with:
+#          manifests: ${{ steps.bake-API-auth-forward.outputs.manifestsBundle }}
+#          images: |
+#            ${{ steps.meta.outputs.tags }}
+#          namespace: viken-no
+#          action: deploy
