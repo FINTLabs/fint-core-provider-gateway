@@ -7,15 +7,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CLUSTERS:
-    - name: aks-alpha-fint-2021-11-18
-      resource_group: rg-aks-alpha
-    - name: aks-beta-fint-2021-11-23
-      resource_group: rg-aks-beta
-  #    - name: aks-api-fint-2022-02-08
-  #      resource_group: rg-aks-api
-  #    - name: aks-pwf-fint-2021-10-20
-  #      resource_group: rg-aks-pwf
   NAMESPACE: fint-core
 
 jobs:
@@ -24,11 +15,17 @@ jobs:
     permissions:
       contents: read
       packages: write
-
     strategy:
       matrix:
-        cluster: ${{ join(env.CLUSTERS.*.name, ',') }}
-        resource_group: ${{ join(env.CLUSTERS.*.resource_group, ',') }}
+        cluster:
+          - name: aks-alpha-fint-2021-11-18
+            resource_group: rg-aks-alpha
+          - name: aks-beta-fint-2021-11-23
+            resource_group: rg-aks-beta
+          - name: aks-api-fint-2022-02-08
+            resource_group: rg-aks-api
+          - name: aks-pwf-fint-2021-10-20
+            resource_group: rg-aks-pwf
 
     steps:
       - name: Checkout repository
@@ -60,17 +57,17 @@ jobs:
         uses: azure/k8s-bake@v2.2
         with:
           renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/all'
+          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.name }}'
         id: bake
 
-      - name: Set the target cluster context.
+      - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
-          cluster-name: ${{ matrix.cluster }}
-          resource-group: ${{ matrix.resource_group }}
+          creds: '${{ secrets.AKS_${{ matrix.cluster.name | upper | replace("-", "_") }}_GITHUB }}'
+          cluster-name: ${{ matrix.cluster.name }}
+          resource-group: ${{ matrix.cluster.resource_group }}
 
-      - name: Deploy to Kubernetes
+      - name: Deploy
         uses: azure/k8s-deploy@v4.4
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
