@@ -8,6 +8,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   NAMESPACE: fint-core
+  SECRET_NAME: AKS_${{ matrix.cluster.folder | upper }}_FINT_GITHUB
 
 jobs:
   deploy-to-kubernetes:
@@ -67,7 +68,7 @@ jobs:
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: '${{ secrets.AKS_${{ matrix.cluster.folder | upper }}_FINT_GITHUB }}'
+          creds: ${{ secrets[env.SECRET_NAME] }}
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
