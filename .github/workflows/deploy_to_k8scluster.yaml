@@ -2,7 +2,7 @@ name: deploy-to-kubernetes
 
 on:
   push:
-    branches: ['main']
+    branches: ['CT-509-legg-til-kustomize']
 
 env:
   REGISTRY: ghcr.io
@@ -19,13 +19,17 @@ jobs:
       matrix:
         cluster:
           - name: aks-alpha-fint-2021-11-18
+            folder: alpha
             resource_group: rg-aks-alpha
           - name: aks-beta-fint-2021-11-23
+            folder: beta
             resource_group: rg-aks-beta
-          - name: aks-api-fint-2022-02-08
-            resource_group: rg-aks-api
-          - name: aks-pwf-fint-2021-10-20
-            resource_group: rg-aks-pwf
+#          - name: aks-api-fint-2022-02-08
+#            folder: api
+#            resource_group: rg-aks-api
+#          - name: aks-pwf-fint-2021-10-20
+#            folder: pwf
+#            resource_group: rg-aks-pwf
 
     steps:
       - name: Checkout repository
@@ -57,13 +61,13 @@ jobs:
         uses: azure/k8s-bake@v2.2
         with:
           renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.name }}'
+          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.folder }}/'
         id: bake
 
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: '${{ secrets.AKS_${{ matrix.cluster.name | upper | replace("-", "_") }}_GITHUB }}'
+          creds: '${{ secrets.AKS_${{ matrix.cluster.folder | upper }}_FINT_GITHUB }}'
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
