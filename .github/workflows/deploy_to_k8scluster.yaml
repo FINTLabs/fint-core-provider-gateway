@@ -19,10 +19,10 @@ jobs:
       matrix:
         cluster:
           - name: aks-alpha-fint-2021-11-18
-            folder: alpha
+            folder: ALPHA
             resource_group: rg-aks-alpha
           - name: aks-beta-fint-2021-11-23
-            folder: beta
+            folder: BETA
             resource_group: rg-aks-beta
 #          - name: aks-api-fint-2022-02-08
 #            folder: api
@@ -67,8 +67,7 @@ jobs:
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: |
-           AKS_${{ matrix.cluster.folder | tr '[:lower:]' '[:upper:]' }}_FINT_GITHUB
+          creds: AKS_${{ matrix.cluster.folder }}_FINT_GITHUB
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
