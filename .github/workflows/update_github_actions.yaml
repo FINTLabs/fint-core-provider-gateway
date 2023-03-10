@@ -3,7 +3,7 @@ name: Update GitHub Actions
 on:
   push:
     branches:
-      - main
+      - CT-509-legg-til-kustomize
 
 jobs:
   update:
