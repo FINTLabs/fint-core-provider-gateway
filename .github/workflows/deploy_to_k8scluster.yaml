@@ -8,7 +8,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   NAMESPACE: fint-core
-  SECRET_NAME: AKS_${{ matrix.cluster.folder | upper }}_FINT_GITHUB
 
 jobs:
   deploy-to-kubernetes:
@@ -16,21 +15,21 @@ jobs:
     permissions:
       contents: read
       packages: write
-      strategy:
-        matrix:
-          cluster:
-            - name: aks-alpha-fint-2021-11-18
-              folder: alpha
-              resource_group: rg-aks-alpha
-            - name: aks-beta-fint-2021-11-23
-              folder: beta
-              resource_group: rg-aks-beta
-  #          - name: aks-api-fint-2022-02-08
-  #            folder: api
-  #            resource_group: rg-aks-api
-  #          - name: aks-pwf-fint-2021-10-20
-  #            folder: pwf
-  #            resource_group: rg-aks-pwf
+    strategy:
+      matrix:
+        cluster:
+          - name: aks-alpha-fint-2021-11-18
+            folder: alpha
+            resource_group: rg-aks-alpha
+          - name: aks-beta-fint-2021-11-23
+            folder: beta
+            resource_group: rg-aks-beta
+#          - name: aks-api-fint-2022-02-08
+#            folder: api
+#            resource_group: rg-aks-api
+#          - name: aks-pwf-fint-2021-10-20
+#            folder: pwf
+#            resource_group: rg-aks-pwf
 
     steps:
       - name: Checkout repository
@@ -68,7 +67,7 @@ jobs:
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: ${{ secrets[env.SECRET_NAME] }}
+          creds: AKS_${{ matrix.cluster.folder | upper }}_FINT_GITHUB
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
