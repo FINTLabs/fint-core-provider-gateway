@@ -67,7 +67,7 @@ jobs:
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: AKS_${{ matrix.cluster.folder | upper }}_FINT_GITHUB
+          creds: ${{ upper(matrix.cluster.folder) }}
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
