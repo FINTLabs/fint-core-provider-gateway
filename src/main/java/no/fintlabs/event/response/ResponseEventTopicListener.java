@@ -2,6 +2,7 @@ package no.fintlabs.event.response;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.config.KafkaConfig;
 import no.fintlabs.event.request.RequestEventService;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
@@ -20,9 +21,12 @@ public class ResponseEventTopicListener {
 
     private final RequestEventService requestEventService;
 
-    public ResponseEventTopicListener(EventConsumerFactoryService eventConsumerFactoryService, RequestEventService requestEventService) {
+    private final KafkaConfig kafkaConfig;
+
+    public ResponseEventTopicListener(EventConsumerFactoryService eventConsumerFactoryService, RequestEventService requestEventService, KafkaConfig kafkaConfig) {
         this.eventConsumerFactoryService = eventConsumerFactoryService;
         this.requestEventService = requestEventService;
+        this.kafkaConfig = kafkaConfig;
     }
 
     @PostConstruct
@@ -42,6 +46,7 @@ public class ResponseEventTopicListener {
                 EventConsumerConfiguration
                         .builder()
                         .seekingOffsetResetOnAssignment(true)
+                        .groupIdSuffix(kafkaConfig.getGroupIdSuffix())
                         .build()
         ).createContainer(eventTopicNameParameters);
     }
