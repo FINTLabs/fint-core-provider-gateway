@@ -67,7 +67,7 @@ jobs:
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: ${{ toupper(matrix.cluster.folder) }}
+          creds: ${{ matrix.cluster.folder | tr '[:lower:]' '[:upper:]' }}
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
