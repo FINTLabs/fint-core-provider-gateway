@@ -12,10 +12,10 @@ env:
       resource_group: rg-aks-alpha
     - name: aks-beta-fint-2021-11-23
       resource_group: rg-aks-beta
-#    - name: aks-api-fint-2022-02-08
-#      resource_group: rg-aks-api
-#    - name: aks-pwf-fint-2021-10-20
-#      resource_group: rg-aks-pwf
+  #    - name: aks-api-fint-2022-02-08
+  #      resource_group: rg-aks-api
+  #    - name: aks-pwf-fint-2021-10-20
+  #      resource_group: rg-aks-pwf
   NAMESPACE: fint-core
 
 jobs:
@@ -27,8 +27,8 @@ jobs:
 
     strategy:
       matrix:
-        cluster: ${{ env.CLUSTERS.*.name }}
-        resource_group: ${{ env.CLUSTERS.*.resource_group }}
+        cluster: ${{ join(env.CLUSTERS.*.name, ',') }}
+        resource_group: ${{ join(env.CLUSTERS.*.resource_group, ',') }}
 
     steps:
       - name: Checkout repository
