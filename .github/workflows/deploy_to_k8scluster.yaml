@@ -51,7 +51,7 @@ jobs:
           tags: type=sha,enable=true,priority=100,prefix=shaF-,suffix=,format=short
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3.1.1
+        uses: docker/build-push-action@v4.0.0
         with:
           context: .
           push: true
@@ -59,7 +59,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Bake manifests with Kustomize
-        uses: azure/k8s-bake@v2.2
+        uses: azure/k8s-bake@v2.4
         with:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.folder }}/'
@@ -73,7 +73,7 @@ jobs:
           resource-group: ${{ matrix.cluster.resource_group }}
 
       - name: Deploy
-        uses: azure/k8s-deploy@v4.4
+        uses: azure/k8s-deploy@v4.9
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
           images: ${{ steps.meta.outputs.tags }}
