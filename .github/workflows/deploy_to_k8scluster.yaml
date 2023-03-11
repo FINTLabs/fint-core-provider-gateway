@@ -19,21 +19,27 @@ jobs:
       matrix:
         cluster:
           - name: aks-alpha-fint-2021-11-18
-            folder: ALPHA
             resource_group: rg-aks-alpha
+            folder: alpha
           - name: aks-beta-fint-2021-11-23
-            folder: BETA
             resource_group: rg-aks-beta
+            folder: beta
 #          - name: aks-api-fint-2022-02-08
-#            folder: api
 #            resource_group: rg-aks-api
+#            folder: api
 #          - name: aks-pwf-fint-2021-10-20
-#            folder: pwf
 #            resource_group: rg-aks-pwf
+#            folder: pwf
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Uppercase folder name
+        id: folder
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ matrix.cluster.folder }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -50,7 +56,7 @@ jobs:
           tags: type=sha,enable=true,priority=100,prefix=shaF-,suffix=,format=short
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4.0.0
+        uses: docker/build-push-action@v3.1.1
         with:
           context: .
           push: true
@@ -58,21 +64,22 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Bake manifests with Kustomize
-        uses: azure/k8s-bake@v2.4
+        uses: azure/k8s-bake@v2.2
         with:
           renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.folder }}/'
+          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.folder }}'
         id: bake
 
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: AKS_${{ matrix.cluster.folder }}_FINT_GITHUB
+          name:
+          creds: '${{ secrets.AKS_${{ steps.folder.outputs.uppercase }}_GITHUB }}'
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
       - name: Deploy
-        uses: azure/k8s-deploy@v4.9
+        uses: azure/k8s-deploy@v4.4
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
           images: ${{ steps.meta.outputs.tags }}
