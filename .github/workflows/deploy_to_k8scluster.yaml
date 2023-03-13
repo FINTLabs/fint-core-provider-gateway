@@ -19,9 +19,17 @@ jobs:
       matrix:
         cluster:
           - name: aks-alpha-fint-2021-11-18
+            resource_group: rg-aks-alpha
+            environment: alpha
           - name: aks-beta-fint-2021-11-23
-#          - name: aks-api-fint-2022-02-08
-#          - name: aks-pwf-fint-2021-10-20
+            resource_group: rg-aks-beta
+            environment: beta
+          - name: aks-api-fint-2022-02-08
+            resource_group: rg-aks-api
+            environment: api
+          - name: aks-pwf-fint-2021-10-20
+            resource_group: rg-aks-pwf
+            environment: pwf
 
     steps:
       - name: Checkout repository
@@ -49,37 +57,19 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Get environment
-        uses: actions/github-script@v6
-        id: environment
-        with:
-          script: |
-            const a = '${{ matrix.cluster.name }}'.split('-')
-            return `${a[1]}`
-          result-encoding: string
-
-      - name: Get resource group name
-        uses: actions/github-script@v6
-        id: rg
-        with:
-          script: |
-            const a = '${{ matrix.cluster.name }}'.split('-')
-            return `rg-${a[0]}-${a[1]}`
-          result-encoding: string
-
       - name: Bake manifests with Kustomize
         id: bake
         uses: azure/k8s-bake@v2.2
         with:
           renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}'
+          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.environment }}'
 
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
+          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', matrix.cluster.environment)] }}"
           cluster-name: ${{ matrix.cluster.name }}
-          resource-group: ${{ steps.rg.outputs.result }}
+          resource-group: ${{ matrix.cluster.resource_group }}
 
       - name: Deploy
         uses: azure/k8s-deploy@v4.4
