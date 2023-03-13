@@ -74,19 +74,10 @@ jobs:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}'
 
-      - uses: actions/github-script@v6
-        name: Get auth
-        id: auth
-        with:
-          script: |
-            const e = '${{ steps.environment.outputs.result }}'.toUpperCase()
-            return `secrets.AKS_${e}_FINT_GITHUB`
-          result-encoding: string
-
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result) | toupper] }}"
+          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ steps.rg.outputs.result }}
 
