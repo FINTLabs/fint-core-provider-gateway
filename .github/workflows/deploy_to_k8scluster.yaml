@@ -24,12 +24,12 @@ jobs:
           - name: aks-beta-fint-2021-11-23
             resource_group: rg-aks-beta
             environment: beta
-          - name: aks-api-fint-2022-02-08
-            resource_group: rg-aks-api
-            environment: api
-          - name: aks-pwf-fint-2021-10-20
-            resource_group: rg-aks-pwf
-            environment: pwf
+#          - name: aks-api-fint-2022-02-08
+#            resource_group: rg-aks-api
+#            environment: api
+#          - name: aks-pwf-fint-2021-10-20
+#            resource_group: rg-aks-pwf
+#            environment: pwf
 
     steps:
       - name: Checkout repository
