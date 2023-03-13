@@ -11,6 +11,7 @@ env:
 
 jobs:
   deploy-to-kubernetes:
+    name: deploy to ${{ matrix.cluster.environment }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,12 +21,16 @@ jobs:
         cluster:
           - name: aks-alpha-fint-2021-11-18
             resource_group: rg-aks-alpha
+            environment: alpha
           - name: aks-beta-fint-2021-11-23
             resource_group: rg-aks-beta
-          - name: aks-api-fint-2022-02-08
-            resource_group: rg-aks-api
-          - name: aks-pwf-fint-2021-10-20
-            resource_group: rg-aks-pwf
+            environment: beta
+#          - name: aks-api-fint-2022-02-08
+#            resource_group: rg-aks-api
+#            environment: api
+#          - name: aks-pwf-fint-2021-10-20
+#            resource_group: rg-aks-pwf
+#            environment: pwf
 
     steps:
       - name: Checkout repository
@@ -54,16 +59,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Bake manifests with Kustomize
+        id: bake
         uses: azure/k8s-bake@v2.2
         with:
           renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.name }}'
-        id: bake
+          kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.environment }}'
 
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: '${{ secrets.AKS_${{ matrix.cluster.name | upper | replace("-", "_") }}_GITHUB }}'
+          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', matrix.cluster.environment)] }}"
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
