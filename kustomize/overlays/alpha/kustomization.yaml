@@ -4,6 +4,8 @@ resources:
   - ../../base
 patchesStrategicMerge:
   - config-map.yaml
+  - ingress-route.yaml
+  - kafka-user-and-acl.yaml
 commonLabels:
   app.kubernetes.io/name: fint-core-provider-gateway
   app.kubernetes.io/instance: fint-core-provider-gateway_fintlabs-no
@@ -11,19 +13,3 @@ commonLabels:
   app.kubernetes.io/component: backend
   app.kubernetes.io/part-of: fint-core
   fintlabs.no/team: core
-patches:
-  - patch: |-
-      - op: replace
-        path: "/spec/routes/0/match"
-        value: "Host(`alpha.felleskomponent.no`) && PathPrefix(`/provider`)"
-    target:
-      kind: IngressRoute
-      name: fint-core-provider-gateway
-  - patch: |-
-      - op: replace
-        path: "/spec/acls/0/topic"
-        value: "*.fint-core.*"
-    target:
-      kind: KafkaUserAndAcl
-      name: fint-core-provider-gateway
-

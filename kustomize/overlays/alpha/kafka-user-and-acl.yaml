@@ -1,0 +1,8 @@
+apiVersion: "fintlabs.no/v1alpha1"
+kind: KafkaUserAndAcl
+metadata:
+  name: fint-core-provider-gateway
+spec:
+  acls:
+    - permission: admin
+      topic: "*.fint-core.*"
