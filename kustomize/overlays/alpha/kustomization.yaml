@@ -13,3 +13,4 @@ commonLabels:
   app.kubernetes.io/component: backend
   app.kubernetes.io/part-of: fint-core
   fintlabs.no/team: core
+  fintlabs.no/org-id: fintlabs.no
