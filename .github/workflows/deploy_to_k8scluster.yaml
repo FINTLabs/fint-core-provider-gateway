@@ -20,19 +20,19 @@ jobs:
         cluster:
           - name: aks-alpha-fint-2021-11-18
             resource_group: rg-aks-alpha
-            creds: '${{ secrets.AKS_ALPHA_FINT_GITHUB }}'
+            creds: secrets.AKS_ALPHA_FINT_GITHUB
             folder: alpha
           - name: aks-beta-fint-2021-11-23
             resource_group: rg-aks-beta
-            creds: '${{ secrets.AKS_BETA_FINT_GITHUB }}'
+            creds: secrets.AKS_BETA_FINT_GITHUB
             folder: beta
 #          - name: aks-api-fint-2022-02-08
 #            resource_group: rg-aks-api
-#            creds: '${{ secrets.AKS_API_FINT_GITHUB }}'
+#            creds: secrets.AKS_API_FINT_GITHUB
 #            folder: api
 #          - name: aks-pwf-fint-2021-10-20
 #            resource_group: rg-aks-pwf
-#            creds: '${{ secrets.AKS_PWF_FINT_GITHUB }}'
+#            creds: secrets.AKS_PWF_FINT_GITHUB
 #            folder: pwf
 
     steps:
@@ -77,7 +77,7 @@ jobs:
       - name: Set the target cluster
         uses: azure/aks-set-context@v1
         with:
-          creds: ${{ matrix.cluster.creds }}
+          creds: '${{ ${{ cluster.matrix.creds }} }}'
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
