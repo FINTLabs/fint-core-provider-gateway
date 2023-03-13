@@ -2,7 +2,7 @@ name: deploy-to-kubernetes
 
 on:
   push:
-    branches: ['CT-509-legg-til-kustomize']
+    branches: ['main']
 
 env:
   REGISTRY: ghcr.io
