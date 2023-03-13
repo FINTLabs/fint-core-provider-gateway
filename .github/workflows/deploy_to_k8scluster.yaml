@@ -2,7 +2,7 @@ name: deploy-to-kubernetes
 
 on:
   push:
-    branches: ['main']
+    branches: ['CT-532-oppgrader-deployment-versjon']
 
 env:
   REGISTRY: ghcr.io
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -51,7 +51,7 @@ jobs:
           tags: type=sha,enable=true,priority=100,prefix=shaF-,suffix=,format=short
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3.1.1
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true
@@ -60,20 +60,20 @@ jobs:
 
       - name: Bake manifests with Kustomize
         id: bake
-        uses: azure/k8s-bake@v2.2
+        uses: azure/k8s-bake@v2.4
         with:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.environment }}'
 
       - name: Set the target cluster
-        uses: azure/aks-set-context@v1
+        uses: azure/aks-set-context@v3.2
         with:
           creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', matrix.cluster.environment)] }}"
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
       - name: Deploy
-        uses: azure/k8s-deploy@v4.4
+        uses: azure/k8s-deploy@v4.9
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
           images: ${{ steps.meta.outputs.tags }}
