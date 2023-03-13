@@ -2,7 +2,7 @@ name: deploy-to-kubernetes
 
 on:
   push:
-    branches: ['main']
+    branches: ['CT-532-oppgrader-deployment-versjon']
 
 env:
   REGISTRY: ghcr.io
@@ -65,10 +65,16 @@ jobs:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ matrix.cluster.environment }}'
 
-      - name: Set the target cluster
-        uses: azure/aks-set-context@v1
+      - name: login to Azure
+        uses: azure/login@v1
         with:
-          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', matrix.cluster.environment)] }}"
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set the target cluster
+        uses: azure/aks-set-context@v3
+        with:
           cluster-name: ${{ matrix.cluster.name }}
           resource-group: ${{ matrix.cluster.resource_group }}
 
