@@ -93,7 +93,8 @@ jobs:
       - name: Deploy to cluster
         uses: azure/k8s-deploy@v4.9
         with:
+          action: deploy
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          strategy: basic
           images: ${{ steps.meta.outputs.tags }}
           namespace: ${{ env.NAMESPACE }}
-          action: deploy
