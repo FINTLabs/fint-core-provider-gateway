@@ -2,7 +2,7 @@ name: deploy-to-kubernetes
 
 on:
   push:
-    branches: ['CT-532-oppgrader-deployment-versjon']
+    branches: ['main']
 
 env:
   REGISTRY: ghcr.io
