@@ -79,14 +79,10 @@ jobs:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}'
 
-      - name: login to Azure
-        uses: azure/login@v1
+      - name: Set the target cluster
+        uses: azure/aks-set-context@v1
         with:
           creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
-
-      - name: Set the target cluster
-        uses: azure/aks-set-context@v3
-        with:
           cluster-name: ${{ matrix.cluster }}
           resource-group: ${{ steps.rg.outputs.result }}
 
@@ -95,6 +91,5 @@ jobs:
         with:
           action: deploy
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          strategy: basic
           images: ${{ steps.meta.outputs.tags }}
           namespace: ${{ env.NAMESPACE }}
