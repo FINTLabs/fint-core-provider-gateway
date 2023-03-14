@@ -33,7 +33,7 @@ jobs:
         id: rg
         with:
           script: |
-            const a = '${{ inputs.cluster }}'.split('-')
+            const a = '${{ matrix.cluster }}'.split('-')
             return `rg-${a[0]}-${a[1]}`
           result-encoding: string
 
