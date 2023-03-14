@@ -11,7 +11,7 @@ env:
 
 jobs:
   deploy-to-kubernetes:
-    name: deploy to ${{ steps.environment.outputs.result }}
+    name: deploy to ${{ matrix.cluster }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
