@@ -41,7 +41,9 @@ jobs:
         uses: actions/github-script@v6
         id: environment
         with:
-          script: return '${{ inputs.cluster }}'.split('-')[1]
+          script: |
+            const a = '${{ inputs.cluster }}'.split('-')
+            return `${a[1]}`
           result-encoding: string
 
       - name: Login to Docker Hub
