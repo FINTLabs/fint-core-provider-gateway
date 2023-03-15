@@ -1,10 +1,14 @@
 package no.fintlabs.datasync;
 
+import io.netty.handler.codec.Headers;
 import no.fintlabs.adapter.models.SyncPageEntry;
 import no.fintlabs.kafka.entity.EntityProducer;
 import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -19,6 +23,14 @@ public class EntityProducerKafka {
     }
 
     public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
+        return sendEntity(orgId, domain, packageName, entityName, syncPageEntry,null);
+    }
+
+    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
+
+        RecordHeaders headers = new RecordHeaders();
+        if (StringUtils.isNotBlank(eventCorrId)) headers.add(new RecordHeader("event-corr-id", eventCorrId.getBytes()));
+
         return entityProducer.send(
                 EntityProducerRecord.builder()
                         .topicNameParameters(EntityTopicNameParameters
@@ -26,6 +38,7 @@ public class EntityProducerKafka {
                                 .orgId(orgId)
                                 .resource(String.format("%s-%s-%s", domain, packageName, entityName))
                                 .build())
+                        .headers(headers)
                         .key(syncPageEntry.getIdentifier())
                         .value(syncPageEntry.getResource())
                         .build()
