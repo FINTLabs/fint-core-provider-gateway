@@ -89,6 +89,7 @@ jobs:
       - uses: azure/login@v1
         with:
           creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
+          allow-no-subscriptions: true
 
       - uses: azure/aks-set-context@v3
         with:
