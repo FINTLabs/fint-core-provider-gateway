@@ -1,8 +1,7 @@
 name: CD Pipeline
 
 on:
-  workflow_run:
-    types: [completed]
+  push:
     branches: [CT-535-ta-i-bruk-ci-cd]
 
 env:
