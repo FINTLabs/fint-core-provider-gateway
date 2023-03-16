@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3.3.0
+
+      - name: Get repo name
+        id: get_repo
+        run: echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3.10.0
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3.3.1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Gradle Wrapper Validation
+        uses: gradle/wrapper-validation-action@v1.0.6
+
+      - name: Gradle Setup
+        uses: gradle/gradle-build-action@v2.4.0
+        with:
+          gradle-version: wrapper
+
+      - name: Gradle build
+        run: |
+          ./gradlew build
+          mkdir data
+          cp ./build/libs/${GITHUB_REPOSITORY#*/}-*.jar ./data/app.jar
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: ${{steps.get_repo.outputs.REPO}}
+          path: ./data/app.jar
+
+      - name: Trigger CD
+        if: github.ref == 'refs/heads/main'
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GITHUBACTION_TOKEN }}
+          repository: ${{ github.repository }}
+          event-type: trigger-cd
