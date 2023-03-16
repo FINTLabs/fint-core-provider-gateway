@@ -3,7 +3,6 @@ name: CI
 on:
   push:
     branches: [CT-535-ta-i-bruk-ci-cd]
-  pull_request:
 
 jobs:
   build:
@@ -50,9 +49,7 @@ jobs:
           name: ${{steps.get_repo.outputs.REPO}}
           path: ./data/app.jar
 
-      - name: Trigger CD workflow
-        if: ${{ success() }}
-        uses: peter-evans/repository-dispatch@v1.1.3
+      - name: Trigger CD
+        uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           event-type: trigger-cd
