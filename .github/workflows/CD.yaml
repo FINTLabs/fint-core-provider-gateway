@@ -92,6 +92,8 @@ jobs:
         with:
           resource-group: '${{ steps.resource-group.outputs.result }}'
           cluster-name: '${{ matrix.cluster }}'
+          admin: 'false'
+          use-kubelogin: 'true'
 
       - name: Deploy to cluster
         uses: azure/k8s-deploy@v4.9
