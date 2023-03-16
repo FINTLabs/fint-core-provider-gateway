@@ -74,6 +74,9 @@ jobs:
           script: return '${{ matrix.cluster }}'.split('-')[1]
           result-encoding: string
 
+      - name: log environment
+        run: echo ${{ steps.environment.outputs.result }}
+
       - name: Bake manifests with Kustomize
         uses: azure/k8s-bake@v2.4
         id: bake
