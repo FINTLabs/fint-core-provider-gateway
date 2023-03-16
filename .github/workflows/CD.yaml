@@ -58,6 +58,9 @@ jobs:
 #          - aks-pwf-fint-2021-10-20
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3.3.0
+
       - name: Get resource group name
         uses: actions/github-script@v6
         id: rg
