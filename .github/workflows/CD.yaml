@@ -3,9 +3,9 @@ name: CD Pipeline
 on:
   workflow_run:
     workflows: ["CI Pipeline"]
-    branches: [CT-535-ta-i-bruk-ci-cd]
-    types:
-      - completed
+    types: [requested]
+    branches:
+      - 'CT-535-ta-i-bruk-ci-cd'
 
 env:
   REGISTRY: ghcr.io
