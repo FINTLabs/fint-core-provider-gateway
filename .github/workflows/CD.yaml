@@ -1,8 +1,11 @@
-name: CD Pipeline
+run-name: CD Pipeline
 
 on:
-  push:
-    branches: [CT-535-ta-i-bruk-ci-cd]
+  workflow_run:
+    workflows:
+      - "CI Pipeline"
+    types:
+      - completed
 
 env:
   REGISTRY: ghcr.io
