@@ -2,7 +2,6 @@ name: CD Pipeline
 
 on:
   workflow_run:
-    workflows: ["CI Pipeline"]
     types: [completed]
     branches: [CT-535-ta-i-bruk-ci-cd]
 
