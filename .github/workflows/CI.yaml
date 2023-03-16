@@ -40,6 +40,12 @@ jobs:
           mkdir data
           cp ./build/libs/${GITHUB_REPOSITORY#*/}-*.jar ./data/app.jar
 
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: ${{ github.repository }}
+          path: ./data/app.jar
+
       - name: Trigger CD
         if: github.ref == 'refs/heads/main'
         uses: peter-evans/repository-dispatch@v2
