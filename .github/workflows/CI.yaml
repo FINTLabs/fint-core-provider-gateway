@@ -53,4 +53,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.GITHUBACTION_TOKEN }}
+          repository: ${{ github.repository }}
           event-type: trigger-cd
