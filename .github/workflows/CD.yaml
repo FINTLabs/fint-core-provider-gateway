@@ -86,12 +86,14 @@ jobs:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}'
 
-      - name: Set the target cluster
-        uses: azure/aks-set-context@v1
+      - uses: azure/login@v1
         with:
           creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
-          cluster-name: ${{ matrix.cluster }}
-          resource-group: ${{ steps.rg.outputs.result }}
+
+      - uses: azure/aks-set-context@v3
+        with:
+          resource-group: '${{ matrix.cluster }}'
+          cluster-name: '${{ steps.rg.outputs.result }}'
 
       - name: Deploy to cluster
         uses: azure/k8s-deploy@v4.9
