@@ -16,6 +16,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3.3.0
@@ -77,9 +79,6 @@ jobs:
           script: return '${{ matrix.cluster }}'.split('-')[1]
           result-encoding: string
 
-      - name: log environment
-        run: echo ${{ steps.environment.outputs.result }}
-
       - name: Bake manifests with Kustomize
         uses: azure/k8s-bake@v2.4
         id: bake
@@ -99,5 +98,5 @@ jobs:
         with:
           action: deploy
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: ${{ steps.meta.outputs.tags }}
+          images: ${{ needs.build-and-push.outputs.tags }}
           namespace: ${{ env.NAMESPACE }}
