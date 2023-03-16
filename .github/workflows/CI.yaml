@@ -12,10 +12,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3.3.0
 
-      - name: Get repo name
-        id: get_repo
-        run: echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
-
       - name: Set up Java 17
         uses: actions/setup-java@v3.10.0
         with:
@@ -43,12 +39,6 @@ jobs:
           ./gradlew build
           mkdir data
           cp ./build/libs/${GITHUB_REPOSITORY#*/}-*.jar ./data/app.jar
-
-      - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: ${{steps.get_repo.outputs.REPO}}
-          path: ./data/app.jar
 
       - name: Trigger CD
         if: github.ref == 'refs/heads/main'
