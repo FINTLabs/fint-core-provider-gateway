@@ -1,10 +1,9 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
     branches: [CT-535-ta-i-bruk-ci-cd]
   pull_request:
-    branches: [main]
 
 jobs:
   build:
