@@ -52,6 +52,6 @@ jobs:
       - name: Trigger CD
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.GITHUBWORKFLOW_TOKEN_FSJOVATSEN }}
+          token: ${{ secrets.GITHUBACTION_TOKEN }}
           repository: ${{ github.repository }}
           event-type: trigger-cd
