@@ -43,7 +43,8 @@ public class ResponseEventService {
                 requestEvent.getDomainName(),
                 requestEvent.getPackageName(),
                 requestEvent.getResourceName(),
-                responseFintEvent.getValue()
+                responseFintEvent.getValue(),
+                responseFintEvent.getCorrId()
         );
     }
 }
