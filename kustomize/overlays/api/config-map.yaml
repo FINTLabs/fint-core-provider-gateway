@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fint-core-provider-gateway
+data:
+  fint.org-id: 'fintlabs.no'
+  logging.level.no.fintlabs.event: 'debug'

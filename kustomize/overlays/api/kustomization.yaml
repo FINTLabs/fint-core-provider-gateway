@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+patchesStrategicMerge:
+  - config-map.yaml
+  - ingress-route.yaml
+  - kafka-user-and-acl.yaml
+commonLabels:
+  app.kubernetes.io/name: fint-core-provider-gateway
+  app.kubernetes.io/instance: fint-core-provider-gateway_fintlabs-no
+  app.kubernetes.io/version: latest
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/part-of: fint-core
+  fintlabs.no/team: core
+  fintlabs.no/org-id: fintlabs.no
