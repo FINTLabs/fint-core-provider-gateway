@@ -1,11 +1,13 @@
 package no.fintlabs.config;
 
+import lombok.extern.slf4j.Slf4j;
 import no.vigoiks.resourceserver.security.FintJwtCoreConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+@Slf4j
 @EnableWebFluxSecurity
 public class SecurityConfiguration {
 
@@ -27,6 +29,8 @@ public class SecurityConfiguration {
 
     //@Bean
     private SecurityWebFilterChain createOauth2FilterChain(ServerHttpSecurity http) {
+        log.info("Security: Normal web-filter-chain used. Authentication required.");
+
         http
                 .authorizeExchange((authorize) -> authorize
                         .pathMatchers("/**").hasAnyAuthority(getScopeAuthority())
@@ -39,6 +43,8 @@ public class SecurityConfiguration {
     }
 
     private SecurityWebFilterChain createPermitAllFilterChain(ServerHttpSecurity http) {
+        log.warn("Security: Authentication NOT required. All users permitted.");
+
         return http
                 .csrf().disable()
                 .authorizeExchange()

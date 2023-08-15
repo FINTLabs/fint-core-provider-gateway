@@ -1,5 +1,6 @@
 package no.fintlabs.kafka;
 
+import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.exception.InvalidEventNameException;
 import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
@@ -10,6 +11,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.Optional;
 
+@Slf4j
 public abstract class EventProducerKafka<T> {
 
     private final EventProducer<T> eventProducer;
@@ -69,6 +71,7 @@ public abstract class EventProducerKafka<T> {
 
     private void validateEventName(String eventName) {
         if (eventName == null) {
+            log.error("eventName is not set");
             throw new InvalidEventNameException("eventName is not set");
         }
     }
