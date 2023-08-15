@@ -38,7 +38,9 @@ public class AdapterRequestValidator {
         if (properties.isResourceServerSecurityDisabled()) return;
 
         if (requestedOrgIdNotInFintAssetIDs(jwt, requestedOrgId)) {
-            throw new InvalidOrgId(String.format("OrgId %s is not a part of the authorized OrgIds for this adapter!", requestedOrgId));
+            String message = String.format("OrgId %s is not a part of the authorized OrgIds for this adapter!", requestedOrgId);
+            log.error(message);
+            throw new InvalidOrgId(message);
         }
     }
 
@@ -51,7 +53,9 @@ public class AdapterRequestValidator {
         if (properties.isResourceServerSecurityDisabled()) return;
 
         if (!jwt.getClaims().get("cn").toString().equals(requestedUsername)) {
-            throw new InvalidUsername("Username in token is not the same as the username in the payload!");
+            String message = "Username in token is not the same as the username in the payload!";
+            log.error(message);
+            throw new InvalidUsername(message);
         }
     }
 }
