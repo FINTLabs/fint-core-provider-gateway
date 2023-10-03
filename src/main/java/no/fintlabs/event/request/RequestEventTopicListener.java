@@ -1,5 +1,6 @@
 package no.fintlabs.event.request;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.config.KafkaConfig;
@@ -10,8 +11,6 @@ import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
 
 @Slf4j
 @Service

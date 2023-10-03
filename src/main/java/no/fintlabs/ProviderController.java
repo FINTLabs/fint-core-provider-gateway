@@ -104,7 +104,9 @@ public class ProviderController {
     @ExceptionHandler(UnknownTopicOrPartitionException.class)
     public ResponseEntity<ErrorResponseMessage> handleUnknownTopicOrPartitionException() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ErrorResponseMessage("The adapter has probably not called the '/register' endpoint. " +
-                        "Also you need to check if the entity endpoint is in the capability list."));
+                new ErrorResponseMessage("""
+                        The adapter has probably not called the '/register' endpoint. \
+                        Also you need to check if the entity endpoint is in the capability list.\
+                        """));
     }
 }

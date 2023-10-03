@@ -25,7 +25,7 @@ public class ResponseEventTopicProducer {
 
     public void sendEvent(ResponseFintEvent responseFintEvent, RequestFintEvent requestFintEvent) {
 
-        String eventName = String.format("%s-%s-%s-%s-%s",
+        String eventName = "%s-%s-%s-%s-%s".formatted(
                 requestFintEvent.getDomainName(),
                 requestFintEvent.getPackageName(),
                 requestFintEvent.getResourceName(),

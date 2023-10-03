@@ -3,11 +3,13 @@ package no.fintlabs.config;
 import lombok.extern.slf4j.Slf4j;
 import no.vigoiks.resourceserver.security.FintJwtCoreConverter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Slf4j
+@Configuration
 @EnableWebFluxSecurity
 public class SecurityConfiguration {
 
@@ -46,11 +48,10 @@ public class SecurityConfiguration {
         log.warn("Security: Authentication NOT required. All users permitted.");
 
         return http
-                .csrf().disable()
-                .authorizeExchange()
-                .anyExchange()
-                .permitAll()
-                .and()
+                .csrf(csrf -> csrf.disable()
+                        .authorizeExchange(exchange -> exchange
+                                .anyExchange()
+                                .permitAll()))
                 .build();
     }
 

@@ -16,7 +16,7 @@ public class KafkaConfig {
         groupIdSuffix = RandomStringUtils.random(SUFFIX_LENGTH, true, true).toLowerCase();
 
         String groupId = environment.getProperty("spring.kafka.consumer.group-id");
-        log.info(String.format("Group-id: %s-%s", groupId, groupIdSuffix));
+        log.info("Group-id: %s-%s".formatted(groupId, groupIdSuffix));
     }
 
     public String getGroupIdSuffix() {

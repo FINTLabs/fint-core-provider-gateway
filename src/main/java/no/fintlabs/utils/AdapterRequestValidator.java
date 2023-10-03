@@ -31,7 +31,7 @@ public class AdapterRequestValidator {
     }
 
     private static boolean resourcesDoesntMatchRoles(String domain, String packageName, List<String> roles) {
-        return roles.stream().noneMatch(role -> role.contains(String.format("FINT_Adapter_%s_%s", domain, packageName)));
+        return roles.stream().noneMatch(role -> role.contains("FINT_Adapter_%s_%s".formatted(domain, packageName)));
     }
 
     public void validateOrgId(Jwt jwt, String requestedOrgId) {

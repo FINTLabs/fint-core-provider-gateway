@@ -36,7 +36,7 @@ public class EntityProducerKafka {
                         .topicNameParameters(EntityTopicNameParameters
                                 .builder()
                                 .orgId(orgId)
-                                .resource(String.format("%s-%s-%s", domain, packageName, entityName))
+                                .resource("%s-%s-%s".formatted(domain, packageName, entityName))
                                 .build())
                         .headers(headers)
                         .key(syncPageEntry.getIdentifier())

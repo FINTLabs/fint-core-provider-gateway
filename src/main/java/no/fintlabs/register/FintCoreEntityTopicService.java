@@ -23,7 +23,7 @@ public class FintCoreEntityTopicService {
     }
 
     private void ensureEntityTopic(AdapterCapability adapterCapability, String orgId, long retentionTimeMs) {
-        String resource = String.format("%s-%s-%s", adapterCapability.getDomainName(), adapterCapability.getPackageName(), adapterCapability.getResourceName());
+        String resource = "%s-%s-%s".formatted(adapterCapability.getDomainName(), adapterCapability.getPackageName(), adapterCapability.getResourceName());
         entityTopicService.ensureTopic(EntityTopicNameParameters
                         .builder()
                         .orgId(orgId)

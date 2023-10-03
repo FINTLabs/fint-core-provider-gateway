@@ -20,7 +20,7 @@ public class SyncPageService {
 
     public <T extends SyncPage<Object>> void doSync(T syncPage, String domain, String packageName, String entity) {
         Instant start = Instant.now();
-        String eventName = String.format("adapter-%s-sync", syncPage.getSyncType().toString().toLowerCase());
+        String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
 
         if (syncPage.getSyncType() == SyncType.DELETE) {
             syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
