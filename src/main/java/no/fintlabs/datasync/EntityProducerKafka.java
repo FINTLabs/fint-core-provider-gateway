@@ -13,6 +13,8 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class EntityProducerKafka {
 
@@ -22,11 +24,11 @@ public class EntityProducerKafka {
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
     }
 
-    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
         return sendEntity(orgId, domain, packageName, entityName, syncPageEntry,null);
     }
 
-    public ListenableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
 
         RecordHeaders headers = new RecordHeaders();
         if (StringUtils.isNotBlank(eventCorrId)) headers.add(new RecordHeader("event-corr-id", eventCorrId.getBytes()));

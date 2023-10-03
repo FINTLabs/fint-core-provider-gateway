@@ -6,10 +6,10 @@ import no.fintlabs.adapter.models.SyncPage;
 import no.fintlabs.adapter.models.SyncType;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -34,7 +34,7 @@ public class SyncPageService {
 
     private void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
         page.getResources().forEach(syncPageEntry -> {
-            ListenableFuture<SendResult<String, Object>> future = entityProducerKafka.sendEntity(
+            CompletableFuture<SendResult<String, Object>> future = entityProducerKafka.sendEntity(
                     page.getMetadata().getOrgId(),
                     domain,
                     packageName,
@@ -42,10 +42,11 @@ public class SyncPageService {
                     syncPageEntry
             );
 
-            future.addCallback(
-                    result -> log.debug("Entity sent successfully"),
-                    error -> log.error("Error sending entity: " + error.getMessage(), error)
-            );
+            future.thenAccept(result -> log.debug("Entity sent successfully"))
+                    .exceptionally(error -> {
+                        log.error("Error sending entity: " + error.getMessage(), error);
+                        return null;
+                    });
         });
     }
 

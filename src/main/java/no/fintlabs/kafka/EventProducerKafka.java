@@ -7,9 +7,8 @@ import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
-import org.springframework.util.concurrent.ListenableFuture;
 
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public abstract class EventProducerKafka<T> {
@@ -33,14 +32,14 @@ public abstract class EventProducerKafka<T> {
         this.eventName = eventName;
     }
 
-    public ListenableFuture<?> send(T value, String orgId, String eventName) {
+    public CompletableFuture<?> send(T value, String orgId, String eventName) {
         validateEventName(eventName);
         EventTopicNameParameters eventTopicNameParameters = generateTopicName(orgId, eventName);
         EventProducerRecord<T> eventProducerRecord = createEventProducerRecord(value, eventTopicNameParameters);
         return eventProducer.send(eventProducerRecord);
     }
 
-    public ListenableFuture<?> send(T value, String orgId) {
+    public CompletableFuture<?> send(T value, String orgId) {
         return send(value, orgId, eventName);
     }
 
