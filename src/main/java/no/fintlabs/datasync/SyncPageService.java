@@ -42,11 +42,13 @@ public class SyncPageService {
                     syncPageEntry
             );
 
-            future.thenAccept(result -> log.debug("Entity sent successfully"))
-                    .exceptionally(error -> {
-                        log.error("Error sending entity: " + error.getMessage(), error);
-                        return null;
-                    });
+            future.whenComplete((result, error) -> {
+                if (result != null) {
+                    log.debug("Entity sent successfully");
+                } else {
+                    log.error("Error sending entity: " + error.getMessage(), error);
+                }
+            });
         });
     }
 
