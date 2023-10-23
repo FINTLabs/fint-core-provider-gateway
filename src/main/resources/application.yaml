@@ -5,6 +5,7 @@ fint:
   security:
     component: false
     org-id: false
+    role-type: adapter
   kafka:
     topic:
       domain-context: fint-core
