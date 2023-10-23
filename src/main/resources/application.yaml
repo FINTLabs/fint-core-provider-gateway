@@ -3,6 +3,9 @@ server:
 
 fint:
   kafka:
+    security:
+      component: false
+      org-id: false
     topic:
       domain-context: fint-core
     application-id: provider

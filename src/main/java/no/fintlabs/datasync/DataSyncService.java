@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.SyncPage;
 import no.fintlabs.adapter.models.SyncPageMetadata;
 import no.fintlabs.adapter.models.SyncType;
+import no.fintlabs.core.resource.server.security.CorePrincipal;
 import no.fintlabs.utils.AdapterRequestValidator;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,10 @@ public class DataSyncService {
     private final AdapterRequestValidator validator;
     private final SyncPageService syncPageService;
 
-    public <T extends SyncPage<Object>> void registerSync(Jwt jwt, T syncPageOfObject, final String domain, final String packageName, final String entity) {
+    public <T extends SyncPage<Object>> void registerSync(CorePrincipal corePrincipal, T syncPageOfObject, final String domain, final String packageName, final String entity) {
         logEntities(syncPageOfObject.getSyncType(), syncPageOfObject.getMetadata(), syncPageOfObject.getResources().size());
-        validator.validateRole(jwt, domain, packageName);
-        validator.validateOrgId(jwt, syncPageOfObject.getMetadata().getOrgId());
+        validator.validateRole(corePrincipal, domain, packageName);
+        validator.validateOrgId(corePrincipal, syncPageOfObject.getMetadata().getOrgId());
         syncPageService.doSync(syncPageOfObject, domain, packageName, entity);
     }
 

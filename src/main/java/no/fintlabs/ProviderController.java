@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.*;
+import no.fintlabs.core.resource.server.security.CorePrincipal;
 import no.fintlabs.datasync.DataSyncService;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
@@ -30,58 +31,58 @@ public class ProviderController {
     private final DataSyncService dataSyncService;
 
     @GetMapping("status")
-    public ResponseEntity<Map<String, Object>> status(@AuthenticationPrincipal Jwt principal) {
+    public ResponseEntity<Map<String, Object>> status(@AuthenticationPrincipal CorePrincipal corePrincipal) {
         return ResponseEntity.ok(Map.of(
                 "status", "Greetings form FINTLabs 👋",
-                "principal", principal));
+                "corePrincipal", corePrincipal));
     }
 
     @PostMapping("heartbeat")
-    public ResponseEntity<String> heartbeat(@AuthenticationPrincipal Jwt principal,
+    public ResponseEntity<String> heartbeat(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                             @RequestBody AdapterHeartbeat adapterHeartbeat) {
-        heartbeatService.register(adapterHeartbeat, principal);
+        heartbeatService.register(adapterHeartbeat, corePrincipal);
         return ResponseEntity.ok("💗");
     }
 
     @PostMapping("{domain}/{packageName}/{entity}")
-    public ResponseEntity<Void> fullSync(@AuthenticationPrincipal Jwt principal,
+    public ResponseEntity<Void> fullSync(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                          @RequestBody FullSyncPageOfObject entities,
                                          @PathVariable final String domain,
                                          @PathVariable final String packageName,
                                          @PathVariable final String entity) {
 
-        dataSyncService.registerSync(principal, entities, domain, packageName, entity);
+        dataSyncService.registerSync(corePrincipal, entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PatchMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deltaSync(
-            @AuthenticationPrincipal Jwt principal,
+            @AuthenticationPrincipal CorePrincipal corePrincipal,
             @RequestBody DeltaSyncPageOfObject entities,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
 
-        dataSyncService.registerSync(principal, entities, domain, packageName, entity);
+        dataSyncService.registerSync(corePrincipal, entities, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deleteSync(
-            @AuthenticationPrincipal Jwt principal,
+            @AuthenticationPrincipal CorePrincipal corePrincipal,
             @RequestBody DeleteSyncPageOfObject entities,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
 
-        dataSyncService.registerSync(principal, entities, domain, packageName, entity);
+        dataSyncService.registerSync(corePrincipal, entities, domain, packageName, entity);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("register")
-    public ResponseEntity<Void> register(@AuthenticationPrincipal Jwt principal,
+    public ResponseEntity<Void> register(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                          @RequestBody final AdapterContract adapterContract) {
-        registerService.register(adapterContract, principal);
+        registerService.register(adapterContract, corePrincipal);
         return ResponseEntity.ok().build();
     }
 
