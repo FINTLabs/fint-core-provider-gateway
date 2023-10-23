@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @Configuration
 public class ProviderProperties {
+
     @Value("${fint.provider.adapter.heartbeat.retention-time-ms:86400000}")
     private long adapterHeartbeatRetentionTimeMs;
 
@@ -21,13 +22,5 @@ public class ProviderProperties {
 
     @Value("${fint.provider.adapter.delete-sync.retention-time-ms:86400000}")
     private long adapterDeleteSyncRetentionTimeMs;
-
-    @Value("${fint.provider.adapter.scope:fint-adapter}")
-    private String scope;
-
-    @Value("${fint.security.resourceserver.disabled:false}")
-    private boolean resourceServerSecurityDisabled;
-
-
 
 }
