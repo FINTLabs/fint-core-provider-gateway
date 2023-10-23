@@ -2,10 +2,10 @@ server:
   port : 8080
 
 fint:
+  security:
+    component: false
+    org-id: false
   kafka:
-    security:
-      component: false
-      org-id: false
     topic:
       domain-context: fint-core
     application-id: provider
