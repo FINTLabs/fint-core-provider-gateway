@@ -20,13 +20,15 @@ public class AdapterRequestValidator {
     private boolean isSecurityEnabled;
 
     public void validateRole(CorePrincipal corePrincipal, String domain, String packageName) {
+        if (!isSecurityEnabled) return;
+
         if (!corePrincipal.hasRole(String.format("FINT_Adapter_%s_%s", domain, packageName))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Resource does not match role");
         }
     }
 
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
-        if (isSecurityEnabled) return;
+        if (!isSecurityEnabled) return;
 
         if (corePrincipal.getOrgId().equals(requestedOrgId)) {
             String message = String.format("OrgId %s is not a part of the authorized OrgIds for this adapter!", requestedOrgId);
@@ -36,7 +38,7 @@ public class AdapterRequestValidator {
     }
 
     public void validateUsername(CorePrincipal corePrincipal, String requestedUsername) {
-        if (isSecurityEnabled) return;
+        if (!isSecurityEnabled) return;
 
         if (!corePrincipal.getUsername().equals(requestedUsername)) {
             String message = "Username in token is not the same as the username in the payload!";
