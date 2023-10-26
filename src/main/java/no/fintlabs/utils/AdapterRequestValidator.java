@@ -32,7 +32,7 @@ public class AdapterRequestValidator {
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
         if (!isSecurityEnabled) return;
 
-        if (corePrincipal.getOrgId().equals(requestedOrgId)) {
+        if (!corePrincipal.getOrgId().equals(requestedOrgId)) {
             String message = String.format("%s: OrgId: [%s] is not a part of the authorized OrgIds for this adapter: [%s]", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getOrgId());
             log.error(message);
             throw new InvalidOrgId(message);
