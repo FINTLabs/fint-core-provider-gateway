@@ -22,8 +22,10 @@ public class AdapterRequestValidator {
     public void validateRole(CorePrincipal corePrincipal, String domain, String packageName) {
         if (!isSecurityEnabled) return;
 
-        if (!corePrincipal.hasRole(String.format("FINT_Adapter_%s_%s", domain, packageName))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Resource does not match role");
+        String role = String.format("FINT_Adapter_%s_%s", domain, packageName);
+        if (!corePrincipal.hasRole(role)) {
+            String message = String.format("%s: Role mismatch, user-roles: %s, check-role: %s", corePrincipal.getUsername(), corePrincipal.getRoles(), role);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
         }
     }
 
@@ -31,7 +33,7 @@ public class AdapterRequestValidator {
         if (!isSecurityEnabled) return;
 
         if (corePrincipal.getOrgId().equals(requestedOrgId)) {
-            String message = String.format("OrgId %s is not a part of the authorized OrgIds for this adapter!", requestedOrgId);
+            String message = String.format("%s: OrgId: [%s] is not a part of the authorized OrgIds for this adapter: [%s]", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getOrgId());
             log.error(message);
             throw new InvalidOrgId(message);
         }
@@ -41,7 +43,7 @@ public class AdapterRequestValidator {
         if (!isSecurityEnabled) return;
 
         if (!corePrincipal.getUsername().equals(requestedUsername)) {
-            String message = "Username in token is not the same as the username in the payload!";
+            String message = String.format("%s: does not match the same username as request: %s", corePrincipal.getUsername(), requestedUsername);
             log.error(message);
             throw new InvalidUsername(message);
         }
