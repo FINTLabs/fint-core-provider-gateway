@@ -19,14 +19,15 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@RestController()
+@RequestMapping("event")
+@RestController
 public class EventController {
 
     private final RequestEventService requestEventService;
 
     private final ResponseEventService responseEventService;
 
-    @GetMapping(value = {"/event/", "/event/{domainName}", "/event/{domainName}/{packageName}", "/event/{domainName}/{packageName}/{resourceName}"})
+    @GetMapping(value = {"/{domainName}", "/{domainName}/{packageName}", "/{domainName}/{packageName}/{resourceName}"})
     public ResponseEntity<List<RequestFintEvent>> getEvents(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
             @PathVariable(required = false) String domainName,
@@ -34,12 +35,10 @@ public class EventController {
             @PathVariable(required = false) String resourceName,
             @RequestParam(defaultValue = "0") int size
     ) {
-        return ResponseEntity.ok(
-                requestEventService.getEvents(corePrincipal.getOrgId(), domainName, packageName, resourceName, size)
-        );
+        return ResponseEntity.ok(requestEventService.getEvents(corePrincipal.getOrgId(), domainName, packageName, resourceName, size));
     }
 
-    @PostMapping("/event")
+    @PostMapping
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
             @RequestBody ResponseFintEvent<?> responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
