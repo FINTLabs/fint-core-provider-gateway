@@ -1,6 +1,5 @@
 package no.fintlabs.datasync;
 
-import io.netty.handler.codec.Headers;
 import no.fintlabs.adapter.models.SyncPageEntry;
 import no.fintlabs.kafka.entity.EntityProducer;
 import no.fintlabs.kafka.entity.EntityProducerFactory;
@@ -11,7 +10,6 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -25,7 +23,7 @@ public class EntityProducerKafka {
     }
 
     public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
-        return sendEntity(orgId, domain, packageName, entityName, syncPageEntry,null);
+        return sendEntity(orgId, domain, packageName, entityName, syncPageEntry, null);
     }
 
     public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {

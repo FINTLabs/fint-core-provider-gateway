@@ -7,8 +7,6 @@ import no.fintlabs.adapter.models.SyncPageMetadata;
 import no.fintlabs.adapter.models.SyncType;
 import no.fintlabs.core.resource.server.security.CorePrincipal;
 import no.fintlabs.utils.AdapterRequestValidator;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 @Slf4j
