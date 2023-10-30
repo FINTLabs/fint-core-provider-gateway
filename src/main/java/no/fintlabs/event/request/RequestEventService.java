@@ -35,8 +35,7 @@ public class RequestEventService {
 
         if (size > 0) stream = stream.limit(size);
 
-        List<RequestFintEvent> list = stream.collect(Collectors.toList());
-        return list;
+        return stream.collect(Collectors.toList());
     }
 
     public Optional<RequestFintEvent> getEvent(String corrId) {
