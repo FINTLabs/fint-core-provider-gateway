@@ -10,7 +10,7 @@ import org.springframework.core.env.Environment;
 public class KafkaConfig {
 
     public static final int SUFFIX_LENGTH = 8;
-    private String groupIdSuffix;
+    private final String groupIdSuffix;
 
     public KafkaConfig(Environment environment) {
         groupIdSuffix = RandomStringUtils.random(SUFFIX_LENGTH, true, true).toLowerCase();
