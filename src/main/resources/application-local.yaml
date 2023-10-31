@@ -3,10 +3,13 @@ server:
 
 fint:
   security:
-    enabled: false
+    enabled: true
     component: false
     org-id: false
     role-type: adapter
+    open-paths: |
+      /api-docs/**,
+      /swagger/**
   kafka:
     application-id: provider
     enable-ssl: false

@@ -42,7 +42,7 @@ public class EventController {
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
             @RequestBody ResponseFintEvent<?> responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
-        if (corePrincipal.orgIdsMatch(responseFintEvent.getOrgId())) {
+        if (corePrincipal.hasMatchingOrgId(responseFintEvent.getOrgId())) {
             log.debug("Response has been posted corr-id: {} org-id: {}", responseFintEvent.getCorrId(), responseFintEvent.getOrgId());
             responseEventService.handleEvent(responseFintEvent);
             return ResponseEntity.ok().build();

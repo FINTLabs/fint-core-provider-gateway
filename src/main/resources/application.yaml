@@ -1,11 +1,11 @@
-server:
-  port : 8080
-
 fint:
   security:
     component: false
     org-id: false
     role-type: adapter
+    open-paths: |
+      /api-docs/**,
+      /swagger/**
   kafka:
     topic:
       domain-context: fint-core
@@ -16,15 +16,6 @@ spring:
   kafka:
     consumer:
       group-id: provider
-    #producer:
-      #properties:
-      #  linger-ms: 2000
-      #batch-size: 1000000
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: https://idp.felleskomponent.no/nidp/oauth/nam
   webflux:
     base-path: /provider
   codec:
