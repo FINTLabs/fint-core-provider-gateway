@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.*;
-import no.fintlabs.core.resource.server.security.CorePrincipal;
+import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.datasync.DataSyncService;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;

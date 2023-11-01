@@ -2,7 +2,7 @@ package no.fintlabs.utils;
 
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.core.resource.server.security.CorePrincipal;
+import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.exception.InvalidOrgId;
 import no.fintlabs.exception.InvalidUsername;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +21,7 @@ public class AdapterRequestValidator {
         if (!isSecurityEnabled) return;
 
         String role = String.format("FINT_Adapter_%s_%s", domain, packageName);
-        if (!corePrincipal.hasRole(role)) {
+        if (corePrincipal.doesNotHaveRole(role)) {
             String message = String.format("%s: Role mismatch, user-roles: %s, check-role: %s", corePrincipal.getUsername(), corePrincipal.getRoles(), role);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
         }
@@ -30,7 +30,7 @@ public class AdapterRequestValidator {
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
         if (!isSecurityEnabled) return;
 
-        if (!corePrincipal.getOrgId().equals(requestedOrgId)) {
+        if (corePrincipal.doesNotHaveMatchingOrgId(requestedOrgId)) {
             String message = String.format("%s: OrgId: [%s] is not a part of the authorized OrgIds for this adapter: [%s]", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getOrgId());
             log.error(message);
             throw new InvalidOrgId(message);
@@ -40,7 +40,7 @@ public class AdapterRequestValidator {
     public void validateUsername(CorePrincipal corePrincipal, String requestedUsername) {
         if (!isSecurityEnabled) return;
 
-        if (!corePrincipal.getUsername().equals(requestedUsername)) {
+        if (corePrincipal.doesNotHaveMatchingUsername(requestedUsername)) {
             String message = String.format("%s: does not match the same username as request: %s", corePrincipal.getUsername(), requestedUsername);
             log.error(message);
             throw new InvalidUsername(message);

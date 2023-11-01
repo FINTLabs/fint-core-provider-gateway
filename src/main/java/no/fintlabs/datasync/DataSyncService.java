@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.SyncPage;
 import no.fintlabs.adapter.models.SyncPageMetadata;
 import no.fintlabs.adapter.models.SyncType;
-import no.fintlabs.core.resource.server.security.CorePrincipal;
+import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.utils.AdapterRequestValidator;
 import org.springframework.stereotype.Service;
 

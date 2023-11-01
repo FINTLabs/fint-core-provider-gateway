@@ -3,7 +3,7 @@ package no.fintlabs.register;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.core.resource.server.security.CorePrincipal;
+import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.kafka.FintCoreEventTopicService;
 import no.fintlabs.utils.AdapterRequestValidator;
 import org.springframework.stereotype.Service;

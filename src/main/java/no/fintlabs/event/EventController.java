@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
-import no.fintlabs.core.resource.server.security.CorePrincipal;
+import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.event.request.RequestEventService;
 import no.fintlabs.event.response.ResponseEventService;
 import no.fintlabs.exception.InvalidJwtException;
