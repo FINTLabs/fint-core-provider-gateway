@@ -7,6 +7,7 @@ import no.fintlabs.adapter.models.SyncPageMetadata;
 import no.fintlabs.adapter.models.SyncType;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.utils.AdapterRequestValidator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -17,10 +18,15 @@ public class DataSyncService {
     private final AdapterRequestValidator validator;
     private final SyncPageService syncPageService;
 
+    @Value("${fint.security.enabled:true}")
+    private boolean securityEnabled;
+
     public <T extends SyncPage<Object>> void registerSync(CorePrincipal corePrincipal, T syncPageOfObject, final String domain, final String packageName, final String entity) {
         logEntities(syncPageOfObject.getSyncType(), syncPageOfObject.getMetadata(), syncPageOfObject.getResources().size());
-        validator.validateRole(corePrincipal, domain, packageName);
-        validator.validateOrgId(corePrincipal, syncPageOfObject.getMetadata().getOrgId());
+        if (securityEnabled) {
+            validator.validateRole(corePrincipal, domain, packageName);
+            validator.validateOrgId(corePrincipal, syncPageOfObject.getMetadata().getOrgId());
+        }
         syncPageService.doSync(syncPageOfObject, domain, packageName, entity);
     }
 
