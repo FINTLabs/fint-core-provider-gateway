@@ -1,17 +1,12 @@
 package no.fintlabs;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.*;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.datasync.DataSyncService;
-import no.fintlabs.exception.InvalidOrgId;
-import no.fintlabs.exception.InvalidUsername;
 import no.fintlabs.heartbeat.HeartbeatService;
 import no.fintlabs.register.RegisterService;
-import no.fintlabs.utils.ErrorResponseMessage;
-import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -85,28 +80,4 @@ public class ProviderController {
         return ResponseEntity.ok().build();
     }
 
-    @ExceptionHandler(JsonProcessingException.class)
-    public ResponseEntity<Void> handleJsonProcessingException(Throwable e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-
-    @ExceptionHandler(InvalidOrgId.class)
-    public ResponseEntity<ErrorResponseMessage> handleInvalidOrgId(InvalidOrgId e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseMessage(e.getMessage()));
-    }
-
-    @ExceptionHandler(InvalidUsername.class)
-    public ResponseEntity<ErrorResponseMessage> handleInvalidUsername(InvalidUsername e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseMessage(e.getMessage()));
-    }
-
-    @ExceptionHandler(UnknownTopicOrPartitionException.class)
-    public ResponseEntity<ErrorResponseMessage> handleUnknownTopicOrPartitionException() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                new ErrorResponseMessage("""
-                        The adapter has probably not called the '/register' endpoint. \
-                        Also you need to check if the entity endpoint is in the capability list.\
-                        """));
-    }
 }
