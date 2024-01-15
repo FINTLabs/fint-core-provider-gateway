@@ -24,14 +24,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.kafka:spring-kafka'
-
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.93.Final:osx-aarch_64'
     implementation "jakarta.annotation:jakarta.annotation-api:2.1.1"
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.1.0'
 
     implementation 'no.fint:fint-event-model:3.0.2'
-    implementation 'no.fintlabs:fint-core-infra-models:1.1.0-rc-2'
+    implementation 'no.fintlabs:fint-core-infra-models:1.1.2'
     implementation 'no.fintlabs:fint-kafka:3.0.0-rc-1'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.0.0'
 
