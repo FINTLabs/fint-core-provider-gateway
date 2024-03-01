@@ -17,8 +17,8 @@ public class FintCoreEventTopicService {
         this.providerProperties = providerProperties;
     }
 
-    public void ensureAdapterHeartbeatTopic(AdapterHeartbeat adapterHeartbeat) {
-        ensureTopic(adapterHeartbeat.getOrgId(), "adapter-health", providerProperties.getAdapterHeartbeatRetentionTimeMs());
+    public void ensureAdapterHeartbeatTopic(String orgId) {
+        ensureTopic(orgId, "adapter-health", providerProperties.getAdapterHeartbeatRetentionTimeMs());
     }
 
     public void ensureAdapterRegisterTopic(AdapterContract adapterContract) {

@@ -21,7 +21,6 @@ public class HeartbeatService {
         log.debug("Heartbeat from adapter id: {}, orgIds: {}, username: {}", adapterHeartbeat.getAdapterId(), adapterHeartbeat.getOrgId(), adapterHeartbeat.getUsername());
         validator.validateOrgId(corePrincipal, adapterHeartbeat.getOrgId());
         validator.validateUsername(corePrincipal, adapterHeartbeat.getUsername());
-        fintCoreEventTopicService.ensureAdapterHeartbeatTopic(adapterHeartbeat);
         heartbeatKafkaProducer.send(adapterHeartbeat, adapterHeartbeat.getOrgId());
     }
 }
