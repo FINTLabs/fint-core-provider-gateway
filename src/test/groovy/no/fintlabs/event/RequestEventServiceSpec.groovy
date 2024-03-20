@@ -80,6 +80,7 @@ class RequestEventServiceSpec extends Specification {
 
     private RequestFintEvent createEvent(String orgId, String domainName, String packageName, String resourceName) {
         return RequestFintEvent.builder()
+                .corrId(UUID.randomUUID().toString())
                 .orgId(orgId)
                 .domainName(domainName)
                 .packageName(packageName)

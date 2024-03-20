@@ -51,7 +51,7 @@ public class ResponseEventTopicListener {
     }
 
     private void processEvent(ConsumerRecord<String, ResponseFintEvent> consumerRecord) {
-        log.debug("ResponseFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
+        log.info("ResponseFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
         requestEventService.removeEvent(consumerRecord.value().getCorrId());
     }
 }

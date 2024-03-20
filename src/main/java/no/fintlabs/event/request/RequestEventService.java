@@ -5,9 +5,7 @@ import no.fintlabs.adapter.models.RequestFintEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,10 +13,10 @@ import java.util.stream.Stream;
 @Service
 public class RequestEventService {
 
-    private final List<RequestFintEvent> events = new ArrayList<>();
+    private final Map<String, RequestFintEvent> events = new LinkedHashMap<>();
 
     public void addEvent(RequestFintEvent event) {
-        events.add(event);
+        events.put(event.getCorrId(), event);
     }
 
     public void removeEvent(String corrId) {
@@ -27,7 +25,7 @@ public class RequestEventService {
     }
 
     public List<RequestFintEvent> getEvents(String orgId, String domainName, String packageName, String resourceName, int size) {
-        Stream<RequestFintEvent> stream = events.stream()
+        Stream<RequestFintEvent> stream = events.values().stream()
                 .filter(event -> event.getOrgId().equals(orgId))
                 .filter(event -> StringUtils.isBlank(domainName) || event.getDomainName().equalsIgnoreCase(domainName))
                 .filter(event -> StringUtils.isBlank(packageName) || event.getPackageName().equalsIgnoreCase(packageName))
@@ -39,9 +37,6 @@ public class RequestEventService {
     }
 
     public Optional<RequestFintEvent> getEvent(String corrId) {
-        return events
-                .stream()
-                .filter(e -> e.getCorrId().equals(corrId))
-                .findFirst();
+        return Optional.ofNullable(events.get(corrId));
     }
 }
