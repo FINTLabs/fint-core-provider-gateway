@@ -8,8 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,6 +64,22 @@ public class RequestEventServiceTest {
         Optional<RequestFintEvent> result = eventService.getEvent(event.getCorrId());
         assertTrue(result.isPresent());
         assertEquals(event, result.get());
+    }
+
+    @Test
+    public void testEnsureEventsTimeToLive() {
+        RequestFintEvent event = createEvent("utdanning", "vurdering", "fravar");
+        event.setTimeToLive(0);
+        eventService.addEvent(event);
+        assertTrue(event.getTimeToLive() > 0);
+    }
+
+    @Test
+    public void testEnsureEventsTimeToLiveIsUnchanged() {
+        RequestFintEvent event = createEvent("utdanning", "vurdering", "fravar");
+        event.setTimeToLive(123456789);
+        eventService.addEvent(event);
+        assertTrue(event.getTimeToLive() == 123456789);
     }
 
     private RequestFintEvent createEvent(String domainName, String packageName, String resourceName) {

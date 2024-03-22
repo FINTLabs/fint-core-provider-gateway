@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,11 +16,16 @@ import java.util.stream.Stream;
 @Service
 public class RequestEventService {
 
-    public static final int DAYS_TO_KEEP_REMOVED_EVENTS = 2;
+    private static final int DAYS_TO_KEEP_REMOVED_EVENTS = 2;
+    private static final int EXTRA_MINUTES_TO_KEEP_EVENTS = 20;
+    private static final int DEFAULT_MINUTES_TO_KEEP_EVENTS = 60;
+
     private final Map<String, RequestFintEvent> events = new LinkedHashMap<>();
     private final Map<String, LocalDate> removedEvents = new HashMap<>();
 
     public void addEvent(RequestFintEvent event) {
+        ensureEventsTimeToLive(event);
+
         if (removedEvents.containsKey(event.getCorrId())) {
             log.debug("Event with corrId: {} not added because in removed events", event.getCorrId());
         } else {
@@ -55,9 +61,24 @@ public class RequestEventService {
         return Optional.ofNullable(events.get(corrId));
     }
 
+    private void ensureEventsTimeToLive(RequestFintEvent event) {
+        if (event.getTimeToLive() == 0) {
+            long timeToLive = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(DEFAULT_MINUTES_TO_KEEP_EVENTS);
+            log.debug("Setting timeToLive for event with corrId: {} to: {}", event.getCorrId(), timeToLive);
+            event.setTimeToLive(timeToLive);
+        }
+    }
+
     @Scheduled(cron = "0 0 10,15 * * ?")
-    private void removeOldEvents() {
+    protected void purgeExpiredRemovedEvents() {
         LocalDate now = LocalDate.now();
         removedEvents.entrySet().removeIf(entry -> entry.getValue().isBefore(now.minusDays(DAYS_TO_KEEP_REMOVED_EVENTS)));
+    }
+
+    @Scheduled(cron = "0 */15 * * * *")
+    protected void purgeExpiredEvents() {
+        long now = System.currentTimeMillis();
+        long buffer = TimeUnit.MINUTES.toMillis(EXTRA_MINUTES_TO_KEEP_EVENTS);
+        events.entrySet().removeIf(entry -> entry.getValue().getTimeToLive() + buffer < now);
     }
 }
