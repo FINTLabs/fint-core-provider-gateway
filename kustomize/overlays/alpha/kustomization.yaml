@@ -6,6 +6,7 @@ patchesStrategicMerge:
   - config-map.yaml
   - ingress-route.yaml
   - kafka-user-and-acl.yaml
+  - deployment.yaml
 commonLabels:
   app.kubernetes.io/name: fint-core-provider-gateway
   app.kubernetes.io/instance: fint-core-provider-gateway_fintlabs-no
