@@ -21,7 +21,7 @@ spec:
   kafka:
     enabled: true
     acls:
-      - topic: '*.fint-core.*'
+      - topic: 'fintlabs-no.fint-core.*'
         permission: admin
   resources:
     limits:
