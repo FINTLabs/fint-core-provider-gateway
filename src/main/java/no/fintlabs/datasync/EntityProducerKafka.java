@@ -22,11 +22,11 @@ public class EntityProducerKafka {
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
     }
 
-    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry syncPageEntry) {
         return sendEntity(orgId, domain, packageName, entityName, syncPageEntry, null);
     }
 
-    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry syncPageEntry, String eventCorrId) {
 
         RecordHeaders headers = new RecordHeaders();
         if (StringUtils.isNotBlank(eventCorrId)) headers.add(new RecordHeader("event-corr-id", eventCorrId.getBytes()));

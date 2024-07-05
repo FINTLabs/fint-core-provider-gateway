@@ -41,7 +41,7 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody ResponseFintEvent<?> responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
+            @RequestBody ResponseFintEvent responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
         if (corePrincipal.hasMatchingOrgId(responseFintEvent.getOrgId())) {
             log.debug("Response has been posted corr-id: {} org-id: {}", responseFintEvent.getCorrId(), responseFintEvent.getOrgId());
             responseEventService.handleEvent(responseFintEvent);
