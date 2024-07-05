@@ -23,11 +23,6 @@ spec:
     acls:
       - topic: '*.fint-core.*'
         permission: admin
-  url:
-    hostname: beta.felleskomponent.no
-  ingress:
-    enabled: true
-    basePath: /provider
   resources:
     limits:
       memory: "1024Mi"
