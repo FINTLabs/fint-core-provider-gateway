@@ -34,7 +34,7 @@ public class ResponseEventTopicListener {
         // Topic example: fintlabs-no.fint-core.event.personvern-samtykke-samtykke-create-request
         EventTopicNamePatternParameters eventTopicNameParameters = EventTopicNamePatternParameters
                 .builder()
-                .orgId(FormattedTopicComponentPattern.any())
+//                .orgId(FormattedTopicComponentPattern.any())
                 .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
                 .eventName(ValidatedTopicComponentPattern.endingWith("-response"))
                 .build();

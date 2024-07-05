@@ -8,6 +8,7 @@ fint:
       /swagger/**
   kafka:
     topic:
+      org-id: fintlabs-no
       domain-context: fint-core
     application-id: provider
     enable-ssl: true
