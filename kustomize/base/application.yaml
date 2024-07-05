@@ -1,0 +1,37 @@
+apiVersion: fintlabs.no/v1alpha1
+kind: Application
+metadata:
+  name: fint-core-provider-gateway-test
+  namespace: fintlabs-no
+  labels:
+    app.kubernetes.io/name: fint-core-provider-gateway-test
+    app.kubernetes.io/instance: fint-core-provider-gateway-test_fintlabs-no
+    app.kubernetes.io/version: latest
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: fint-core
+    fintlabs.no/team: core
+    fintlabs.no/org-id: fintlabs.no
+spec:
+  port: 8080
+  orgId: fintlabs.no
+  image: ghcr.io/fintlabs/fint-core-provider-gateway-test:latest
+  env:
+    - name: JAVA_TOOLS_OPTIONS
+      value: -XX:+ExitOnOutOfMemoryError -Xmx786m
+  kafka:
+    enabled: true
+    acls:
+      - topic: '*.fint-core.*'
+        permission: admin
+  url:
+    hostname: beta.felleskomponent.no
+  ingress:
+    enabled: true
+    basePath: /provider
+  resources:
+    limits:
+      memory: "1024Mi"
+      cpu: "1"
+    requests:
+      memory: "128Mi"
+      cpu: "100m"

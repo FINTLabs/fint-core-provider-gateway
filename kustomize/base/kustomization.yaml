@@ -1,9 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: fint-core
+namespace: fintlabs-no
 resources:
-  - kafka-user-and-acl.yaml
-  - deployment.yaml
-  - service.yaml
-  - ingress-route.yaml
-  - config-map.yaml
+  - application.yaml
