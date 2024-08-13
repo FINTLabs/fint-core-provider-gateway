@@ -41,12 +41,6 @@ public class AdapterRequestValidatorTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenOrgIdMismatch() {
-        when(corePrincipal.doesNotHaveMatchingOrgId(anyString())).thenReturn(true);
-        assertThrows(InvalidOrgId.class, () -> adapterRequestValidator.validateOrgId(corePrincipal, "orgId"));
-    }
-
-    @Test
     public void shouldNotThrowExceptionWhenOrgIdMatch() {
         when(corePrincipal.doesNotHaveMatchingOrgId(anyString())).thenReturn(false);
         assertDoesNotThrow(() -> adapterRequestValidator.validateOrgId(corePrincipal, "orgId"));

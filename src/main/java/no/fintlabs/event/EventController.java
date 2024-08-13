@@ -35,7 +35,7 @@ public class EventController {
             @PathVariable(required = false) String resourceName,
             @RequestParam(defaultValue = "0") int size
     ) {
-        return ResponseEntity.ok(requestEventService.getEvents(corePrincipal.getOrgId(), domainName, packageName, resourceName, size));
+        return ResponseEntity.ok(requestEventService.getEvents(corePrincipal.getAssets(), domainName, packageName, resourceName, size));
     }
 
     @PostMapping
@@ -47,7 +47,7 @@ public class EventController {
             responseEventService.handleEvent(responseFintEvent);
             return ResponseEntity.ok().build();
         }
-        log.error("Response event orgId did not match jwt orgid. Response: {}, jwt: {}", responseFintEvent.getOrgId(), corePrincipal.getOrgId());
+        log.error("Response event orgId did not match jwt orgid. Response: {}, jwt assets: {}", responseFintEvent.getOrgId(), corePrincipal.getAssets());
         throw new InvalidOrgIdException(responseFintEvent.getOrgId());
     }
 

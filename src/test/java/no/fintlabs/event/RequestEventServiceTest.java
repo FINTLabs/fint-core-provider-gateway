@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +35,7 @@ public class RequestEventServiceTest {
         eventService.addEvent(createEvent("okonomi", "kodeverk", "vare"));
         eventService.addEvent(createEvent("utdanning", "vurdering", "fravarsoversikt"));
 
-        List<RequestFintEvent> result = eventService.getEvents(ORG_ID, "", "", "", 0);
+        List<RequestFintEvent> result = eventService.getEvents(new HashSet<>(List.of(ORG_ID)), "", "", "", 0);
 
         assertEquals(5, result.size());
     }
@@ -43,7 +44,7 @@ public class RequestEventServiceTest {
     public void testAddEvent() {
         RequestFintEvent event = createEvent("utdanning", "vurdering", "fravar");
         eventService.addEvent(event);
-        List<RequestFintEvent> result = eventService.getEvents(ORG_ID, "", "", "", 0);
+        List<RequestFintEvent> result = eventService.getEvents(new HashSet<>(List.of(ORG_ID)), "", "", "", 0);
         assertEquals(1, result.size());
         assertEquals(event, result.get(0));
     }
@@ -53,7 +54,7 @@ public class RequestEventServiceTest {
         RequestFintEvent event = createEvent("utdanning", "vurdering", "fravar");
         eventService.addEvent(event);
         eventService.removeEvent(event.getCorrId());
-        List<RequestFintEvent> result = eventService.getEvents(ORG_ID, "", "", "", 0);
+        List<RequestFintEvent> result = eventService.getEvents(new HashSet<>(List.of(ORG_ID)), "", "", "", 0);
         assertEquals(0, result.size());
     }
 

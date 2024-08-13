@@ -45,9 +45,9 @@ public class RequestEventService {
         }
     }
 
-    public List<RequestFintEvent> getEvents(String orgId, String domainName, String packageName, String resourceName, int size) {
+    public List<RequestFintEvent> getEvents(Set<String> assets, String domainName, String packageName, String resourceName, int size) {
         Stream<RequestFintEvent> stream = events.values().stream()
-                .filter(event -> event.getOrgId().equals(orgId))
+                .filter(event -> assets.contains(event.getOrgId()))
                 .filter(event -> StringUtils.isBlank(domainName) || event.getDomainName().equalsIgnoreCase(domainName))
                 .filter(event -> StringUtils.isBlank(packageName) || event.getPackageName().equalsIgnoreCase(packageName))
                 .filter(event -> StringUtils.isBlank(resourceName) || event.getResourceName().equalsIgnoreCase(resourceName));

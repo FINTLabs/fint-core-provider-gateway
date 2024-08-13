@@ -22,8 +22,8 @@ public class AdapterRequestValidator {
     }
 
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
-        if (corePrincipal.doesNotHaveMatchingOrgId(requestedOrgId.replace("-", ".").replace("_", "."))) {
-            String message = String.format("%s: OrgId: [%s] is not a part of the authorized OrgIds for this adapter: [%s]", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getOrgId());
+        if (corePrincipal.doesNotContainAsset(requestedOrgId.replace("-", ".").replace("_", "."))) {
+            String message = String.format("%s: OrgId: %s is not a part of the authorized Assets for this adapter: %s", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getAssets());
             log.error(message);
             throw new InvalidOrgId(message);
         }
