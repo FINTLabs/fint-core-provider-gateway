@@ -4,33 +4,30 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.kafka.FintCoreEventTopicService;
 import no.fintlabs.utils.AdapterRequestValidator;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class RegisterService {
+public class AdaterRegistrationService {
 
     private final AdapterRequestValidator validator;
-    private final FintCoreEventTopicService fintCoreEventTopicService;
     private final RegisterKafkaProducer registerKafkaProducer;
-    private final FintCoreEntityTopicService fintCoreEntityTopicService;
+    private final AdapterRegistrationTopicService adapterRegistrationTopicService;
+    private final AdapterContractContext adapterContractContext;
 
     public void register(AdapterContract adapterContract, CorePrincipal corePrincipal) {
+        validateAdapterRegistration(corePrincipal, adapterContract);
+        adapterRegistrationTopicService.ensureTopics(adapterContract);
+        registerKafkaProducer.send(adapterContract, adapterContract.getOrgId());
+        adapterContractContext.add(adapterContract);
         log.info("Adapter registered {}", adapterContract);
+    }
 
+    private void validateAdapterRegistration(CorePrincipal corePrincipal, AdapterContract adapterContract) {
         validator.validateOrgId(corePrincipal, adapterContract.getOrgId());
         validator.validateUsername(corePrincipal, adapterContract.getUsername());
-
-        fintCoreEventTopicService.ensureAdapterRegisterTopic(adapterContract);
-
-        registerKafkaProducer.send(adapterContract, adapterContract.getOrgId());
-        fintCoreEventTopicService.ensureAdapterHeartbeatTopic(adapterContract.getOrgId());
-        fintCoreEntityTopicService.ensureAdapterEntityTopics(adapterContract);
-        fintCoreEventTopicService.ensureAdapterFullSyncTopic(adapterContract);
-        fintCoreEventTopicService.ensureAdapterDeltaSyncTopic(adapterContract);
-        fintCoreEventTopicService.ensureAdapterDeleteSyncTopic(adapterContract);
     }
+
 }

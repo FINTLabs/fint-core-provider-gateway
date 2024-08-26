@@ -6,7 +6,7 @@ import no.fintlabs.adapter.models.*;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.datasync.DataSyncService;
 import no.fintlabs.heartbeat.HeartbeatService;
-import no.fintlabs.register.RegisterService;
+import no.fintlabs.register.AdaterRegistrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +20,7 @@ import java.util.Map;
 @RequestMapping
 public class ProviderController {
 
-    private final RegisterService registerService;
+    private final AdaterRegistrationService adaterRegistrationService;
     private final HeartbeatService heartbeatService;
     private final DataSyncService dataSyncService;
 
@@ -76,7 +76,7 @@ public class ProviderController {
     @PostMapping("register")
     public ResponseEntity<Void> register(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                          @RequestBody final AdapterContract adapterContract) {
-        registerService.register(adapterContract, corePrincipal);
+        adaterRegistrationService.register(adapterContract, corePrincipal);
         return ResponseEntity.ok().build();
     }
 
