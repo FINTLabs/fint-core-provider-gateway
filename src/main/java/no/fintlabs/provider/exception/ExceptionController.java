@@ -33,6 +33,21 @@ public class ExceptionController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
+    @ExceptionHandler({NoRequestFoundException.class})
+    public ResponseEntity<?> handleNoRequestFoundException(NoRequestFoundException exception) {
+        return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler({InvalidOrgIdException.class})
+    public ResponseEntity<?> handleInvalidOrgIdException(InvalidOrgIdException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler({InvalidJwtException.class})
+    public ResponseEntity<?> handleInvalidJwtException(InvalidJwtException exception) {
+        return ResponseEntity.badRequest().build();
+    }
+
     @ExceptionHandler(UnknownTopicOrPartitionException.class)
     public ResponseEntity<String> handleUnknownTopicOrPartitionException() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("""

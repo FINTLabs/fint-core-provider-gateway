@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
+import no.fintlabs.provider.AdapterRequestValidator;
 import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.event.response.ResponseEventService;
-import no.fintlabs.provider.exception.InvalidJwtException;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +18,13 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/event")
 @RestController
+@RequestMapping("/event")
 public class EventController {
 
     private final RequestEventService requestEventService;
-
     private final ResponseEventService responseEventService;
+    private final AdapterRequestValidator requestValidator;
 
     @GetMapping(value = {"{domainName}", "{domainName}/{packageName}", "{domainName}/{packageName}/{resourceName}"})
     public ResponseEntity<List<RequestFintEvent>> getEvents(
@@ -41,29 +40,13 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody ResponseFintEvent<?> responseFintEvent) throws InvalidOrgIdException, NoRequestFoundException {
-        if (corePrincipal.hasMatchingOrgId(responseFintEvent.getOrgId())) {
-            log.debug("Response has been posted corr-id: {} org-id: {}", responseFintEvent.getCorrId(), responseFintEvent.getOrgId());
-            responseEventService.handleEvent(responseFintEvent);
-            return ResponseEntity.ok().build();
-        }
-        log.error("Response event orgId did not match jwt orgid. Response: {}, jwt assets: {}", responseFintEvent.getOrgId(), corePrincipal.getAssets());
-        throw new InvalidOrgIdException(responseFintEvent.getOrgId());
-    }
+            @RequestBody ResponseFintEvent<?> responseFintEvent
+    ) throws InvalidOrgIdException, NoRequestFoundException {
+        requestValidator.validateOrgId(corePrincipal, responseFintEvent.getOrgId());
+        requestValidator.validateAdapterId(corePrincipal, responseFintEvent.getAdapterId());
 
-    @ExceptionHandler({NoRequestFoundException.class})
-    public ResponseEntity<?> handleNoRequestFoundException(NoRequestFoundException exception) {
-        return ResponseEntity.notFound().build();
-    }
-
-    @ExceptionHandler({InvalidOrgIdException.class})
-    public ResponseEntity<?> handleInvalidOrgIdException(InvalidOrgIdException exception) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).build();
-    }
-
-    @ExceptionHandler({InvalidJwtException.class})
-    public ResponseEntity<?> handleInvalidJwtException(InvalidJwtException exception) {
-        return ResponseEntity.badRequest().build();
+        responseEventService.handleEvent(responseFintEvent);
+        return ResponseEntity.ok().build();
     }
 
 }
