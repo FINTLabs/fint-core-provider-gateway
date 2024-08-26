@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.AdapterHeartbeat;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.kafka.FintCoreEventTopicService;
 import no.fintlabs.utils.AdapterRequestValidator;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class HeartbeatService {
 
     private final AdapterRequestValidator validator;
-    private final FintCoreEventTopicService fintCoreEventTopicService;
     private final HeartbeatKafkaProducer heartbeatKafkaProducer;
 
     public void register(AdapterHeartbeat adapterHeartbeat, CorePrincipal corePrincipal) {
