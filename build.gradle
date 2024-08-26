@@ -33,7 +33,7 @@ dependencies {
 
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:1.1.2'
-    implementation 'no.fintlabs:fint-kafka:3.0.0-rc-1'
+    implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.0'
 
     compileOnly 'org.projectlombok:lombok'
