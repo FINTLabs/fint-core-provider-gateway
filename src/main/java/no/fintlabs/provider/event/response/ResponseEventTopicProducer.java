@@ -6,40 +6,32 @@ import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
-import no.fintlabs.kafka.event.topic.EventTopicService;
+import no.fintlabs.provider.kafka.ProviderTopicService;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 @Service
 public class ResponseEventTopicProducer {
 
-    private static final int RETENTION_TIME_MS = 172800000;
-
     private final EventProducer<Object> eventProducer;
+    private final ProviderTopicService topicService;
 
-    private final EventTopicService eventTopicService;
-
-    public ResponseEventTopicProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
+    public ResponseEventTopicProducer(EventProducerFactory eventProducerFactory, ProviderTopicService topicService) {
         this.eventProducer = eventProducerFactory.createProducer(Object.class);
-        this.eventTopicService = eventTopicService;
+        this.topicService = topicService;
     }
 
     public void sendEvent(ResponseFintEvent responseFintEvent, RequestFintEvent requestFintEvent) {
-
-        String eventName = "%s-%s-%s-%s-%s".formatted(
-                requestFintEvent.getDomainName(),
-                requestFintEvent.getPackageName(),
-                requestFintEvent.getResourceName(),
-                requestFintEvent.equals(OperationType.CREATE) ? "create" : "update",
-                "response");
-
         EventTopicNameParameters topicNameParameters = EventTopicNameParameters
                 .builder()
                 .orgId(responseFintEvent.getOrgId())
                 .domainContext("fint-core")
-                .eventName(eventName)
+                .eventName(createEventName(requestFintEvent))
                 .build();
 
-        eventTopicService.ensureTopic(topicNameParameters, RETENTION_TIME_MS);
+        if (!topicService.topicExists(topicNameParameters))
+            topicService.ensureTopic(topicNameParameters, Duration.ofDays(2).toMillis());
 
         eventProducer.send(
                 EventProducerRecord.builder()
@@ -49,8 +41,13 @@ public class ResponseEventTopicProducer {
         );
     }
 
-    public enum OperationType {
-        CREATE,
-        UPDATE
+    private String createEventName(RequestFintEvent requestFintEvent) {
+        return "%s-%s-%s-%s-response".formatted(
+                requestFintEvent.getDomainName(),
+                requestFintEvent.getPackageName(),
+                requestFintEvent.getResourceName(),
+                requestFintEvent.getOperationType().toString().toLowerCase()
+        );
     }
+
 }
