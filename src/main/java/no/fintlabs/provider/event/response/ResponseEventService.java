@@ -1,5 +1,6 @@
 package no.fintlabs.provider.event.response;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
@@ -12,27 +13,19 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ResponseEventService {
 
     private final ResponseEventTopicProducer responseEventTopicProducer;
     private final RequestEventService requestEventService;
     private final EntityProducerKafka entityProducerKafka;
 
-    public ResponseEventService(
-            ResponseEventTopicProducer responseEventTopicProducer,
-            RequestEventService requestEventService,
-            EntityProducerKafka entityProducerKafka) {
-        this.responseEventTopicProducer = responseEventTopicProducer;
-        this.requestEventService = requestEventService;
-        this.entityProducerKafka = entityProducerKafka;
-    }
-
     public void handleEvent(ResponseFintEvent responseFintEvent) throws NoRequestFoundException, InvalidOrgIdException {
         RequestFintEvent requestEvent = requestEventService.getEvent(responseFintEvent.getCorrId())
                 .orElseThrow(() -> new NoRequestFoundException(responseFintEvent.getCorrId()));
 
         if (!responseFintEvent.getOrgId().equals(requestEvent.getOrgId())) {
-            log.error("Recieved event response, did not match org-id: {}", responseFintEvent.getOrgId());
+            log.error("Recieved event response, did not match request org-id: {}", responseFintEvent.getOrgId());
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
