@@ -1,7 +1,7 @@
 package no.fintlabs.provider.utils;
 
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.provider.AdapterRequestValidator;
+import no.fintlabs.provider.security.AdapterRequestValidator;
 import no.fintlabs.provider.exception.InvalidUsername;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

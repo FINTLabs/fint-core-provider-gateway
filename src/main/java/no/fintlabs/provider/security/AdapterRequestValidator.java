@@ -1,4 +1,4 @@
-package no.fintlabs.provider;
+package no.fintlabs.provider.security;
 
 
 import lombok.RequiredArgsConstructor;

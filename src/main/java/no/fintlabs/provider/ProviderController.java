@@ -7,6 +7,7 @@ import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.provider.datasync.SyncPageService;
 import no.fintlabs.provider.heartbeat.HeartbeatService;
 import no.fintlabs.provider.register.RegistrationService;
+import no.fintlabs.provider.security.AdapterRequestValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
