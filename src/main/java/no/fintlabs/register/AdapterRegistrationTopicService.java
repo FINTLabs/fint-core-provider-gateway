@@ -18,11 +18,9 @@ public class AdapterRegistrationTopicService {
 
     private final TopicService topicService;
     private final Map<String, Long> eventNamesToRetensionMap;
-    private final AdapterContractContext adapterContractContext;
 
-    public AdapterRegistrationTopicService(TopicService topicService, AdapterContractContext adapterContractContext, ProviderProperties providerProperties) {
+    public AdapterRegistrationTopicService(TopicService topicService, ProviderProperties providerProperties) {
         this.topicService = topicService;
-        this.adapterContractContext = adapterContractContext;
         this.eventNamesToRetensionMap = initializeEventNamesToRetensionMap(providerProperties);
     }
 
@@ -42,37 +40,22 @@ public class AdapterRegistrationTopicService {
     }
 
     private void ensureEntityTopics(AdapterContract adapterContract) {
-        AdapterContract oldAdapterContract = adapterContractContext.get(adapterContract.getUsername());
-
         adapterContract.getCapabilities().forEach(capability -> {
+            long retensionTime = Duration.ofDays(capability.getFullSyncIntervalInDays()).toMillis();
+
             EntityTopicNameParameters topicNameParameters = EntityTopicNameParameters.builder()
                     .orgId(adapterContract.getOrgId())
                     .resource(getResourceName(capability))
                     .build();
 
-            if (topicService.topicExists(topicNameParameters) && oldAdapterContract != null) {
-                AdapterCapability oldCapability = getOldCapability(capability, oldAdapterContract);
-
-                if (newCapabilityHasChanges(capability, oldCapability)) {
-                    topicService.ensureTopic(topicNameParameters, Duration.ofDays(capability.getFullSyncIntervalInDays()).toMillis());
+            if (topicService.topicExists(topicNameParameters)) {
+                if (topicService.topicHasDifferentRetensionTime(topicNameParameters, retensionTime)) {
+                    topicService.ensureTopic(topicNameParameters, retensionTime);
                 }
             } else {
-                topicService.ensureTopic(topicNameParameters, Duration.ofDays(capability.getFullSyncIntervalInDays()).toMillis());
+                topicService.ensureTopic(topicNameParameters, retensionTime);
             }
         });
-    }
-
-    private AdapterCapability getOldCapability(AdapterCapability newAdapterCapability, AdapterContract oldAdapterContract) {
-        return oldAdapterContract.getCapabilities().stream()
-                .filter(o -> o.getDomainName().equals(newAdapterCapability.getDomainName()) &&
-                        o.getPackageName().equals(newAdapterCapability.getPackageName()) &&
-                        o.getResourceName().equals(newAdapterCapability.getResourceName()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private boolean newCapabilityHasChanges(AdapterCapability capability, AdapterCapability oldCapability) {
-        return oldCapability != null && capability.getFullSyncIntervalInDays() != oldCapability.getFullSyncIntervalInDays();
     }
 
     private void ensureEventTopic(String orgId, String eventName, Long retensionTime) {

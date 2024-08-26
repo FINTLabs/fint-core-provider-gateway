@@ -8,29 +8,33 @@ import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class TopicService {
 
-    private final Set<String> existingTopics = new HashSet<>();
+    private final Map<String, Long> topicToRetensionMap = new HashMap<>();
     private final EntityTopicService entityTopicService;
     private final EventTopicService eventTopicService;
 
+    public boolean topicHasDifferentRetensionTime(TopicNameParameters topicNameParameters, Long retensionTime) {
+        return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L).equals(retensionTime);
+    }
+
     public boolean topicExists(TopicNameParameters topicNameParameters) {
-        return existingTopics.contains(topicNameParameters.getTopicName());
+        return topicToRetensionMap.containsKey(topicNameParameters.getTopicName());
     }
 
     public void ensureTopic(EntityTopicNameParameters topicName, Long retensionTime) {
         entityTopicService.ensureTopic(topicName, retensionTime);
-        existingTopics.add(topicName.getTopicName());
+        topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
     }
 
     public void ensureTopic(EventTopicNameParameters topicName, Long retensionTime) {
         eventTopicService.ensureTopic(topicName, retensionTime);
-        existingTopics.add(topicName.getTopicName());
+        topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
     }
 
 }
