@@ -2,7 +2,9 @@ package no.fintlabs.provider;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
+@ComponentScan("no.fintlabs.kafka")
 @SpringBootApplication
 public class Application {
 

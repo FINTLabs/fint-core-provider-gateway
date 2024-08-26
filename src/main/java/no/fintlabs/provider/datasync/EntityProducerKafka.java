@@ -22,22 +22,18 @@ public class EntityProducerKafka {
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
     }
 
-    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry) {
-        return sendEntity(orgId, domain, packageName, entityName, syncPageEntry, null);
+    public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry<Object> syncPageEntry) {
+        return sendEntity(entityTopicName, syncPageEntry, null);
     }
 
-    public CompletableFuture<SendResult<String, Object>> sendEntity(String orgId, String domain, String packageName, String entityName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
 
         RecordHeaders headers = new RecordHeaders();
         if (StringUtils.isNotBlank(eventCorrId)) headers.add(new RecordHeader("event-corr-id", eventCorrId.getBytes()));
 
         return entityProducer.send(
                 EntityProducerRecord.builder()
-                        .topicNameParameters(EntityTopicNameParameters
-                                .builder()
-                                .orgId(orgId)
-                                .resource("%s-%s-%s".formatted(domain, packageName, entityName))
-                                .build())
+                        .topicNameParameters(entityTopicName)
                         .headers(headers)
                         .key(syncPageEntry.getIdentifier())
                         .value(syncPageEntry.getResource())

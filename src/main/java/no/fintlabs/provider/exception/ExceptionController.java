@@ -28,6 +28,11 @@ public class ExceptionController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
+    @ExceptionHandler(UnauthorizedAdapterAccessException.class)
+    public ResponseEntity<String> handleInvalidUsername(UnauthorizedAdapterAccessException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
     @ExceptionHandler(UnknownTopicOrPartitionException.class)
     public ResponseEntity<String> handleUnknownTopicOrPartitionException() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("""

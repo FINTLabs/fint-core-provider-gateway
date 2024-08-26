@@ -1,12 +1,12 @@
 package no.fintlabs.provider.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.provider.exception.InvalidEventNameException;
 import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
+import no.fintlabs.provider.exception.InvalidEventNameException;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -33,10 +33,12 @@ public abstract class EventProducerKafka<T> {
     }
 
     public CompletableFuture<?> send(T value, String orgId, String eventName) {
-        validateEventName(eventName);
-        EventTopicNameParameters eventTopicNameParameters = generateTopicName(orgId, eventName);
-        EventProducerRecord<T> eventProducerRecord = createEventProducerRecord(value, eventTopicNameParameters);
-        return eventProducer.send(eventProducerRecord);
+        return eventProducer.send(
+                EventProducerRecord.<T>builder()
+                        .topicNameParameters(generateTopicName(orgId, eventName))
+                        .value(value)
+                        .build()
+        );
     }
 
     public CompletableFuture<?> send(T value, String orgId) {
@@ -51,13 +53,6 @@ public abstract class EventProducerKafka<T> {
 
     public void ensureTopic(String ordId, long retentionTimeMs) {
         ensureTopic(ordId, eventName, retentionTimeMs);
-    }
-
-    public EventProducerRecord<T> createEventProducerRecord(T value, EventTopicNameParameters topicName) {
-        return EventProducerRecord.<T>builder()
-                .topicNameParameters(topicName)
-                .value(value)
-                .build();
     }
 
     public EventTopicNameParameters generateTopicName(String orgId, String eventName) {

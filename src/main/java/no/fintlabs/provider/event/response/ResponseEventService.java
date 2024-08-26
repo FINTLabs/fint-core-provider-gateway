@@ -3,10 +3,11 @@ package no.fintlabs.provider.event.response;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.RequestFintEvent;
 import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.provider.datasync.EntityProducerKafka;
 import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
-import no.fintlabs.provider.datasync.EntityProducerKafka;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -27,7 +28,6 @@ public class ResponseEventService {
     }
 
     public void handleEvent(ResponseFintEvent responseFintEvent) throws NoRequestFoundException, InvalidOrgIdException {
-
         RequestFintEvent requestEvent = requestEventService.getEvent(responseFintEvent.getCorrId())
                 .orElseThrow(() -> new NoRequestFoundException(responseFintEvent.getCorrId()));
 
@@ -39,10 +39,10 @@ public class ResponseEventService {
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
 
         entityProducerKafka.sendEntity(
-                responseFintEvent.getOrgId(),
-                requestEvent.getDomainName(),
-                requestEvent.getPackageName(),
-                requestEvent.getResourceName(),
+                EntityTopicNameParameters.builder()
+                        .orgId(responseFintEvent.getOrgId())
+                        .resource("%s-%s-%s".formatted(requestEvent.getDomainName(), requestEvent.getPackageName(), requestEvent.getResourceName()))
+                        .build(),
                 responseFintEvent.getValue(),
                 responseFintEvent.getCorrId()
         );

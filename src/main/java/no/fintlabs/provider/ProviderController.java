@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.*;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.provider.datasync.DataSyncService;
+import no.fintlabs.provider.datasync.SyncPageService;
 import no.fintlabs.provider.heartbeat.HeartbeatService;
-import no.fintlabs.provider.register.AdaterRegistrationService;
+import no.fintlabs.provider.register.RegistrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,9 +20,10 @@ import java.util.Map;
 @RequestMapping
 public class ProviderController {
 
-    private final AdaterRegistrationService adaterRegistrationService;
+    private final AdapterRequestValidator requestValidator;
+    private final RegistrationService registrationService;
     private final HeartbeatService heartbeatService;
-    private final DataSyncService dataSyncService;
+    private final SyncPageService syncPageService;
 
     @GetMapping("status")
     public ResponseEntity<Map<String, Object>> status(@AuthenticationPrincipal CorePrincipal corePrincipal) {
@@ -34,49 +35,64 @@ public class ProviderController {
     @PostMapping("heartbeat")
     public ResponseEntity<String> heartbeat(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                             @RequestBody AdapterHeartbeat adapterHeartbeat) {
-        heartbeatService.register(adapterHeartbeat, corePrincipal);
+        requestValidator.validateOrgId(corePrincipal, adapterHeartbeat.getOrgId());
+        requestValidator.validateUsername(corePrincipal, adapterHeartbeat.getUsername());
+
+        heartbeatService.beat(adapterHeartbeat);
         return ResponseEntity.ok("💗");
     }
 
     @PostMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> fullSync(@AuthenticationPrincipal CorePrincipal corePrincipal,
-                                         @RequestBody FullSyncPageOfObject entities,
+                                         @RequestBody FullSyncPageOfObject syncPage,
                                          @PathVariable final String domain,
                                          @PathVariable final String packageName,
                                          @PathVariable final String entity) {
+        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
+        requestValidator.validateRole(corePrincipal, domain, packageName);
+        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
-        dataSyncService.registerSync(corePrincipal, entities, domain, packageName, entity);
+        syncPageService.doSync(syncPage, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PatchMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deltaSync(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody DeltaSyncPageOfObject entities,
+            @RequestBody DeltaSyncPageOfObject syncPage,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
+        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
+        requestValidator.validateRole(corePrincipal, domain, packageName);
+        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
-        dataSyncService.registerSync(corePrincipal, entities, domain, packageName, entity);
+        syncPageService.doSync(syncPage, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deleteSync(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody DeleteSyncPageOfObject entities,
+            @RequestBody DeleteSyncPageOfObject syncPage,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
+        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
+        requestValidator.validateRole(corePrincipal, domain, packageName);
+        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
-        dataSyncService.registerSync(corePrincipal, entities, domain, packageName, entity);
+        syncPageService.doSync(syncPage, domain, packageName, entity);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("register")
     public ResponseEntity<Void> register(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                          @RequestBody final AdapterContract adapterContract) {
-        adaterRegistrationService.register(adapterContract, corePrincipal);
+        requestValidator.validateOrgId(corePrincipal, adapterContract.getOrgId());
+        requestValidator.validateUsername(corePrincipal, adapterContract.getUsername());
+
+        registrationService.register(adapterContract);
         return ResponseEntity.ok().build();
     }
 
