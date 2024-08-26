@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.Map;
 
-import static no.fintlabs.register.TopicNamesConstants.*;
+import static no.fintlabs.kafka.TopicNamesConstants.*;
 
 @Service
 public class AdapterRegistrationTopicService {

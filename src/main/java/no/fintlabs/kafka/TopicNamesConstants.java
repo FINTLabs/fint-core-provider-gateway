@@ -1,4 +1,4 @@
-package no.fintlabs.register;
+package no.fintlabs.kafka;
 
 public class TopicNamesConstants {
 
