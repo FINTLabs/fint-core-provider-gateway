@@ -15,17 +15,15 @@ public class AdaterRegistrationService {
     private final AdapterRequestValidator validator;
     private final RegisterKafkaProducer registerKafkaProducer;
     private final AdapterRegistrationTopicService adapterRegistrationTopicService;
-    private final AdapterContractContext adapterContractContext;
 
     public void register(AdapterContract adapterContract, CorePrincipal corePrincipal) {
-        validateAdapterRegistration(corePrincipal, adapterContract);
+        validateAdapterContract(corePrincipal, adapterContract);
         adapterRegistrationTopicService.ensureTopics(adapterContract);
         registerKafkaProducer.send(adapterContract, adapterContract.getOrgId());
-        adapterContractContext.add(adapterContract);
         log.info("Adapter registered {}", adapterContract);
     }
 
-    private void validateAdapterRegistration(CorePrincipal corePrincipal, AdapterContract adapterContract) {
+    private void validateAdapterContract(CorePrincipal corePrincipal, AdapterContract adapterContract) {
         validator.validateOrgId(corePrincipal, adapterContract.getOrgId());
         validator.validateUsername(corePrincipal, adapterContract.getUsername());
     }

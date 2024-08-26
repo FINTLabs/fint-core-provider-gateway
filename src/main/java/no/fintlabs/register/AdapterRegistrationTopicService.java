@@ -3,7 +3,7 @@ package no.fintlabs.register;
 import no.fintlabs.adapter.models.AdapterCapability;
 import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.config.ProviderProperties;
-import no.fintlabs.kafka.TopicService;
+import no.fintlabs.kafka.ProviderTopicService;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import org.springframework.stereotype.Service;
@@ -16,10 +16,10 @@ import static no.fintlabs.register.TopicNamesConstants.*;
 @Service
 public class AdapterRegistrationTopicService {
 
-    private final TopicService topicService;
+    private final ProviderTopicService topicService;
     private final Map<String, Long> eventNamesToRetensionMap;
 
-    public AdapterRegistrationTopicService(TopicService topicService, ProviderProperties providerProperties) {
+    public AdapterRegistrationTopicService(ProviderTopicService topicService, ProviderProperties providerProperties) {
         this.topicService = topicService;
         this.eventNamesToRetensionMap = initializeEventNamesToRetensionMap(providerProperties);
     }
@@ -35,7 +35,9 @@ public class AdapterRegistrationTopicService {
     }
 
     public void ensureTopics(AdapterContract adapterContract) {
-        eventNamesToRetensionMap.forEach((eventName, retensionTimeInMs) -> ensureEventTopic(adapterContract.getOrgId(), eventName, retensionTimeInMs));
+        eventNamesToRetensionMap.forEach((eventName, retensionTimeInMs) ->
+                ensureEventTopic(adapterContract.getOrgId(), eventName, retensionTimeInMs)
+        );
         ensureEntityTopics(adapterContract);
     }
 

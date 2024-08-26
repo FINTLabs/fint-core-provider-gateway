@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class TopicService {
+public class ProviderTopicService {
 
     private final Map<String, Long> topicToRetensionMap = new HashMap<>();
     private final EntityTopicService entityTopicService;
