@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import static no.fintlabs.provider.kafka.TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME;
 
 @Service
-public class RegisterKafkaProducer extends EventProducerKafka<AdapterContract> {
-    public RegisterKafkaProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
+public class AdapterContractProducer extends EventProducerKafka<AdapterContract> {
+    public AdapterContractProducer(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
         super(eventProducerFactory, eventTopicService, AdapterContract.class, ADAPTER_REGISTER_EVENT_NAME);
     }
 }

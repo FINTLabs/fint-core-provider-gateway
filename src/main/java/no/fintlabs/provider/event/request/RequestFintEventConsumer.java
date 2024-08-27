@@ -1,15 +1,14 @@
-package no.fintlabs.provider.event.response;
+package no.fintlabs.provider.event.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.event.ResponseFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import no.fintlabs.provider.config.KafkaConfig;
-import no.fintlabs.provider.event.request.RequestEventService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -18,16 +17,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ResponseEventTopicListener {
+public class RequestFintEventConsumer {
 
     private final EventConsumerFactoryService eventConsumerFactoryService;
     private final RequestEventService requestEventService;
     private final KafkaConfig kafkaConfig;
 
     @Bean
-    public ConcurrentMessageListenerContainer<String, ResponseFintEvent> registerResponseFintEventListener() {
+    public ConcurrentMessageListenerContainer<String, RequestFintEvent> registerRequestFintEventListener() {
         return eventConsumerFactoryService.createFactory(
-                ResponseFintEvent.class,
+                RequestFintEvent.class,
                 this::processEvent,
                 EventConsumerConfiguration
                         .builder()
@@ -39,14 +38,13 @@ public class ResponseEventTopicListener {
                         .builder()
                         .orgId(FormattedTopicComponentPattern.any())
                         .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                        .eventName(ValidatedTopicComponentPattern.endingWith("-response"))
+                        .eventName(ValidatedTopicComponentPattern.endingWith("-request"))
                         .build()
         );
     }
 
-    private void processEvent(ConsumerRecord<String, ResponseFintEvent> consumerRecord) {
-        log.info("ResponseFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
-        requestEventService.removeEvent(consumerRecord.value().getCorrId());
+    private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
+        log.info("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
+        requestEventService.addEvent(consumerRecord.value());
     }
-
 }
