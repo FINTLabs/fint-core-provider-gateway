@@ -11,7 +11,7 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.heartbeat.retention-time-ms:86400000}")
     private long adapterHeartbeatRetentionTimeMs;
 
-    @Value("${fint.provider.adapter.register.retention-time-ms:86400000}")
+    @Value("${fint.provider.adapter.register.retention-time-ms:-1}")
     private long adapterRegisterRetentionTimeMs;
 
     @Value("${fint.provider.adapter.full-sync.retention-time-ms:86400000}")
