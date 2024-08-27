@@ -42,11 +42,10 @@ public class ResponseEventTopicProducer {
     }
 
     private String createEventName(RequestFintEvent requestFintEvent) {
-        return "%s-%s-%s-%s-response".formatted(
+        return "%s-%s-%s-response".formatted(
                 requestFintEvent.getDomainName(),
                 requestFintEvent.getPackageName(),
-                requestFintEvent.getResourceName(),
-                requestFintEvent.getOperationType().toString().toLowerCase()
+                requestFintEvent.getResourceName()
         );
     }
 
