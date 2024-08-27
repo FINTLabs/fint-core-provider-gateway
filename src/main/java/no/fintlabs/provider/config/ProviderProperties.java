@@ -11,6 +11,7 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.heartbeat.retention-time-ms:86400000}")
     private long adapterHeartbeatRetentionTimeMs;
 
+    // TODO: Vi bør kanskje ta i bruk table eller en annen persistering enn en Queue i Kafka?
     @Value("${fint.provider.adapter.register.retention-time-ms:-1}")
     private long adapterRegisterRetentionTimeMs;
 
