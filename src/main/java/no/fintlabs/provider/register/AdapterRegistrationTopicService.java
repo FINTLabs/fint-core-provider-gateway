@@ -24,6 +24,7 @@ public class AdapterRegistrationTopicService {
         this.eventNamesToRetensionMap = initializeEventNamesToRetensionMap(providerProperties);
     }
 
+    // TODO: Trenger vi å gjøre dette for hver org? AdapterContract har informasjon om orginsasjonen sin så hvorfor skal det være forskjellig topics?
     private Map<String, Long> initializeEventNamesToRetensionMap(ProviderProperties providerProperties) {
         return Map.of(
                 HEARTBEAT_EVENT_NAME, providerProperties.getAdapterHeartbeatRetentionTimeMs(),
