@@ -43,7 +43,7 @@ public class EventController {
             @RequestBody ResponseFintEvent responseFintEvent
     ) throws InvalidOrgIdException, NoRequestFoundException {
         requestValidator.validateOrgId(corePrincipal, responseFintEvent.getOrgId());
-        requestValidator.validateAdapterId(corePrincipal, responseFintEvent.getAdapterId());
+//        requestValidator.validateAdapterId(corePrincipal, responseFintEvent.getAdapterId());
 
         responseEventService.handleEvent(responseFintEvent);
         return ResponseEntity.ok().build();

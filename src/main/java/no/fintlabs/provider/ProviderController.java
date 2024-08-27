@@ -55,7 +55,7 @@ public class ProviderController {
                                          @PathVariable final String entity) {
         requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
         requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
+//        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
         syncPageService.doSync(syncPage, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -70,7 +70,7 @@ public class ProviderController {
             @PathVariable final String entity) {
         requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
         requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
+//        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
         syncPageService.doSync(syncPage, domain, packageName, entity);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -85,7 +85,7 @@ public class ProviderController {
             @PathVariable final String entity) {
         requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
         requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
+//        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
         syncPageService.doSync(syncPage, domain, packageName, entity);
         return ResponseEntity.ok().build();
