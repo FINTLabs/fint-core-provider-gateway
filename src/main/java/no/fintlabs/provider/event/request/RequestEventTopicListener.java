@@ -2,7 +2,7 @@ package no.fintlabs.provider.event.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.RequestFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
 import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
@@ -44,7 +44,7 @@ public class RequestEventTopicListener {
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.debug("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
+        log.info("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
         requestEventService.addEvent(consumerRecord.value());
     }
 }

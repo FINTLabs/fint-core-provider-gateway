@@ -1,6 +1,6 @@
 package no.fintlabs.provider.datasync;
 
-import no.fintlabs.adapter.models.SyncPageEntry;
+import no.fintlabs.adapter.models.sync.SyncPageEntry;
 import no.fintlabs.kafka.entity.EntityProducer;
 import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
@@ -22,11 +22,11 @@ public class EntityProducerKafka {
         this.entityProducer = entityProducerFactory.createProducer(Object.class);
     }
 
-    public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry<Object> syncPageEntry) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry syncPageEntry) {
         return sendEntity(entityTopicName, syncPageEntry, null);
     }
 
-    public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry<Object> syncPageEntry, String eventCorrId) {
+    public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry syncPageEntry, String eventCorrId) {
 
         RecordHeaders headers = new RecordHeaders();
         if (StringUtils.isNotBlank(eventCorrId)) headers.add(new RecordHeader("event-corr-id", eventCorrId.getBytes()));

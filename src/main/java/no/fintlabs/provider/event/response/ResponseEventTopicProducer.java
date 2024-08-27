@@ -1,7 +1,7 @@
 package no.fintlabs.provider.event.response;
 
-import no.fintlabs.adapter.models.RequestFintEvent;
-import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
+import no.fintlabs.adapter.models.event.ResponseFintEvent;
 import no.fintlabs.kafka.event.EventProducer;
 import no.fintlabs.kafka.event.EventProducerFactory;
 import no.fintlabs.kafka.event.EventProducerRecord;

@@ -2,8 +2,8 @@ package no.fintlabs.provider.event.response;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.RequestFintEvent;
-import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
+import no.fintlabs.adapter.models.event.ResponseFintEvent;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.provider.datasync.EntityProducerKafka;
 import no.fintlabs.provider.event.request.RequestEventService;

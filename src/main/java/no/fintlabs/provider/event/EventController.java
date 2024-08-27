@@ -2,14 +2,14 @@ package no.fintlabs.provider.event;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.RequestFintEvent;
-import no.fintlabs.adapter.models.ResponseFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
+import no.fintlabs.adapter.models.event.ResponseFintEvent;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.provider.security.AdapterRequestValidator;
 import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.event.response.ResponseEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
+import no.fintlabs.provider.security.AdapterRequestValidator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +40,7 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Void> postEvent(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody ResponseFintEvent<?> responseFintEvent
+            @RequestBody ResponseFintEvent responseFintEvent
     ) throws InvalidOrgIdException, NoRequestFoundException {
         requestValidator.validateOrgId(corePrincipal, responseFintEvent.getOrgId());
         requestValidator.validateAdapterId(corePrincipal, responseFintEvent.getAdapterId());

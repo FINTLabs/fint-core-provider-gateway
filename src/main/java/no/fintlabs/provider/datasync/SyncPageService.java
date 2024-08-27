@@ -2,9 +2,9 @@ package no.fintlabs.provider.datasync;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.SyncPage;
-import no.fintlabs.adapter.models.SyncPageMetadata;
-import no.fintlabs.adapter.models.SyncType;
+import no.fintlabs.adapter.models.sync.SyncPage;
+import no.fintlabs.adapter.models.sync.SyncPageMetadata;
+import no.fintlabs.adapter.models.sync.SyncType;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class SyncPageService {
     private final EntityProducerKafka entityProducerKafka;
     private final MetaDataKafkaProducer metaDataKafkaProducer;
 
-    public <T extends SyncPage<Object>> void doSync(T syncPage, String domain, String packageName, String entity) {
+    public <T extends SyncPage> void doSync(T syncPage, String domain, String packageName, String entity) {
         Instant start = Instant.now();
         logSyncStart(syncPage.getSyncType(), syncPage.getMetadata(), syncPage.getResources().size());
 
@@ -36,7 +36,7 @@ public class SyncPageService {
         logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
     }
 
-    private void sendEntities(SyncPage<Object> page, String domain, String packageName, String entity) {
+    private void sendEntities(SyncPage page, String domain, String packageName, String entity) {
         EntityTopicNameParameters entityTopicNameParameters = EntityTopicNameParameters.builder()
                 .orgId(page.getMetadata().getOrgId())
                 .resource("%s-%s-%s".formatted(domain, packageName, entity))

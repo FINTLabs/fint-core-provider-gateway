@@ -1,7 +1,7 @@
 package no.fintlabs.provider.event.request;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.RequestFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

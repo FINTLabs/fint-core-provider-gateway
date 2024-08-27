@@ -3,18 +3,13 @@ package no.fintlabs.provider.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.provider.exception.InvalidOrgId;
 import no.fintlabs.provider.exception.InvalidUsername;
 import no.fintlabs.provider.exception.UnauthorizedAdapterAccessException;
-import no.fintlabs.provider.security.AdapterContractContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Component

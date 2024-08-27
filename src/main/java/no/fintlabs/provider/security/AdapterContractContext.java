@@ -8,7 +8,7 @@ import java.util.Map;
 @Component
 public class AdapterContractContext {
 
-    private Map<String, String> adapterIdToUsernameMap = new HashMap<>();
+    private final Map<String, String> adapterIdToUsernameMap = new HashMap<>();
 
     public void add(String adapterId, String username) {
         adapterIdToUsernameMap.put(adapterId, username);

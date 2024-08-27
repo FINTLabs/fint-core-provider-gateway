@@ -2,7 +2,11 @@ package no.fintlabs.provider;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.*;
+import no.fintlabs.adapter.models.AdapterContract;
+import no.fintlabs.adapter.models.AdapterHeartbeat;
+import no.fintlabs.adapter.models.sync.DeleteSyncPage;
+import no.fintlabs.adapter.models.sync.DeltaSyncPage;
+import no.fintlabs.adapter.models.sync.FullSyncPage;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.provider.datasync.SyncPageService;
 import no.fintlabs.provider.heartbeat.HeartbeatService;
@@ -45,7 +49,7 @@ public class ProviderController {
 
     @PostMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> fullSync(@AuthenticationPrincipal CorePrincipal corePrincipal,
-                                         @RequestBody FullSyncPageOfObject syncPage,
+                                         @RequestBody FullSyncPage syncPage,
                                          @PathVariable final String domain,
                                          @PathVariable final String packageName,
                                          @PathVariable final String entity) {
@@ -60,7 +64,7 @@ public class ProviderController {
     @PatchMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deltaSync(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody DeltaSyncPageOfObject syncPage,
+            @RequestBody DeltaSyncPage syncPage,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
@@ -75,7 +79,7 @@ public class ProviderController {
     @DeleteMapping("{domain}/{packageName}/{entity}")
     public ResponseEntity<Void> deleteSync(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
-            @RequestBody DeleteSyncPageOfObject syncPage,
+            @RequestBody DeleteSyncPage syncPage,
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
