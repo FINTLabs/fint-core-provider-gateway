@@ -22,6 +22,7 @@ public class AdapterContractConsumer {
 
     private final AdapterContractContext adapterContractContext;
     private final EventConsumerFactoryService eventConsumerFactoryService;
+    private final AdapterRegistrationTopicService adapterRegistrationTopicService;
     private final KafkaConfig kafkaConfig;
 
     @Bean
@@ -46,6 +47,7 @@ public class AdapterContractConsumer {
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
         log.info("Adapter Contract consumed: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getAdapterId());
+        adapterRegistrationTopicService.ensureTopics(consumerRecord.value());
         adapterContractContext.add(consumerRecord.value().getAdapterId(), consumerRecord.value().getUsername());
     }
 
