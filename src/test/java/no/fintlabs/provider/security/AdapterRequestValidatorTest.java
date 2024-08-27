@@ -1,4 +1,4 @@
-package no.fintlabs.provider.utils;
+package no.fintlabs.provider.security;
 
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.provider.security.AdapterRequestValidator;
