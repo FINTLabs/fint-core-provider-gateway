@@ -24,7 +24,7 @@ public class RequestEventTopicListener {
     private final KafkaConfig kafkaConfig;
 
     @Bean
-    public ConcurrentMessageListenerContainer<String, RequestFintEvent> registerResponseFintEventListener() {
+    public ConcurrentMessageListenerContainer<String, RequestFintEvent> registerRequestFintEventListener() {
         return eventConsumerFactoryService.createFactory(
                 RequestFintEvent.class,
                 this::processEvent,
