@@ -1,6 +1,7 @@
 package no.fintlabs.provider.kafka;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.kafka.common.topic.TopicNameParameters;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.kafka.entity.topic.EntityTopicService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProviderTopicService {
@@ -18,6 +20,10 @@ public class ProviderTopicService {
     private final Map<String, Long> topicToRetensionMap = new HashMap<>();
     private final EntityTopicService entityTopicService;
     private final EventTopicService eventTopicService;
+
+    public long getRetensionTime(TopicNameParameters topicNameParameters) {
+        return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L);
+    }
 
     public boolean topicHasDifferentRetensionTime(TopicNameParameters topicNameParameters, Long retensionTime) {
         return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L).equals(retensionTime);
@@ -28,11 +34,13 @@ public class ProviderTopicService {
     }
 
     public void ensureTopic(EntityTopicNameParameters topicName, Long retensionTime) {
+        log.debug("Ensuring topic: {} - {}", topicName.getTopicName(), retensionTime);
         entityTopicService.ensureTopic(topicName, retensionTime);
         topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
     }
 
     public void ensureTopic(EventTopicNameParameters topicName, Long retensionTime) {
+        log.debug("Ensuring topic: {} - {}", topicName.getTopicName(), retensionTime);
         eventTopicService.ensureTopic(topicName, retensionTime);
         topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
     }
