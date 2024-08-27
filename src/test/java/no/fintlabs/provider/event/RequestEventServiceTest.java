@@ -1,6 +1,6 @@
 package no.fintlabs.provider.event;
 
-import no.fintlabs.adapter.models.RequestFintEvent;
+import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.provider.event.request.RequestEventService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
