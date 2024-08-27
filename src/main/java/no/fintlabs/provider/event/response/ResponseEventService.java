@@ -11,6 +11,8 @@ import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
 import org.springframework.stereotype.Service;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class ResponseEventService {
         entityProducerKafka.sendEntity(
                 EntityTopicNameParameters.builder()
                         .orgId(responseFintEvent.getOrgId())
+                        .domainContext(FINT_CORE)
                         .resource("%s-%s-%s".formatted(requestEvent.getDomainName(), requestEvent.getPackageName(), requestEvent.getResourceName()))
                         .build(),
                 responseFintEvent.getValue(),

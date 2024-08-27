@@ -48,6 +48,7 @@ public class AdapterRegistrationTopicService {
 
             EntityTopicNameParameters topicNameParameters = EntityTopicNameParameters.builder()
                     .orgId(adapterContract.getOrgId())
+                    .domainContext(FINT_CORE)
                     .resource(getResourceName(capability))
                     .build();
 
@@ -64,6 +65,7 @@ public class AdapterRegistrationTopicService {
     private void ensureEventTopic(String orgId, String eventName, Long retensionTime) {
         EventTopicNameParameters eventTopicNameParameters = EventTopicNameParameters.builder()
                 .orgId(orgId)
+                .domainContext(FINT_CORE)
                 .eventName(eventName)
                 .build();
 
