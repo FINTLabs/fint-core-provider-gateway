@@ -106,5 +106,5 @@ jobs:
         with:
           action: deploy
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: ${{ needs.build-and-push.outputs.tags }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           namespace: ${{ env.NAMESPACE }}
