@@ -23,7 +23,6 @@ public class EntityProducerKafka {
 
     private final ProviderTopicService topicService;
     private final EntityProducer<Object> entityProducer;
-    private final ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
 
     public EntityProducerKafka(ProviderTopicService topicService, EntityProducerFactory entityProducerFactory) {
         this.topicService = topicService;
@@ -37,10 +36,7 @@ public class EntityProducerKafka {
     public CompletableFuture<SendResult<String, Object>> sendEntity(EntityTopicNameParameters entityTopicName, SyncPageEntry syncPageEntry, String eventCorrId) {
 
         RecordHeaders headers = new RecordHeaders();
-        byte[] retensionArray = buffer.putLong(topicService.getRetensionTime(entityTopicName)).array();
-        log.debug("Attaching retension time: {} to header", retensionArray);
-        headers.add(HEADER_RETENSION_TIME, retensionArray);
-
+        attachRetensionTimeToHeader(headers, entityTopicName);
         if (StringUtils.isNotBlank(eventCorrId)) headers.add("event-corr-id", eventCorrId.getBytes());
 
         return entityProducer.send(
@@ -51,5 +47,16 @@ public class EntityProducerKafka {
                         .value(syncPageEntry.getResource())
                         .build()
         );
+    }
+
+    private void attachRetensionTimeToHeader(RecordHeaders headers, EntityTopicNameParameters entityTopicName) {
+        long retensionTime = topicService.getRetensionTime(entityTopicName);
+        if (retensionTime != 0L) {
+            ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+            buffer.putLong(retensionTime);
+            headers.add(HEADER_RETENSION_TIME, buffer.array());
+        } else {
+            log.error("Retension time was not fetched for entityTopicName: {}", entityTopicName.getTopicName());
+        }
     }
 }
