@@ -46,8 +46,7 @@ public class AdapterRequestValidator {
     public void validateRole(CorePrincipal corePrincipal, String domain, String packageName) {
         String role = String.format("FINT_Adapter_%s_%s", domain.toLowerCase(), packageName.toLowerCase());
         if (corePrincipal.doesNotHaveRole(role)) {
-            String message = String.format("%s: Role mismatch, user-roles: %s, check-role: %s", corePrincipal.getUsername(), corePrincipal.getRoles(), role);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, message);
+            throw new MissingRoleException("Adapter does not have the correct role to perform this action");
         }
 
     }

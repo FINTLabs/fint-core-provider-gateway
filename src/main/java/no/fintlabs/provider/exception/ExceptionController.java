@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ExceptionController {
 
+    @ExceptionHandler(MissingRoleException.class)
+    public ResponseEntity<String> handleMissingRoleException(Throwable e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<Void> handleJsonProcessingException(Throwable e) {
         log.error(e.getMessage());
