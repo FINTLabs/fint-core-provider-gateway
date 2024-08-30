@@ -7,6 +7,7 @@ import no.fintlabs.adapter.models.AdapterHeartbeat;
 import no.fintlabs.adapter.models.sync.DeleteSyncPage;
 import no.fintlabs.adapter.models.sync.DeltaSyncPage;
 import no.fintlabs.adapter.models.sync.FullSyncPage;
+import no.fintlabs.adapter.models.sync.SyncPage;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.provider.datasync.SyncPageService;
 import no.fintlabs.provider.heartbeat.HeartbeatService;
@@ -53,13 +54,7 @@ public class ProviderController {
                                          @PathVariable final String domain,
                                          @PathVariable final String packageName,
                                          @PathVariable final String entity) {
-        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
-        requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
-        requestValidator.validateAdapterCapabilityPermission(syncPage.getMetadata().getAdapterId(), domain, packageName, entity);
-
-        syncPageService.doSync(syncPage, domain, packageName, entity);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED);
     }
 
     @PatchMapping("{domain}/{packageName}/{entity}")
@@ -69,13 +64,7 @@ public class ProviderController {
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
-        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
-        requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
-        requestValidator.validateAdapterCapabilityPermission(syncPage.getMetadata().getAdapterId(), domain, packageName, entity);
-
-        syncPageService.doSync(syncPage, domain, packageName, entity);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED);
     }
 
     @DeleteMapping("{domain}/{packageName}/{entity}")
@@ -85,13 +74,7 @@ public class ProviderController {
             @PathVariable final String domain,
             @PathVariable final String packageName,
             @PathVariable final String entity) {
-        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
-        requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
-        requestValidator.validateAdapterCapabilityPermission(syncPage.getMetadata().getAdapterId(), domain, packageName, entity);
-
-        syncPageService.doSync(syncPage, domain, packageName, entity);
-        return ResponseEntity.ok().build();
+        return handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.OK);
     }
 
     @PostMapping("register")
@@ -102,6 +85,22 @@ public class ProviderController {
 
         registrationService.register(adapterContract);
         return ResponseEntity.ok().build();
+    }
+
+    private ResponseEntity<Void> handleSync(
+            CorePrincipal corePrincipal,
+            SyncPage syncPage,
+            String domain,
+            String packageName,
+            String entity,
+            HttpStatus status) {
+        requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
+        requestValidator.validateRole(corePrincipal, domain, packageName);
+        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
+        requestValidator.validateAdapterCapabilityPermission(syncPage.getMetadata().getAdapterId(), domain, packageName, entity);
+
+        syncPageService.doSync(syncPage, domain, packageName, entity);
+        return ResponseEntity.status(status).build();
     }
 
 }
