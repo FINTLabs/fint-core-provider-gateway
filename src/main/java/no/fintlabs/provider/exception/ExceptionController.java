@@ -17,6 +17,11 @@ public class ExceptionController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
     }
 
+    @ExceptionHandler(CapabilityNotSupportedException.class)
+    public ResponseEntity<String> handleCapabilityNotSupportedException(Throwable e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<Void> handleJsonProcessingException(Throwable e) {
         log.error(e.getMessage());
