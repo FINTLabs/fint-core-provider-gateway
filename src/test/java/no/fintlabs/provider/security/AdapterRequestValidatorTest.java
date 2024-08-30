@@ -1,6 +1,7 @@
 package no.fintlabs.provider.security;
 
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
+import no.fintlabs.provider.exception.MissingRoleException;
 import no.fintlabs.provider.security.AdapterRequestValidator;
 import no.fintlabs.provider.exception.InvalidUsername;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +32,7 @@ public class AdapterRequestValidatorTest {
     @Test
     public void shouldThrowExceptionWhenRoleMismatch() {
         when(corePrincipal.doesNotHaveRole(anyString())).thenReturn(true);
-        assertThrows(ResponseStatusException.class, () -> adapterRequestValidator.validateRole(corePrincipal, "domain", "package"));
+        assertThrows(MissingRoleException.class, () -> adapterRequestValidator.validateRole(corePrincipal, "domain", "package"));
     }
 
     @Test
