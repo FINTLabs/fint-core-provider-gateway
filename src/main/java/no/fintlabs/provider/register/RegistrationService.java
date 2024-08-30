@@ -18,8 +18,8 @@ public class RegistrationService {
     public void register(AdapterContract adapterContract) {
         adapterRegistrationTopicService.ensureTopics(adapterContract);
         adapterContractProducer.send(adapterContract, adapterContract.getOrgId());
-        adapterContractContext.add(adapterContract.getAdapterId(), adapterContract.getUsername());
-        log.info("Adapter registered {}", adapterContract);
+        adapterContractContext.add(adapterContract);
+        log.info("New adapter has registered: {}", adapterContract.getAdapterId());
     }
 
 }

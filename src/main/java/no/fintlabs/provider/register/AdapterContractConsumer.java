@@ -46,9 +46,8 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
-        log.info("Adapter Contract consumed: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getAdapterId());
         adapterRegistrationTopicService.ensureTopics(consumerRecord.value());
-        adapterContractContext.add(consumerRecord.value().getAdapterId(), consumerRecord.value().getUsername());
+        adapterContractContext.add(consumerRecord.value());
     }
 
 }
