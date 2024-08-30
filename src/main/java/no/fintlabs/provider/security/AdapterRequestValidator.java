@@ -4,12 +4,8 @@ package no.fintlabs.provider.security;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.provider.exception.InvalidOrgId;
-import no.fintlabs.provider.exception.InvalidUsername;
-import no.fintlabs.provider.exception.UnauthorizedAdapterAccessException;
-import org.springframework.http.HttpStatus;
+import no.fintlabs.provider.exception.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Component
@@ -18,28 +14,27 @@ public class AdapterRequestValidator {
 
     private final AdapterContractContext adapterContractContext;
 
-    // Validate username og ValidateAdapterId er egentlig det samme, men metadata i Syncpage mangler username felt
     public void validateAdapterId(CorePrincipal corePrincipal, String adapterId) {
         if (!adapterContractContext.userCanAccessAdapter(corePrincipal.getUsername(), adapterId)) {
-            String message = "Username: %s does not belong to the adapterId: %s".formatted(corePrincipal.getUsername(), adapterId);
-            log.error(message);
-            throw new UnauthorizedAdapterAccessException(message);
+            throw new UnauthorizedAdapterAccessException("Adapter is not registered with any contract");
+        }
+    }
+
+    public void validateAdapterCapabilityPermission(String adapterId, String domainName, String packageName, String entityName) {
+        if (!adapterContractContext.adapterCanPerformCapability(adapterId, domainName, packageName, entityName)) {
+            throw new CapabilityNotSupportedException("Adapter lacks the necessary capabilities to perform this action");
         }
     }
 
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
         if (corePrincipal.doesNotContainAsset(requestedOrgId.replace("-", ".").replace("_", "."))) {
-            String message = String.format("%s: OrgId: %s is not a part of the authorized Assets for this adapter: %s", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getAssets());
-            log.error(message);
-            throw new InvalidOrgId(message);
+            throw new InvalidOrgId("Adapter assets does not contain the organization for the request");
         }
     }
 
-    public void validateUsername(CorePrincipal corePrincipal, String requestedUsername) {
-        if (corePrincipal.doesNotHaveMatchingUsername(requestedUsername)) {
-            String message = String.format("%s: does not match the same username as request: %s", corePrincipal.getUsername(), requestedUsername);
-            log.error(message);
-            throw new InvalidUsername(message);
+    public void validateUsername(CorePrincipal corePrincipal, String contractUsername) {
+        if (corePrincipal.doesNotHaveMatchingUsername(contractUsername)) {
+            throw new InvalidUsername("Adapter username does not match contract username");
         }
     }
 

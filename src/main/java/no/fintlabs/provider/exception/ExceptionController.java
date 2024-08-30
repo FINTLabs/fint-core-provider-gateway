@@ -24,7 +24,6 @@ public class ExceptionController {
 
     @ExceptionHandler(JsonProcessingException.class)
     public ResponseEntity<Void> handleJsonProcessingException(Throwable e) {
-        log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
