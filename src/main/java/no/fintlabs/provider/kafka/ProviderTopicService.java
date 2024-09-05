@@ -7,42 +7,43 @@ import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.kafka.entity.topic.EntityTopicService;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.kafka.event.topic.EventTopicService;
+import no.fintlabs.provider.redis.TopicRedisService;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProviderTopicService {
 
-    private final Map<String, Long> topicToRetensionMap = new HashMap<>();
     private final EntityTopicService entityTopicService;
     private final EventTopicService eventTopicService;
+    private final TopicRedisService topicRedisService;
 
-    public long getRetensionTime(TopicNameParameters topicNameParameters) {
-        return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L);
+    public void ensureTopic(TopicNameParameters topicNameParameters, Long retentionTime) {
+        String topicName = topicNameParameters.getTopicName();
+
+        topicRedisService.exists(topicName).subscribe(topicExists -> {
+            if (topicExists) {
+                topicRedisService.getRetentionTime(topicName).subscribe(existingRetentionTime -> {
+                    if (!retentionTime.equals(existingRetentionTime)) {
+                        log.info("Topic retention is different, ensuring new topic: {} with retention: {}", topicName, retentionTime);
+                        ensureAndSaveTopic(topicNameParameters, retentionTime);
+                    }
+                });
+            } else {
+                log.info("Creating new topic: {} with retention time: {}", topicName, retentionTime);
+                ensureAndSaveTopic(topicNameParameters, retentionTime);
+            }
+        });
     }
 
-    public boolean topicHasDifferentRetensionTime(TopicNameParameters topicNameParameters, Long retensionTime) {
-        return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L).equals(retensionTime);
-    }
-
-    public boolean topicExists(TopicNameParameters topicNameParameters) {
-        return topicToRetensionMap.containsKey(topicNameParameters.getTopicName());
-    }
-
-    public void ensureTopic(EntityTopicNameParameters topicName, Long retensionTime) {
-        log.debug("Ensuring topic: {} - {}", topicName.getTopicName(), retensionTime);
-        entityTopicService.ensureTopic(topicName, retensionTime);
-        topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
-    }
-
-    public void ensureTopic(EventTopicNameParameters topicName, Long retensionTime) {
-        log.debug("Ensuring topic: {} - {}", topicName.getTopicName(), retensionTime);
-        eventTopicService.ensureTopic(topicName, retensionTime);
-        topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
+    private void ensureAndSaveTopic(TopicNameParameters topicNameParameters, Long retentionTime) {
+        if (topicNameParameters instanceof EntityTopicNameParameters) {
+            entityTopicService.ensureTopic((EntityTopicNameParameters) topicNameParameters, retentionTime);
+        } else if (topicNameParameters instanceof EventTopicNameParameters) {
+            eventTopicService.ensureTopic((EventTopicNameParameters) topicNameParameters, retentionTime);
+        }
+        topicRedisService.setTopic(topicNameParameters.getTopicName(), retentionTime).subscribe();
     }
 
 }

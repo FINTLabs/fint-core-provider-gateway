@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
+
 @RequiredArgsConstructor
 @Slf4j
 @Service
@@ -29,8 +31,7 @@ public class SyncPageService {
             syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
         }
 
-        String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
-        metaDataKafkaProducer.send(syncPage.getMetadata(), syncPage.getMetadata().getOrgId(), eventName);
+        metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, getEventName(syncPage.getSyncType()));
         sendEntities(syncPage, domain, packageName, entity);
 
         logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
@@ -54,6 +55,10 @@ public class SyncPageService {
                 }
             });
         });
+    }
+
+    private String getEventName(SyncType syncType) {
+        return "adapter-%s-sync".formatted(syncType.toString().toLowerCase());
     }
 
     private static void logSyncStart(SyncType syncType, SyncPageMetadata metadata, int resourceSize) {

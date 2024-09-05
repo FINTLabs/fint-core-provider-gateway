@@ -30,8 +30,7 @@ public class ResponseEventTopicProducer {
                 .eventName(createEventName(requestFintEvent))
                 .build();
 
-        if (!topicService.topicExists(topicNameParameters))
-            topicService.ensureTopic(topicNameParameters, Duration.ofDays(2).toMillis());
+        topicService.ensureTopic(topicNameParameters, Duration.ofHours(4).toMillis());
 
         eventProducer.send(
                 EventProducerRecord.builder()

@@ -7,6 +7,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+
   kafka:
     image: confluentinc/cp-kafka:latest
     networks:
@@ -22,6 +23,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
     networks:
@@ -32,6 +34,35 @@ services:
       - 19000:9000
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
+
+  provider-redis:
+    image: redis:6.2
+    container_name: provider-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - provider-redis-data:/data
+    command: [ "redis-server" ]
+    restart: always
+
+  topic-redis:
+    image: redis:6.2
+    container_name: topic-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - topic-redis-data:/data
+      - ./topic-topic-redis.conf:/usr/local/etc/redis/topic-redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/topic-redis.conf" ]
+    restart: always
+
 networks:
   broker-kafka:
     driver: bridge
+
+volumes:
+  provider-redis-data:
+    driver: local
+
+  topic-redis-data:
+    driver: local

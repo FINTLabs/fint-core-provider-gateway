@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -37,14 +39,13 @@ public class RequestFintEventConsumer {
                 EventTopicNamePatternParameters
                         .builder()
                         .orgId(FormattedTopicComponentPattern.any())
-                        .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                        .eventName(ValidatedTopicComponentPattern.endingWith("-request"))
+                        .domainContext(FormattedTopicComponentPattern.anyOf(FINT_CORE))
+                        .eventName(ValidatedTopicComponentPattern.endingWith("-request")) // TODO: Fjern create / update -request topics i Aiven
                         .build()
         );
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.info("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
         requestEventService.addEvent(consumerRecord.value());
     }
 }

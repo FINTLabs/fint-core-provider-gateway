@@ -10,6 +10,7 @@ import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
 
@@ -22,25 +23,39 @@ public class ResponseEventService {
     private final RequestEventService requestEventService;
     private final EntityProducerKafka entityProducerKafka;
 
-    public void handleEvent(ResponseFintEvent responseFintEvent) throws NoRequestFoundException, InvalidOrgIdException {
-        RequestFintEvent requestEvent = requestEventService.getEvent(responseFintEvent.getCorrId())
-                .orElseThrow(() -> new NoRequestFoundException(responseFintEvent.getCorrId()));
+    public Mono<Object> handleEvent(ResponseFintEvent responseFintEvent) {
+        return requestEventService.getEvent(responseFintEvent.getCorrId())
+                .switchIfEmpty(Mono.error(new NoRequestFoundException(responseFintEvent.getCorrId())))
+                .flatMap(requestFintEvent -> {
+                    if (!responseFintEvent.getOrgId().equals(requestFintEvent.getOrgId())) {
+                        log.error("Received event response, did not match request org-id: {}", responseFintEvent.getOrgId());
+                        return Mono.error(new InvalidOrgIdException(responseFintEvent.getOrgId()));
+                    }
 
-        if (!responseFintEvent.getOrgId().equals(requestEvent.getOrgId())) {
-            log.error("Recieved event response, did not match request org-id: {}", responseFintEvent.getOrgId());
-            throw new InvalidOrgIdException(responseFintEvent.getOrgId());
-        }
+                    responseEventTopicProducer.sendEvent(responseFintEvent, requestFintEvent);
 
-        responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
+                    entityProducerKafka.sendEntity(
+                            EntityTopicNameParameters.builder()
+                                    .orgId(responseFintEvent.getOrgId())
+                                    .domainContext(FINT_CORE)
+                                    .resource(getResourceName(requestFintEvent))
+                                    .build(),
+                            responseFintEvent.getValue(),
+                            responseFintEvent.getCorrId()
+                    );
 
-        entityProducerKafka.sendEntity(
-                EntityTopicNameParameters.builder()
-                        .orgId(responseFintEvent.getOrgId())
-                        .domainContext(FINT_CORE)
-                        .resource("%s-%s-%s".formatted(requestEvent.getDomainName(), requestEvent.getPackageName(), requestEvent.getResourceName()))
-                        .build(),
-                responseFintEvent.getValue(),
-                responseFintEvent.getCorrId()
+                    return Mono.empty();
+                })
+                .doOnError(error -> log.error("Error handling event: ", error));
+    }
+
+
+    private String getResourceName(RequestFintEvent requestFintEvent) {
+        return "%s-%s-%s".formatted(
+                requestFintEvent.getDomainName(),
+                requestFintEvent.getPackageName(),
+                requestFintEvent.getResourceName()
         );
     }
+
 }

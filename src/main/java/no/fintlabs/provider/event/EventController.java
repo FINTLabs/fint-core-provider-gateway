@@ -10,11 +10,12 @@ import no.fintlabs.provider.event.response.ResponseEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
 import no.fintlabs.provider.security.AdapterRequestValidator;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class EventController {
     private final AdapterRequestValidator requestValidator;
 
     @GetMapping(value = {"{domainName}", "{domainName}/{packageName}", "{domainName}/{packageName}/{resourceName}"})
-    public ResponseEntity<List<RequestFintEvent>> getEvents(
+    public ResponseEntity<Flux<RequestFintEvent>> getEvents(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
             @PathVariable(required = false) String domainName,
             @PathVariable(required = false) String packageName,
@@ -38,16 +39,18 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> postEvent(
+    public Mono<ResponseEntity<Void>> postEvent(
             @AuthenticationPrincipal CorePrincipal corePrincipal,
             @RequestBody ResponseFintEvent responseFintEvent
-    ) throws InvalidOrgIdException, NoRequestFoundException {
+    ) {
         requestValidator.validateOrgId(corePrincipal, responseFintEvent.getOrgId());
         requestValidator.validateAdapterId(corePrincipal, responseFintEvent.getAdapterId());
         // TODO: Skal vi stoppe response hvis adapteret har ikke en kontrakt? Og skal vi sjekke capabilities til kontrakten?
 
-        responseEventService.handleEvent(responseFintEvent);
-        return ResponseEntity.ok().build();
+        return responseEventService.handleEvent(responseFintEvent)
+                .thenReturn(ResponseEntity.ok().<Void>build())
+                .onErrorResume(InvalidOrgIdException.class, ex -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).build()))
+                .onErrorResume(NoRequestFoundException.class, ex -> Mono.just(ResponseEntity.notFound().build()));
     }
 
 }

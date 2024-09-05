@@ -6,6 +6,8 @@ import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.provider.security.AdapterContractContext;
 import org.springframework.stereotype.Service;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -16,8 +18,7 @@ public class RegistrationService {
     private final AdapterContractContext adapterContractContext;
 
     public void register(AdapterContract adapterContract) {
-        adapterRegistrationTopicService.ensureTopics(adapterContract);
-        adapterContractProducer.send(adapterContract, adapterContract.getOrgId());
+        adapterContractProducer.send(adapterContract, FINTLABS_NO);
         adapterContractContext.add(adapterContract);
         log.info("New adapter has registered: {}", adapterContract.getAdapterId());
     }

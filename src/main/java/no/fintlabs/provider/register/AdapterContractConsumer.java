@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,9 +40,9 @@ public class AdapterContractConsumer {
         ).createContainer(
                 EventTopicNamePatternParameters
                         .builder()
-                        .orgId(FormattedTopicComponentPattern.any())
-                        .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                        .eventName(ValidatedTopicComponentPattern.endingWith("adapter-register"))
+                        .orgId(FormattedTopicComponentPattern.anyOf(FINTLABS_NO))
+                        .domainContext(FormattedTopicComponentPattern.anyOf(FINT_CORE))
+                        .eventName(ValidatedTopicComponentPattern.endingWith(ADAPTER_REGISTER_EVENT_NAME))
                         .build()
         );
     }

@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,14 +40,13 @@ public class ResponseFintEventConsumer {
                 EventTopicNamePatternParameters
                         .builder()
                         .orgId(FormattedTopicComponentPattern.any())
-                        .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
+                        .domainContext(FormattedTopicComponentPattern.anyOf(FINT_CORE))
                         .eventName(ValidatedTopicComponentPattern.endingWith("-response"))
                         .build()
         );
     }
 
     private void processEvent(ConsumerRecord<String, ResponseFintEvent> consumerRecord) {
-        log.info("ResponseFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
         requestEventService.removeEvent(consumerRecord.value().getCorrId());
     }
 
