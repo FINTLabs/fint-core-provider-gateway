@@ -12,11 +12,9 @@ import org.springframework.stereotype.Service;
 public class RegistrationService {
 
     private final AdapterContractProducer adapterContractProducer;
-    private final AdapterRegistrationTopicService adapterRegistrationTopicService;
     private final AdapterContractContext adapterContractContext;
 
     public void register(AdapterContract adapterContract) {
-        adapterRegistrationTopicService.ensureTopics(adapterContract);
         adapterContractProducer.send(adapterContract, adapterContract.getOrgId());
         adapterContractContext.add(adapterContract);
         log.info("New adapter has registered: {}", adapterContract.getAdapterId());
