@@ -1,4 +1,6 @@
 fint:
+  metamodel:
+    base-url: http://fint-core-consumer-metamodel:8080
   security:
     component: false
     org-id: false
