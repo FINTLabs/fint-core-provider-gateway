@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ExceptionController {
 
+    @ExceptionHandler(InvalidAdapterCapabilityException.class)
+    public ResponseEntity<String> handleInvalidAdapterCapabilityException(Throwable e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+    }
+
     @ExceptionHandler(MissingRoleException.class)
     public ResponseEntity<String> handleMissingRoleException(Throwable e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
