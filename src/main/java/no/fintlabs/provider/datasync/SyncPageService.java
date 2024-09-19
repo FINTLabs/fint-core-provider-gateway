@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
+
 @RequiredArgsConstructor
 @Slf4j
 @Service
@@ -30,7 +32,7 @@ public class SyncPageService {
         }
 
         String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
-        metaDataKafkaProducer.send(syncPage.getMetadata(), syncPage.getMetadata().getOrgId(), eventName);
+        metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, eventName);
         sendEntities(syncPage, domain, packageName, entity);
 
         logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
