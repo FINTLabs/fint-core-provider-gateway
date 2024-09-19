@@ -2,6 +2,7 @@ package no.fintlabs.provider.kafka;
 
 public class TopicNamesConstants {
 
+    public static String FINTLABS_NO = "fintlabs-no";
     public static String FINT_CORE = "fint-core";
     public static String HEADER_RETENSION_TIME = "topic-retension-time";
 
