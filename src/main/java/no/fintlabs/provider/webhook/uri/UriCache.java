@@ -8,13 +8,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.HashSet;
 import java.util.Set;
 
+import static no.fintlabs.provider.webhook.uri.UriConstants.*;
+
 @Component
 @RequiredArgsConstructor
 public class UriCache {
-
-    private final static String DOMAIN_URI_PATTERN = "/%s";
-    private final static String COMPONENT_URI_PATTERN = "/%s/%s";
-    private final static String RESOURCE_URI_PATTERN = "/%s/%s/%s";
 
     private final WebClient webhookWebClient;
     private final Set<String> validDomainUris = new HashSet<>();
