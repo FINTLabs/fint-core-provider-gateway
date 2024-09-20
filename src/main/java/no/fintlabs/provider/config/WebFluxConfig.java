@@ -19,6 +19,11 @@ public class WebFluxConfig implements WebFluxConfigurer {
         return WebClient.builder().baseUrl(metamodelUrl).build();
     }
 
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder().build();
+    }
+
     @Override
     public void configureHttpMessageCodecs(ServerCodecConfigurer configurer) {
         configurer.defaultCodecs().enableLoggingRequestDetails(true);
