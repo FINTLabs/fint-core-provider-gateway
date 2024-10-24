@@ -3,11 +3,9 @@ package no.fintlabs.provider.register;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
-import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
-import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
+import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.provider.config.KafkaConfig;
 import no.fintlabs.provider.security.AdapterContractContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,8 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME;
-import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
+import static no.fintlabs.provider.kafka.TopicNamesConstants.*;
 
 @Slf4j
 @Service
@@ -39,11 +36,11 @@ public class AdapterContractConsumer {
                         .groupIdSuffix(kafkaConfig.getGroupIdSuffix())
                         .build()
         ).createContainer(
-                EventTopicNamePatternParameters
+                EventTopicNameParameters
                         .builder()
-                        .orgId(FormattedTopicComponentPattern.any())
-                        .domainContext(FormattedTopicComponentPattern.anyOf(FINT_CORE))
-                        .eventName(ValidatedTopicComponentPattern.endingWith(ADAPTER_REGISTER_EVENT_NAME))
+                        .orgId(FINTLABS_NO)
+                        .domainContext(FINT_CORE)
+                        .eventName(ADAPTER_REGISTER_EVENT_NAME)
                         .build()
         );
     }
