@@ -7,6 +7,8 @@ import no.fintlabs.provider.security.AdapterContractContext;
 import no.fintlabs.provider.security.AdapterRegistrationValidator;
 import org.springframework.stereotype.Service;
 
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -18,7 +20,7 @@ public class RegistrationService {
 
     public void register(AdapterContract adapterContract) {
         adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
-        adapterContractProducer.send(adapterContract, adapterContract.getOrgId());
+        adapterContractProducer.send(adapterContract, FINTLABS_NO);
         adapterContractContext.add(adapterContract);
         log.info("New adapter has registered: {}", adapterContract.getAdapterId());
     }
