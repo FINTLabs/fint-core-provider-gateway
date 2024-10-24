@@ -14,6 +14,10 @@ public class AdapterContractContext {
     private final Map<String, String> adapterIdToUsernameMap = new HashMap<>();
     private final Map<String, Set<String>> adapterIdValidCapabilities = new HashMap<>();
 
+    public Set<String> getAdapterIds() {
+        return adapterIdToUsernameMap.keySet();
+    }
+
     public boolean adapterCanPerformCapability(String adapterId, String domainName, String packageName, String entityName) {
         String compatibilityLink = "%s/%s/%s".formatted(domainName, packageName, entityName).toLowerCase();
         return adapterIdValidCapabilities.get(adapterId).contains(compatibilityLink);
