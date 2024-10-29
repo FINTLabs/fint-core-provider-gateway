@@ -1,14 +1,14 @@
 name: CD
 
 on:
-#  repository_dispatch:
-#    types: [trigger-cd]
-  workflow_dispatch:
+  push:
+    branches:
+      - november
 
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}-test
   NAMESPACE: fint-core
 
 jobs:
