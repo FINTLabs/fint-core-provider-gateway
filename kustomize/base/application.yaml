@@ -1,0 +1,29 @@
+apiVersion: fintlabs.no/v1alpha1
+kind: Application
+metadata:
+  name: fint-core-provider-gateway
+  namespace: fint-core
+spec:
+  port: 8080
+  orgId: fintlabs.no
+  image: ghcr.io/fintlabs/fint-core-provider-gateway-test:latest
+  env:
+    - name: JAVA_TOOL_OPTIONS
+      value: '-XX:+ExitOnOutOfMemoryError -Xmx786m'
+  kafka:
+    enabled: true
+    acls:
+      - topic: '*.fint-core.*'
+        permission: admin
+  url:
+    hostname: replace
+  ingress:
+    enabled: true
+    basePath: /provider
+  resources:
+    limits:
+      memory: "1024Mi"
+      cpu: "100m"
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
