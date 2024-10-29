@@ -5,7 +5,6 @@ on:
     branches:
       - november
 
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-test
@@ -36,7 +35,9 @@ jobs:
         id: meta
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: type=sha,enable=true,priority=100,prefix=shaF-,suffix=,format=short
+          tags: |
+            type=sha,enable=true,priority=100,prefix=shaF-,suffix=,format=short
+            latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
