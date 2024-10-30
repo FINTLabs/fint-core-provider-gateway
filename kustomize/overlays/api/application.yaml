@@ -7,12 +7,14 @@ spec:
   env:
     - name: JAVA_TOOL_OPTIONS
       value: '-XX:+ExitOnOutOfMemoryError -Xmx786m'
-  url:
-    hostname: https://api.felleskomponent.no
+  ingress:
+    routes:
+      - host: api.felleskomponent.no
+        path: /provider
   resources:
     limits:
       memory: "1024Mi"
-      cpu: "100m"
+      cpu: "1"
     requests:
       memory: "128Mi"
       cpu: "100m"

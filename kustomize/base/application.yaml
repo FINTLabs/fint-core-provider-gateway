@@ -15,11 +15,6 @@ spec:
     acls:
       - topic: '*.fint-core.*'
         permission: admin
-  url:
-    hostname: replace
-  ingress:
-    enabled: true
-    basePath: /provider
   resources:
     limits:
       memory: "1024Mi"
