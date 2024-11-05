@@ -17,9 +17,11 @@ public class RegistrationService {
     private final AdapterContractProducer adapterContractProducer;
     private final AdapterContractContext adapterContractContext;
     private final AdapterRegistrationValidator adapterRegistrationValidator;
+    private final AdapterRegistrationTopicService adapterRegistrationTopicService;
 
     public void register(AdapterContract adapterContract) {
         adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
+        adapterRegistrationTopicService.ensureCapabilityTopics(adapterContract);
         adapterContractProducer.send(adapterContract, FINTLABS_NO);
         adapterContractContext.add(adapterContract);
         log.info("New adapter has registered: {}", adapterContract.getAdapterId());
