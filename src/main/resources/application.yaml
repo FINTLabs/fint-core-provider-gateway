@@ -39,3 +39,10 @@ logging:
   level:
     root: INFO
     org.apache.kafka: WARN
+server:
+  netty:
+    connection-timeout: 600000
+  tomcat:
+    threads:
+      max: 400
+    max-connections: 30000

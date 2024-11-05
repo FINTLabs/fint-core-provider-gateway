@@ -1,0 +1,20 @@
+apiVersion: fintlabs.no/v1alpha1
+kind: Application
+metadata:
+  name: fint-core-provider-gateway
+  namespace: fint-core
+spec:
+  env:
+    - name: JAVA_TOOL_OPTIONS
+      value: '-XX:+ExitOnOutOfMemoryError -Xmx786m'
+  ingress:
+    routes:
+      - host: api.felleskomponent.no
+        path: /provider
+  resources:
+    limits:
+      memory: "1024Mi"
+      cpu: "1"
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
