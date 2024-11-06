@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ExceptionController {
 
+    @ExceptionHandler(InvalidSyncPageEntryException.class)
+    public ResponseEntity<String> handleInvalidSyncPageEntryException(Throwable e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
     @ExceptionHandler(InvalidAdapterCapabilityException.class)
     public ResponseEntity<String> handleInvalidAdapterCapabilityException(Throwable e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
