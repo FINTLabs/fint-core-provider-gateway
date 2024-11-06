@@ -8,6 +8,7 @@ import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.provider.datasync.EntityProducerKafka;
 import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
+import no.fintlabs.provider.exception.InvalidSyncPageEntryException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,11 @@ public class ResponseEventService {
         if (!responseFintEvent.getOrgId().equals(requestEvent.getOrgId())) {
             log.error("Recieved event response, did not match request org-id: {}", responseFintEvent.getOrgId());
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
+        }
+
+        if (responseFintEvent.getValue() == null) {
+            log.error("Recieved a SyncPageEntry that is null");
+            throw new InvalidSyncPageEntryException("SyncPageEntry is null");
         }
 
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
