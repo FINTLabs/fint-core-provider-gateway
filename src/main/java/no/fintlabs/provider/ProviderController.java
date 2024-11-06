@@ -42,7 +42,7 @@ public class ProviderController {
     public ResponseEntity<String> heartbeat(@AuthenticationPrincipal CorePrincipal corePrincipal,
                                             @RequestBody AdapterHeartbeat adapterHeartbeat) {
         requestValidator.validateOrgId(corePrincipal, adapterHeartbeat.getOrgId());
-        requestValidator.validateAdapterId(corePrincipal, adapterHeartbeat.getAdapterId());
+//        requestValidator.validateAdapterId(corePrincipal, adapterHeartbeat.getAdapterId());
 
         heartbeatService.beat(adapterHeartbeat);
         return ResponseEntity.ok("💗");
@@ -96,7 +96,7 @@ public class ProviderController {
             HttpStatus status) {
         requestValidator.validateOrgId(corePrincipal, syncPage.getMetadata().getOrgId());
         requestValidator.validateRole(corePrincipal, domain, packageName);
-        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
+//        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
         requestValidator.validateAdapterCapabilityPermission(syncPage.getMetadata().getAdapterId(), domain, packageName, entity);
 
         syncPageService.doSync(syncPage, domain, packageName, entity);
