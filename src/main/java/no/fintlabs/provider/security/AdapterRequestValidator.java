@@ -22,18 +22,21 @@ public class AdapterRequestValidator {
 
     public void validateAdapterCapabilityPermission(String adapterId, String domainName, String packageName, String entityName) {
         if (!adapterContractContext.adapterCanPerformCapability(adapterId, domainName, packageName, entityName)) {
+            log.warn("Validation failed: Adapter '{}' lacks capability to perform action on '{}-{}-{}'.", adapterId, domainName, packageName, entityName);
             throw new CapabilityNotSupportedException("Adapter lacks the necessary capabilities to perform this action");
         }
     }
 
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
         if (corePrincipal.doesNotContainAsset(requestedOrgId.replace("-", ".").replace("_", "."))) {
+            log.warn("Validation failed: JWT for user '{}' does not have access to organization '{}'. Available assets: {}", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getAssets());
             throw new InvalidOrgId("Adapter assets does not contain the organization for the request");
         }
     }
 
     public void validateUsername(CorePrincipal corePrincipal, String contractUsername) {
         if (corePrincipal.doesNotHaveMatchingUsername(contractUsername)) {
+            log.warn("Validation failed: Username mismatch. JWT's username '{}' does not match contract username '{}'.", corePrincipal.getUsername(), contractUsername);
             throw new InvalidUsername("Adapter username does not match contract username");
         }
     }
@@ -41,9 +44,8 @@ public class AdapterRequestValidator {
     public void validateRole(CorePrincipal corePrincipal, String domain, String packageName) {
         String role = String.format("FINT_Adapter_%s_%s", domain.toLowerCase(), packageName.toLowerCase());
         if (corePrincipal.doesNotHaveRole(role)) {
+            log.warn("Validation failed: Principal '{}' is missing required role '{}'. Current roles: {}", corePrincipal.getName(), role, corePrincipal.getRoles());
             throw new MissingRoleException("Adapter does not have the correct role to perform this action");
         }
-
     }
-
 }
