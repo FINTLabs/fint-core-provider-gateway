@@ -32,7 +32,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0'
 
     implementation 'no.fint:fint-event-model:3.0.2'
-    implementation 'no.fintlabs:fint-core-infra-models:2.0.0-rc-12'
+    implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-1'
     implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.0'
 
