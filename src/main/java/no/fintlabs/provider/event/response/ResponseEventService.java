@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.adapter.models.event.ResponseFintEvent;
+import no.fintlabs.adapter.operation.OperationType;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.provider.datasync.EntityProducerKafka;
 import no.fintlabs.provider.event.request.RequestEventService;
@@ -39,14 +40,21 @@ public class ResponseEventService {
 
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
 
-        entityProducerKafka.sendEntity(
-                EntityTopicNameParameters.builder()
-                        .orgId(responseFintEvent.getOrgId())
-                        .domainContext(FINT_CORE)
-                        .resource("%s-%s-%s".formatted(requestEvent.getDomainName(), requestEvent.getPackageName(), requestEvent.getResourceName()))
-                        .build(),
-                responseFintEvent.getValue(),
-                responseFintEvent.getCorrId()
-        );
+        if (eventIsNotValidate(responseFintEvent)) {
+            entityProducerKafka.sendEntity(
+                    EntityTopicNameParameters.builder()
+                            .orgId(responseFintEvent.getOrgId())
+                            .domainContext(FINT_CORE)
+                            .resource("%s-%s-%s".formatted(requestEvent.getDomainName(), requestEvent.getPackageName(), requestEvent.getResourceName()))
+                            .build(),
+                    responseFintEvent.getValue(),
+                    responseFintEvent.getCorrId()
+            );
+        }
     }
+
+    private boolean eventIsNotValidate(ResponseFintEvent responseFintEvent) {
+        return !responseFintEvent.getOperationType().equals(OperationType.VALIDATE);
+    }
+
 }
