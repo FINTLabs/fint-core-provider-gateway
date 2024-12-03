@@ -33,7 +33,7 @@ public class ResponseEventService {
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
-        if (responseFintEvent.getValue() == null) {
+        if (!responseFintEvent.getOperationType().equals(OperationType.VALIDATE) && responseFintEvent.getValue() == null) {
             log.error("Recieved a SyncPageEntry that is null");
             throw new InvalidSyncPageEntryException("SyncPageEntry is null");
         }
