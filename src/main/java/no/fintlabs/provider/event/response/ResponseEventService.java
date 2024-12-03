@@ -33,7 +33,7 @@ public class ResponseEventService {
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
-        if (!responseFintEvent.getOperationType().equals(OperationType.VALIDATE) && responseFintEvent.getValue() == null) {
+        if (syncPageEntryIsNullWhenRequired(responseFintEvent)) {
             log.error("Recieved a SyncPageEntry that is null");
             throw new InvalidSyncPageEntryException("SyncPageEntry is null");
         }
@@ -52,6 +52,15 @@ public class ResponseEventService {
             );
         }
     }
+
+    private boolean syncPageEntryIsNullWhenRequired(ResponseFintEvent responseFintEvent) {
+        if (responseFintEvent.getOperationType().equals(OperationType.VALIDATE)) {
+            return responseFintEvent.isConflicted() && responseFintEvent.getValue() == null;
+        } else {
+            return responseFintEvent.getValue() == null;
+        }
+    }
+
 
     private boolean eventIsNotValidate(ResponseFintEvent responseFintEvent) {
         return !responseFintEvent.getOperationType().equals(OperationType.VALIDATE);
