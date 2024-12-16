@@ -11,7 +11,9 @@ fint:
     role-type: adapter
     open-paths: |
       /api-docs/**,
-      /swagger/**
+      /swagger/**,
+      /ready,
+      /offset
   kafka:
     application-id: provider
     enable-ssl: false

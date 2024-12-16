@@ -7,7 +7,9 @@ fint:
     role-type: adapter
     open-paths: |
       /api-docs/**,
-      /swagger/**
+      /swagger/**,
+      /ready,
+      /offset
   kafka:
     topic:
       domain-context: fint-core
