@@ -24,7 +24,7 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.delete-sync.retention-time-ms:86400000}")
     private long adapterDeleteSyncRetentionTimeMs;
 
-    @Value("${fint.provider.pod-url:https://fint-core-provider-gateway:8080}")
+    @Value("${fint.provider.pod-url:http://fint-core-provider-gateway:8080}")
     private String podUrl;
 
 }
