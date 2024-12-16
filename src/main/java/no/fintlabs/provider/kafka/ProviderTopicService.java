@@ -34,15 +34,19 @@ public class ProviderTopicService {
     }
 
     public void ensureTopic(EntityTopicNameParameters topicName, Long retensionTime) {
-        log.debug("Ensuring topic: {} - {}", topicName.getTopicName(), retensionTime);
+        logEnsuringOfTopic(topicName.getTopicName(), retensionTime);
         entityTopicService.ensureTopic(topicName, retensionTime);
         topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
     }
 
     public void ensureTopic(EventTopicNameParameters topicName, Long retensionTime) {
-        log.debug("Ensuring topic: {} - {}", topicName.getTopicName(), retensionTime);
+        logEnsuringOfTopic(topicName.getTopicName(), retensionTime);
         eventTopicService.ensureTopic(topicName, retensionTime);
         topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
+    }
+
+    private void logEnsuringOfTopic(String topicName, Long retensionTime) {
+        log.debug("Ensuring topic: {} - {}", topicName, retensionTime);
     }
 
 }
