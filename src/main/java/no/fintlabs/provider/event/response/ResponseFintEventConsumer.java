@@ -10,6 +10,7 @@ import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import no.fintlabs.provider.config.KafkaConfig;
 import no.fintlabs.provider.event.request.RequestEventService;
+import no.fintlabs.provider.kafka.offset.OffsetState;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -23,6 +24,7 @@ public class ResponseFintEventConsumer {
     private final EventConsumerFactoryService eventConsumerFactoryService;
     private final RequestEventService requestEventService;
     private final KafkaConfig kafkaConfig;
+    private final OffsetState offsetState;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, ResponseFintEvent> registerResponseFintEventListener() {
@@ -46,6 +48,7 @@ public class ResponseFintEventConsumer {
 
     private void processEvent(ConsumerRecord<String, ResponseFintEvent> consumerRecord) {
         log.info("ResponseFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
+        offsetState.setResponseOffset(consumerRecord.offset());
         requestEventService.removeEvent(consumerRecord.value().getCorrId());
     }
 

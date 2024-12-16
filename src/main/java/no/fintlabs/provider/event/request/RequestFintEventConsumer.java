@@ -9,6 +9,7 @@ import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import no.fintlabs.provider.config.KafkaConfig;
+import no.fintlabs.provider.kafka.offset.OffsetState;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -22,6 +23,7 @@ public class RequestFintEventConsumer {
     private final EventConsumerFactoryService eventConsumerFactoryService;
     private final RequestEventService requestEventService;
     private final KafkaConfig kafkaConfig;
+    private final OffsetState offsetState;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, RequestFintEvent> registerRequestFintEventListener() {

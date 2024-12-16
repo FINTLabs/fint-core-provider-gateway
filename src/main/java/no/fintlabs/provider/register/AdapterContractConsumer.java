@@ -7,6 +7,7 @@ import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.provider.config.KafkaConfig;
+import no.fintlabs.provider.kafka.offset.OffsetState;
 import no.fintlabs.provider.security.AdapterContractContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,7 @@ public class AdapterContractConsumer {
     private final EventConsumerFactoryService eventConsumerFactoryService;
     private final AdapterRegistrationTopicService adapterRegistrationTopicService;
     private final KafkaConfig kafkaConfig;
+    private final OffsetState offsetState;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, AdapterContract> registerAdapterContractListener() {
@@ -46,6 +48,7 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
+        offsetState.setContractOffset(consumerRecord.offset());
         adapterRegistrationTopicService.ensureCapabilityTopics(consumerRecord.value());
         adapterContractContext.add(consumerRecord.value());
     }
