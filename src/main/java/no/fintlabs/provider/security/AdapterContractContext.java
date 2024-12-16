@@ -1,6 +1,8 @@
 package no.fintlabs.provider.security;
 
+import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.AdapterContract;
+import no.fintlabs.provider.exception.AdapterNotRegisteredException;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @Component
 public class AdapterContractContext {
 
@@ -20,7 +23,11 @@ public class AdapterContractContext {
 
     public boolean adapterCanPerformCapability(String adapterId, String domainName, String packageName, String entityName) {
         String compatibilityLink = "%s/%s/%s".formatted(domainName, packageName, entityName).toLowerCase();
-        return adapterIdValidCapabilities.get(adapterId).contains(compatibilityLink);
+        if (adapterIdValidCapabilities.containsKey(adapterId)) {
+            return adapterIdValidCapabilities.get(adapterId).contains(compatibilityLink);
+        }
+        log.error("Cant perform action because adapter is not registered: {}", adapterId);
+        throw new AdapterNotRegisteredException("Cant perform action; because adapter is not yet registered");
     }
 
     public void add(AdapterContract adapterContract) {
