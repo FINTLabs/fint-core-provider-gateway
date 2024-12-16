@@ -22,7 +22,12 @@ public class ProviderTopicService {
     private final EventTopicService eventTopicService;
 
     public long getRetensionTime(TopicNameParameters topicNameParameters) {
-        return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L);
+        if (topicToRetensionMap.containsKey(topicNameParameters.getTopicName())) {
+            return topicToRetensionMap.get(topicNameParameters.getTopicName());
+        } else {
+            log.error("Cant get retension time because topic is not ensured: {}", topicNameParameters.getTopicName());
+            return 0L;
+        }
     }
 
     public boolean topicHasDifferentRetensionTime(TopicNameParameters topicNameParameters, Long retensionTime) {

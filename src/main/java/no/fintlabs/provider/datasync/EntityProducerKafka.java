@@ -55,8 +55,6 @@ public class EntityProducerKafka {
             ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
             buffer.putLong(retensionTime);
             headers.add(HEADER_RETENSION_TIME, buffer.array());
-        } else {
-            log.error("Retension time was not fetched for entityTopicName: {}", entityTopicName.getTopicName());
         }
     }
 }
