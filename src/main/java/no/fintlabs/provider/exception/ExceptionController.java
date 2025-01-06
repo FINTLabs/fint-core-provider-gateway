@@ -24,7 +24,7 @@ public class ExceptionController {
 
     @ExceptionHandler(InvalidAdapterCapabilityException.class)
     public ResponseEntity<String> handleInvalidAdapterCapabilityException(Throwable e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
     @ExceptionHandler(MissingRoleException.class)
