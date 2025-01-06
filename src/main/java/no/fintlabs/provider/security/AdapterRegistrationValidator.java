@@ -21,9 +21,16 @@ public class AdapterRegistrationValidator {
             String componentResource = "%s-%s-%s".formatted(capability.getDomainName(), capability.getPackageName(), capability.getResourceName()).toLowerCase();
             if (!resourceContext.getValidResources().contains(componentResource)) {
                 log.warn("Validation failed: Capability '{}' from '{}' is not a valid resource.", capability, componentResource);
-                throw new InvalidAdapterCapabilityException("Invalid capability resource: %s".formatted(componentResource));
+                throw new InvalidAdapterCapabilityException("Invalid capability resource: %s - Component does not exist".formatted(componentResource));
+            } else if (invalidFullSyncInterval(capability.getFullSyncIntervalInDays())) {
+                log.warn("Validation failed: Capability '{}' has an invalid FullSyncIntervalInDays value", capability);
+                throw new InvalidAdapterCapabilityException("Invalid capability resource: %s - FullSyncIntervalInDays value is invalid".formatted(componentResource));
             }
         });
+    }
+
+    private boolean invalidFullSyncInterval(int fullSyncIntervalInDays) {
+        return fullSyncIntervalInDays <= 0;
     }
 
 }
