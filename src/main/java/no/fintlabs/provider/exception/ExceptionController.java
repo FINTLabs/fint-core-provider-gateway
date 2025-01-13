@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ExceptionController {
 
+    @ExceptionHandler(InvalidResponseFintEventException.class)
+    public ResponseEntity<String> handleInvalidResponseFintEventException(Throwable e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
+    }
+
     @ExceptionHandler(AdapterNotRegisteredException.class)
     public ResponseEntity<String> handleAdapterNotRegisteredException(Throwable e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
