@@ -9,9 +9,12 @@ import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.provider.datasync.EntityProducerKafka;
 import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;
+import no.fintlabs.provider.exception.InvalidResponseFintEventException;
 import no.fintlabs.provider.exception.InvalidSyncPageEntryException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
 
@@ -27,6 +30,11 @@ public class ResponseEventService {
     public void handleEvent(ResponseFintEvent responseFintEvent) throws NoRequestFoundException, InvalidOrgIdException {
         RequestFintEvent requestEvent = requestEventService.getEvent(responseFintEvent.getCorrId())
                 .orElseThrow(() -> new NoRequestFoundException(responseFintEvent.getCorrId()));
+
+        if (Objects.isNull(responseFintEvent.getOperationType())) {
+            log.error("Recieved event with no OperationType, returning BAD_REQUEST");
+            throw new InvalidResponseFintEventException("OperationType is required but was not provided.");
+        }
 
         if (!responseFintEvent.getOrgId().equals(requestEvent.getOrgId())) {
             log.error("Recieved event response, did not match request org-id: {}", responseFintEvent.getOrgId());
@@ -54,7 +62,7 @@ public class ResponseEventService {
     }
 
     private boolean syncPageEntryIsNullWhenRequired(ResponseFintEvent responseFintEvent) {
-        if (responseFintEvent.getOperationType().equals(OperationType.VALIDATE)) {
+        if (Objects.nonNull(responseFintEvent.getOperationType()) && responseFintEvent.getOperationType().equals(OperationType.VALIDATE)) {
             return responseFintEvent.isConflicted() && responseFintEvent.getValue() == null;
         } else {
             return responseFintEvent.getValue() == null;
