@@ -46,7 +46,7 @@ public class EventController {
 //        requestValidator.validateAdapterId(corePrincipal, responseFintEvent.getAdapterId());
         // TODO: Skal vi stoppe response hvis adapteret har ikke en kontrakt? Og skal vi sjekke capabilities til kontrakten?
 
-        responseEventService.handleEvent(responseFintEvent);
+        responseEventService.handleEvent(responseFintEvent, corePrincipal);
         return ResponseEntity.ok().build();
     }
 

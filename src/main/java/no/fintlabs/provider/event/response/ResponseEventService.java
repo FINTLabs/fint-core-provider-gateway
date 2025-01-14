@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.adapter.models.event.ResponseFintEvent;
 import no.fintlabs.adapter.operation.OperationType;
+import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.provider.datasync.EntityProducerKafka;
 import no.fintlabs.provider.event.request.RequestEventService;
@@ -27,22 +28,22 @@ public class ResponseEventService {
     private final RequestEventService requestEventService;
     private final EntityProducerKafka entityProducerKafka;
 
-    public void handleEvent(ResponseFintEvent responseFintEvent) throws NoRequestFoundException, InvalidOrgIdException {
+    public void handleEvent(ResponseFintEvent responseFintEvent, CorePrincipal corePrincipal) throws NoRequestFoundException, InvalidOrgIdException {
         RequestFintEvent requestEvent = requestEventService.getEvent(responseFintEvent.getCorrId())
                 .orElseThrow(() -> new NoRequestFoundException(responseFintEvent.getCorrId()));
 
         if (Objects.isNull(responseFintEvent.getOperationType())) {
-            log.error("Recieved event with no OperationType, returning BAD_REQUEST");
+            log.error("Recieved event with no OperationType, returning BAD_REQUEST for {}", corePrincipal.getUsername());
             throw new InvalidResponseFintEventException("OperationType is required but was not provided.");
         }
 
         if (!responseFintEvent.getOrgId().equals(requestEvent.getOrgId())) {
-            log.error("Recieved event response, did not match request org-id: {}", responseFintEvent.getOrgId());
+            log.error("Recieved event response, did not match request org-id: {} for {}", responseFintEvent.getOrgId(), corePrincipal.getUsername());
             throw new InvalidOrgIdException(responseFintEvent.getOrgId());
         }
 
         if (syncPageEntryIsNullWhenRequired(responseFintEvent)) {
-            log.error("Recieved a SyncPageEntry that is null");
+            log.error("Recieved a SyncPageEntry that is null for {}", corePrincipal.getUsername());
             throw new InvalidSyncPageEntryException("SyncPageEntry is null");
         }
 
