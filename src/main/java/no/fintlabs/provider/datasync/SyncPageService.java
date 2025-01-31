@@ -24,8 +24,7 @@ public class SyncPageService {
     private final MetaDataKafkaProducer metaDataKafkaProducer;
 
     public <T extends SyncPage> void doSync(T syncPage, String domain, String packageName, String entity) {
-        Instant start = Instant.now();
-        logSyncStart(syncPage.getSyncType(), syncPage.getMetadata(), syncPage.getResources().size());
+        Instant start = logSyncStart(syncPage.getSyncType(), syncPage.getMetadata(), syncPage.getResources().size());
 
         if (syncPage.getSyncType().equals(SyncType.DELETE)) {
             syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
@@ -58,7 +57,7 @@ public class SyncPageService {
         });
     }
 
-    private static void logSyncStart(SyncType syncType, SyncPageMetadata metadata, int resourceSize) {
+    private Instant logSyncStart(SyncType syncType, SyncPageMetadata metadata, int resourceSize) {
         log.info("Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
                 syncType.toString().toLowerCase(),
                 metadata.getCorrId(),
@@ -69,6 +68,8 @@ public class SyncPageService {
                 metadata.getPage(),
                 metadata.getTotalPages()
         );
+
+        return Instant.now();
     }
 
     private void logSyncEnd(SyncType syncType, String corrId, Duration timeTaken) {
