@@ -56,10 +56,10 @@ public class EntityProducerKafka {
     }
 
     private void attachRetentionTime(RecordHeaders headers, EntityTopicNameParameters entityTopicName) {
-        long retensionTime = topicService.getRetensionTime(entityTopicName);
-        if (retensionTime != 0L) {
+        long topicRetentionTime = topicService.getRetensionTime(entityTopicName);
+        if (topicRetentionTime != 0L) {
             ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-            buffer.putLong(retensionTime);
+            buffer.putLong(topicRetentionTime);
             headers.add(HEADER_RETENSION_TIME, buffer.array());
         }
     }
