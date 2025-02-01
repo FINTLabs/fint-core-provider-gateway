@@ -13,9 +13,11 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.HEADER_RETENSION_TIME;
+import static no.fintlabs.provider.kafka.TopicNamesConstants.ENTITY_RETENTION_TIME;
+import static no.fintlabs.provider.kafka.TopicNamesConstants.TOPIC_RETENTION_TIME;
 
 @Slf4j
 @Service
@@ -46,7 +48,8 @@ public class EntityProducerKafka {
 
     private RecordHeaders createHeaders(EntityTopicNameParameters entityTopicName, String eventCorrId) {
         RecordHeaders headers = new RecordHeaders();
-        attachRetentionTime(headers, entityTopicName);
+        attachEntityRetentionTime(headers);
+        attachTopicRetentionTime(headers, entityTopicName);
         attachEventCorrId(headers, eventCorrId);
         return headers;
     }
@@ -55,12 +58,19 @@ public class EntityProducerKafka {
         if (StringUtils.isNotBlank(eventCorrId)) headers.add("event-corr-id", eventCorrId.getBytes());
     }
 
-    private void attachRetentionTime(RecordHeaders headers, EntityTopicNameParameters entityTopicName) {
+    private void attachEntityRetentionTime(RecordHeaders headers) {
+        headers.add(
+                ENTITY_RETENTION_TIME,
+                ByteBuffer.allocate(Long.BYTES).putLong(Instant.now().toEpochMilli()).array()
+        );
+    }
+
+    private void attachTopicRetentionTime(RecordHeaders headers, EntityTopicNameParameters entityTopicName) {
         long topicRetentionTime = topicService.getRetensionTime(entityTopicName);
         if (topicRetentionTime != 0L) {
             ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
             buffer.putLong(topicRetentionTime);
-            headers.add(HEADER_RETENSION_TIME, buffer.array());
+            headers.add(TOPIC_RETENTION_TIME, buffer.array());
         }
     }
 }
