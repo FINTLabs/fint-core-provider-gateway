@@ -13,7 +13,6 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
-import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
 import static no.fintlabs.provider.kafka.TopicNamesConstants.ENTITY_RETENTION_TIME;
@@ -61,7 +60,7 @@ public class EntityProducerKafka {
     private void attachEntityRetentionTime(RecordHeaders headers) {
         headers.add(
                 ENTITY_RETENTION_TIME,
-                ByteBuffer.allocate(Long.BYTES).putLong(Instant.now().toEpochMilli()).array()
+                ByteBuffer.allocate(Long.BYTES).putLong(System.currentTimeMillis()).array()
         );
     }
 
