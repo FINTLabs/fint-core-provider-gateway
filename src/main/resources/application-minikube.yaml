@@ -1,0 +1,43 @@
+fint:
+  metamodel:
+    base-url: http://fint-core-metamodel-service:80
+  security:
+    enabled: true
+    component: false
+    org-id: false
+    role-type: adapter
+    open-paths: |
+      /api-docs/**,
+      /swagger/**,
+      /ready,
+      /offset
+  kafka:
+    application-id: provider
+    enable-ssl: false
+    default-replicas: 1
+
+spring:
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: provider
+  webflux:
+    base-path: /provider
+  codec:
+    max-in-memory-size: 200MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger/ui
+
+logging:
+  level:
+    root: INFO
