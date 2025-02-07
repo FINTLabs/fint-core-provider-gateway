@@ -3,13 +3,13 @@ package no.fintlabs.provider.register;
 import lombok.RequiredArgsConstructor;
 import no.fintlabs.adapter.models.AdapterCapability;
 import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.provider.kafka.ProviderTopicService;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.provider.kafka.ProviderTopicService;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.*;
+import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class AdapterRegistrationTopicService {
             EntityTopicNameParameters topicNameParameters = createTopicNameParameters(adapterContract.getOrgId(), capability);
 
             if (providerTopicService.topicExists(topicNameParameters)) {
-                if (providerTopicService.topicHasDifferentRetensionTime(topicNameParameters, retensionTime)) {
+                if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retensionTime)) {
                     providerTopicService.ensureTopic(topicNameParameters, retensionTime);
                 }
             } else {

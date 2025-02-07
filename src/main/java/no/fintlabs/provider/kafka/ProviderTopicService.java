@@ -30,9 +30,10 @@ public class ProviderTopicService {
         }
     }
 
-    public boolean topicHasDifferentRetensionTime(TopicNameParameters topicNameParameters, Long retensionTime) {
-        return topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L).equals(retensionTime);
+    public boolean topicHasDifferentRetentionTime(TopicNameParameters topicNameParameters, Long retentionTime) {
+        return !topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L).equals(retentionTime);
     }
+
 
     public boolean topicExists(TopicNameParameters topicNameParameters) {
         return topicToRetensionMap.containsKey(topicNameParameters.getTopicName());
@@ -51,7 +52,7 @@ public class ProviderTopicService {
     }
 
     private void logEnsuringOfTopic(String topicName, Long retensionTime) {
-        log.debug("Ensuring topic: {} - {}", topicName, retensionTime);
+        log.info("Ensuring topic: {} - {}", topicName, retensionTime);
     }
 
 }
