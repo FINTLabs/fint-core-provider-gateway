@@ -21,6 +21,7 @@ public class RegistrationService {
 
     public void register(AdapterContract adapterContract) {
         adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
+        adapterContract.setTime(System.currentTimeMillis());
         adapterRegistrationTopicService.ensureCapabilityTopics(adapterContract);
         adapterContractProducer.send(adapterContract, FINTLABS_NO);
         adapterContractContext.add(adapterContract);
