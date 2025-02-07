@@ -23,7 +23,7 @@ public class AdapterRegistrationValidator {
                 log.warn("Validation failed: Capability '{}' from '{}' is not a valid resource.", capability, componentResource);
                 throw new InvalidAdapterCapabilityException("Invalid capability resource: %s - Component does not exist".formatted(componentResource));
             } else if (invalidFullSyncInterval(capability.getFullSyncIntervalInDays())) {
-                log.warn("Validation failed: Capability '{}' has an invalid FullSyncIntervalInDays value", capability);
+                log.warn("Validation failed: Capability '{}' has an invalid FullSyncIntervalInDays value", capability.getEntityUri());
                 throw new InvalidAdapterCapabilityException("Invalid capability resource: %s - FullSyncIntervalInDays value is invalid".formatted(componentResource));
             }
         });
