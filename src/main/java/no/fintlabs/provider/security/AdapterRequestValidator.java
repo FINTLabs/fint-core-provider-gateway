@@ -44,7 +44,7 @@ public class AdapterRequestValidator {
     public void validateRole(CorePrincipal corePrincipal, String domain, String packageName) {
         String role = String.format("FINT_Adapter_%s_%s", domain.toLowerCase(), packageName.toLowerCase());
         if (corePrincipal.doesNotHaveRole(role)) {
-            log.warn("Validation failed: Principal '{}' is missing required role '{}'. Current roles: {}", corePrincipal.getName(), role, corePrincipal.getRoles());
+            log.warn("Validation failed: Principal '{}' is missing required role '{}'. Current roles: {}", corePrincipal.getUsername(), role, corePrincipal.getRoles());
             throw new MissingRoleException("Adapter does not have the correct role to perform this action");
         }
     }
