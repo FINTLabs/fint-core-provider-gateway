@@ -31,6 +31,7 @@ public class SyncPageService {
         }
 
         String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
+        syncPage.getMetadata().setUriRef("%s/%s/%s".formatted(domain.toLowerCase(), packageName.toLowerCase(), entity.toLowerCase()));
         metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, eventName);
         sendEntities(syncPage, domain, packageName, entity);
 
