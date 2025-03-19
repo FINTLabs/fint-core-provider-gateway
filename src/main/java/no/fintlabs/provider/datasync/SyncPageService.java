@@ -30,12 +30,17 @@ public class SyncPageService {
             syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
         }
 
+        mutateMetadata(syncPage.getMetadata(), domain, packageName, entity);
         String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
-        syncPage.getMetadata().setUriRef("%s/%s/%s".formatted(domain.toLowerCase(), packageName.toLowerCase(), entity.toLowerCase()));
         metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, eventName);
         sendEntities(syncPage, domain, packageName, entity);
 
         logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
+    }
+
+    private void mutateMetadata(SyncPageMetadata syncPageMetadata, String domain, String packageName, String resourceName) {
+        syncPageMetadata.setTime(System.currentTimeMillis());
+        syncPageMetadata.setUriRef("%s/%s/%s".formatted(domain.toLowerCase(), packageName.toLowerCase(), resourceName.toLowerCase()));
     }
 
     private void sendEntities(SyncPage page, String domain, String packageName, String entity) {
