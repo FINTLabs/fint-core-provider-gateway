@@ -11,6 +11,11 @@ spec:
     routes:
       - host: alpha.felleskomponent.no
         path: /provider
+  observability:
+    metrics:
+      enabled: true
+      port: "8080"
+      path: /actuator/prometheus
   resources:
     limits:
       memory: "1024Mi"
