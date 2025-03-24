@@ -45,7 +45,7 @@ public class SyncPageService {
 
     private void sendEntities(SyncPage page, String domain, String packageName, String entity) {
         EntityTopicNameParameters entityTopicNameParameters = EntityTopicNameParameters.builder()
-                .orgId(page.getMetadata().getOrgId())
+                .orgId(page.getMetadata().getOrgId().replace(".", "-"))
                 .domainContext("fint-core")
                 .resource("%s-%s-%s".formatted(domain, packageName, entity))
                 .build();

@@ -52,7 +52,7 @@ public class ResponseEventService {
         if (eventIsNotValidate(responseFintEvent)) {
             entityProducerKafka.sendEntity(
                     EntityTopicNameParameters.builder()
-                            .orgId(responseFintEvent.getOrgId())
+                            .orgId(responseFintEvent.getOrgId().replace(".", "-"))
                             .domainContext(FINT_CORE)
                             .resource("%s-%s-%s".formatted(requestEvent.getDomainName(), requestEvent.getPackageName(), requestEvent.getResourceName()))
                             .build(),

@@ -34,7 +34,7 @@ public class AdapterRegistrationTopicService {
 
     private EntityTopicNameParameters createTopicNameParameters(String org, AdapterCapability adapterCapability) {
         return EntityTopicNameParameters.builder()
-                .orgId(org)
+                .orgId(org.replace(".", "-"))
                 .domainContext(FINT_CORE)
                 .resource(getResourceName(adapterCapability))
                 .build();
