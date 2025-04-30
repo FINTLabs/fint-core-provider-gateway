@@ -65,10 +65,11 @@ public class ResponseEventService {
     }
 
     private boolean createRequestFailed(ResponseFintEvent responseFintEvent) {
-        return responseFintEvent.getOperationType().equals(OperationType.CREATE)
-                && responseFintEvent.isRejected()
-                && responseFintEvent.isFailed()
-                && responseFintEvent.isConflicted();
+        return responseFintEvent.getOperationType().equals(OperationType.CREATE) && (responseHasAnError(responseFintEvent));
+    }
+
+    private boolean responseHasAnError(ResponseFintEvent responseFintEvent) {
+        return responseFintEvent.isFailed() || responseFintEvent.isConflicted() || responseFintEvent.isRejected();
     }
 
     private boolean syncPageEntryIsNullWhenRequired(ResponseFintEvent responseFintEvent) {
