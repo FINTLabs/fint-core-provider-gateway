@@ -49,7 +49,7 @@ public class ResponseEventService {
 
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
 
-        if (eventIsNotValidate(responseFintEvent)) {
+        if (!createRequestFailed(responseFintEvent) && eventIsNotValidate(responseFintEvent)) {
             entityProducerKafka.sendEntity(
                     EntityTopicNameParameters.builder()
                             .orgId(responseFintEvent.getOrgId().replace(".", "-"))
@@ -59,7 +59,16 @@ public class ResponseEventService {
                     responseFintEvent.getValue(),
                     responseFintEvent.getCorrId()
             );
+        } else {
+            log.info("Not sending entity to Kafka because it is a validate event or create request failed");
         }
+    }
+
+    private boolean createRequestFailed(ResponseFintEvent responseFintEvent) {
+        return responseFintEvent.getOperationType().equals(OperationType.CREATE)
+                && responseFintEvent.isRejected()
+                && responseFintEvent.isFailed()
+                && responseFintEvent.isConflicted();
     }
 
     private boolean syncPageEntryIsNullWhenRequired(ResponseFintEvent responseFintEvent) {
