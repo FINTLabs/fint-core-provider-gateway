@@ -14,6 +14,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AdapterRegistrationValidator {
 
+    public static final int MAX_FULL_SYNC_INTERVAL = 7;
+
     private final ResourceContext resourceContext;
 
     public void validateCapabilities(Set<AdapterCapability> capabilities) {
@@ -30,7 +32,7 @@ public class AdapterRegistrationValidator {
     }
 
     private boolean invalidFullSyncInterval(int fullSyncIntervalInDays) {
-        return fullSyncIntervalInDays <= 0;
+        return fullSyncIntervalInDays <= 0 || fullSyncIntervalInDays > MAX_FULL_SYNC_INTERVAL;
     }
 
 }
