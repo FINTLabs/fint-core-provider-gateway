@@ -8,6 +8,7 @@ fint:
     open-paths: |
       /api-docs/**,
       /swagger/**,
+      /actuator/health,
       /ready,
       /offset
   kafka:

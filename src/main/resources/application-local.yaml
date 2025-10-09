@@ -1,5 +1,5 @@
 server:
-  port : 8081
+  port : 8085
 
 fint:
   metamodel:
@@ -12,6 +12,7 @@ fint:
     open-paths: |
       /api-docs/**,
       /swagger/**,
+      /actuator/health,
       /ready,
       /offset
   kafka:
