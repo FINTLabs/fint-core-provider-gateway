@@ -14,12 +14,14 @@ import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.stereotype.Component
 import java.nio.ByteBuffer
+import java.time.Clock
 import java.util.concurrent.CompletableFuture
 
 @Component
 class EntityProducer(
     entityProducerFactory: EntityProducerFactory,
-    private val topicService: ProviderTopicService
+    private val topicService: ProviderTopicService,
+    private val clock: Clock
 ) {
 
     private val producer = entityProducerFactory.createProducer(Any::class.java)
@@ -75,7 +77,7 @@ class EntityProducer(
 
     private fun attachDefaultHeaders(topic: TopicNameParameters) =
         RecordHeaders().apply {
-            add(LAST_MODIEFIED, System.currentTimeMillis().toByteArray())
+            add(LAST_MODIEFIED, clock.millis().toByteArray())
             attachTopicRetentionIfValid(this, topic)
         }
 
