@@ -5,13 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.sync.SyncPage;
 import no.fintlabs.adapter.models.sync.SyncPageMetadata;
 import no.fintlabs.adapter.models.sync.SyncType;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
 
 import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
 
@@ -20,7 +17,7 @@ import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
 @Service
 public class SyncPageService {
 
-    private final EntityProducerKafka entityProducerKafka;
+    private final EntityProducer entityProducer;
     private final MetaDataKafkaProducer metaDataKafkaProducer;
 
     public <T extends SyncPage> void doSync(T syncPage, String domain, String packageName, String entity) {
@@ -33,7 +30,7 @@ public class SyncPageService {
         mutateMetadata(syncPage.getMetadata(), domain, packageName, entity);
         String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
         metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, eventName);
-        sendEntities(syncPage, domain, packageName, entity);
+        sendEntities(syncPage);
 
         logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
     }
@@ -43,17 +40,9 @@ public class SyncPageService {
         syncPageMetadata.setUriRef("%s/%s/%s".formatted(domain.toLowerCase(), packageName.toLowerCase(), resourceName.toLowerCase()));
     }
 
-    private void sendEntities(SyncPage page, String domain, String packageName, String entity) {
-        EntityTopicNameParameters entityTopicNameParameters = EntityTopicNameParameters.builder()
-                .orgId(page.getMetadata().getOrgId().replace(".", "-"))
-                .domainContext("fint-core")
-                .resource("%s-%s-%s".formatted(domain, packageName, entity))
-                .build();
-
+    private void sendEntities(SyncPage page) {
         page.getResources().forEach(syncPageEntry -> {
-            CompletableFuture<SendResult<String, Object>> future = entityProducerKafka.sendEntity(entityTopicNameParameters, syncPageEntry);
-
-            future.whenComplete((result, error) -> {
+            entityProducer.sendSyncEntity(page, syncPageEntry).whenComplete((result, error) -> {
                 if (result != null) {
                     log.debug("Entity sent successfully");
                 } else {

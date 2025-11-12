@@ -5,6 +5,7 @@ plugins {
     id 'groovy'
     id "com.github.ben-manes.versions" version "0.51.0"
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
 }
 
 group = 'no.fintlabs'
@@ -30,6 +31,7 @@ dependencies {
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0-M1"
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0'
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
 
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
@@ -42,8 +44,10 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "io.mockk:mockk:1.14.6"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 configurations {
@@ -58,4 +62,7 @@ jar {
 
 test {
     useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(17)
 }
