@@ -36,7 +36,10 @@ class EntityProducer(
             )
         }
 
-    fun sendEventEntity(request: RequestFintEvent, syncPageEntry: SyncPageEntry) =
+    fun sendEventEntity(
+        request: RequestFintEvent,
+        syncPageEntry: SyncPageEntry
+    ): CompletableFuture<SendResult<String, Any>> =
         request.toTopic().let { topic ->
             producer.send(
                 EntityProducerRecord.builder<Any>()
