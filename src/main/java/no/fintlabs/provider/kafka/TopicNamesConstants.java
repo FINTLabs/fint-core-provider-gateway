@@ -5,7 +5,7 @@ public class TopicNamesConstants {
     public static String FINTLABS_NO = "fintlabs-no";
     public static String FINT_CORE = "fint-core";
     public static String TOPIC_RETENTION_TIME = "topic-retention-time";
-    public static String ENTITY_RETENTION_TIME = "entity-retention-time";
+    public static String LAST_MODIEFIED = "entity-retention-time"; // TODO: Change this to last-modified
 
     public static String HEARTBEAT_EVENT_NAME = "adapter-health";
     public static String ADAPTER_REGISTER_EVENT_NAME = "adapter-register";

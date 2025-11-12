@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.ENTITY_RETENTION_TIME;
+import static no.fintlabs.provider.kafka.TopicNamesConstants.LAST_MODIEFIED;
 import static no.fintlabs.provider.kafka.TopicNamesConstants.TOPIC_RETENTION_TIME;
 
 @Slf4j
@@ -47,7 +47,7 @@ public class EntityProducerKafka {
 
     private RecordHeaders createHeaders(EntityTopicNameParameters entityTopicName, String eventCorrId) {
         RecordHeaders headers = new RecordHeaders();
-        attachEntityRetentionTime(headers);
+        attachLastModified(headers);
         attachTopicRetentionTime(headers, entityTopicName);
         attachEventCorrId(headers, eventCorrId);
         return headers;
@@ -57,9 +57,9 @@ public class EntityProducerKafka {
         if (StringUtils.isNotBlank(eventCorrId)) headers.add("event-corr-id", eventCorrId.getBytes());
     }
 
-    private void attachEntityRetentionTime(RecordHeaders headers) {
+    private void attachLastModified(RecordHeaders headers) {
         headers.add(
-                ENTITY_RETENTION_TIME,
+                LAST_MODIEFIED,
                 ByteBuffer.allocate(Long.BYTES).putLong(System.currentTimeMillis()).array()
         );
     }
