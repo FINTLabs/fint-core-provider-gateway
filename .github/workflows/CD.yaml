@@ -33,10 +33,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch,enable=false
-            type=ref,event=tag,enable=true,format=short,priority=10
+            type=raw,value=${{ env.VERSION }}
             type=sha,enable=true,priority=100,prefix=sha-,suffix=,format=short
-            latest
+            type=raw,value=latest,enable=${{ !contains(env.VERSION, 'rc') }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
