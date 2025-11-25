@@ -11,15 +11,15 @@ plugins {
 group = 'no.fintlabs'
 version = System.getenv("RELEASE_VERSION") ?: '0.0.1-SNAPSHOT'
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
-    mavenLocal()
     maven {
         url "https://repo.fintlabs.no/releases"
     }
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -65,5 +65,5 @@ test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
