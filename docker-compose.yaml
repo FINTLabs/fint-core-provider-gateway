@@ -35,15 +35,6 @@ services:
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
 
-  metamodel:
-    image: ghcr.io/fintlabs/fint-core-consumer-metamodel:latest
-    networks:
-      - broker-kafka
-    depends_on:
-      - kafka
-    ports:
-      - 8082:8080
-
 networks:
   broker-kafka:
     driver: bridge
