@@ -1,38 +1,41 @@
-package no.fintlabs.provider.security;
+package no.fintlabs.provider.security
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.AdapterCapability;
-import no.fintlabs.provider.exception.InvalidAdapterCapabilityException;
-import no.fintlabs.provider.security.resource.ResourceContext;
-import org.springframework.stereotype.Component;
+import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.provider.exception.InvalidAdapterCapabilityException
+import no.fintlabs.provider.security.resource.ComponentResourceRegistry
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-import java.util.Set;
-
-@Slf4j
 @Component
-@RequiredArgsConstructor
-public class AdapterRegistrationValidator {
+class AdapterRegistrationValidator(
+    private val componentResourceRegistry: ComponentResourceRegistry
+) {
 
-    public static final int MAX_FULL_SYNC_INTERVAL = 7;
+    companion object {
+        const val MAX_FULL_SYNC_INTERVAL_DAYS = 7
+    }
 
-    private final ResourceContext resourceContext;
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-    public void validateCapabilities(Set<AdapterCapability> capabilities) {
-        capabilities.forEach(capability -> {
-            String componentResource = "%s-%s-%s".formatted(capability.getDomainName(), capability.getPackageName(), capability.getResourceName()).toLowerCase();
-            if (!resourceContext.getValidResources().contains(componentResource)) {
-                log.warn("Validation failed: Capability '{}' from '{}' is not a valid resource.", capability, componentResource);
-                throw new InvalidAdapterCapabilityException("Invalid capability resource: %s - Component does not exist".formatted(componentResource));
-            } else if (invalidFullSyncInterval(capability.getFullSyncIntervalInDays())) {
-                log.warn("Validation failed: Capability '{}' has an invalid FullSyncIntervalInDays value", capability.getEntityUri());
-                throw new InvalidAdapterCapabilityException("Invalid capability resource: %s - FullSyncIntervalInDays value is invalid".formatted(componentResource));
+    fun validateCapabilities(capabilities: Collection<AdapterCapability>) =
+        capabilities.forEach { capability ->
+            if (invalidComponentResource(capability)) {
+                logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is not a valid resource.")
+                throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - Component does not exist")
+            } else if (invalidFullSyncInterval(capability.fullSyncIntervalInDays)) {
+                logger.warn("Validation failed: Capability '$capability' has an invalid FullSyncIntervalInDays value")
+                throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - FullSyncIntervalInDays value is invalid")
             }
-        });
-    }
+        }
 
-    private boolean invalidFullSyncInterval(int fullSyncIntervalInDays) {
-        return fullSyncIntervalInDays <= 0 || fullSyncIntervalInDays > MAX_FULL_SYNC_INTERVAL;
-    }
+    private fun invalidComponentResource(capability: AdapterCapability): Boolean =
+        !componentResourceRegistry.containsResource(
+            capability.domainName,
+            capability.packageName,
+            capability.resourceName
+        )
+
+    private fun invalidFullSyncInterval(fullSyncIntervalInDays: Int): Boolean =
+        fullSyncIntervalInDays !in 1..MAX_FULL_SYNC_INTERVAL_DAYS
 
 }
