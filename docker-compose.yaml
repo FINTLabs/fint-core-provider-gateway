@@ -25,15 +25,17 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   kafdrop:
-    image: obsidiandynamics/kafdrop:latest
+    image: provectus/kafka-ui:latest
     networks:
       - broker-kafka
     depends_on:
       - kafka
     ports:
-      - 19000:9000
+      - 9090:9000
     environment:
-      KAFKA_BROKERCONNECT: kafka:29092
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
 networks:
   broker-kafka:
