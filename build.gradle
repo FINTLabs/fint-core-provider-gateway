@@ -28,6 +28,13 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
+    implementation "no.fint:fint-utdanning-resource-model-java:${fintVersion}"
+    implementation "no.fint:fint-administrasjon-resource-model-java:${fintVersion}"
+    implementation "no.fint:fint-personvern-resource-model-java:${fintVersion}"
+    implementation "no.fint:fint-okonomi-resource-model-java:${fintVersion}"
+    implementation "no.fint:fint-ressurs-resource-model-java:${fintVersion}"
+    implementation "no.fint:fint-arkiv-resource-model-java:${fintVersion}"
+
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0-M1"
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0'
