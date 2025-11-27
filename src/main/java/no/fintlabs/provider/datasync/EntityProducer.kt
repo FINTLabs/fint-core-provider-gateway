@@ -83,7 +83,7 @@ class EntityProducer(
 
     private fun attachSyncHeaders(topic: TopicNameParameters, syncPage: SyncPage) =
         attachDefaultHeaders(topic).apply {
-            add(SYNC_TYPE, syncPage.syncType.ordinal.toByte().toByteArray())
+            add(SYNC_TYPE, byteArrayOf(syncPage.syncType.ordinal.toByte()))
             add(SYNC_CORRELATION_ID, syncPage.metadata.corrId.toByteArray())
             add(SYNC_TOTAL_SIZE, syncPage.metadata.totalSize.toByteArray())
         }
@@ -97,11 +97,6 @@ class EntityProducer(
     private fun Long.toByteArray(): ByteArray =
         ByteBuffer.allocate(Long.SIZE_BYTES)
             .putLong(this)
-            .array()
-
-    private fun Byte.toByteArray(): ByteArray =
-        ByteBuffer.allocate(Byte.SIZE_BYTES)
-            .put(this)
             .array()
 
 }
