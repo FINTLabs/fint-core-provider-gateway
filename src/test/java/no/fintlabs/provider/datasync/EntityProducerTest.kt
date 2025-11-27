@@ -89,7 +89,7 @@ class EntityProducerTest {
 
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_MODIEFIED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
-        assertEquals(expectedSynctype.ordinal, record.getHeaderValue(SYNC_TYPE).int())
+        assertEquals(expectedSynctype.ordinal.toByte(), record.getHeaderValue(SYNC_TYPE).first())
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
         assertEquals(expectedSyncTotalSize, record.getHeaderValue(SYNC_TOTAL_SIZE).long())
 
@@ -134,7 +134,6 @@ class EntityProducerTest {
     }
 
     private fun ByteArray.long(): Long = ByteBuffer.wrap(this).long
-    private fun ByteArray.int(): Int = ByteBuffer.wrap(this).int
     private fun EntityProducerRecord<Any>.getHeaderValue(key: String) = this.headers.lastHeader(key).value()
     private fun EntityProducerRecord<Any>.getHeader(key: String) = this.headers.lastHeader(key)
 
