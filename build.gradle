@@ -11,7 +11,7 @@ plugins {
 group = 'no.fintlabs'
 version = System.getenv("RELEASE_VERSION") ?: '0.0.1-SNAPSHOT'
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -25,7 +25,6 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
@@ -35,7 +34,7 @@ dependencies {
 
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
-    implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
+    implementation 'no.novari:kafka:5.0.0'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.0'
 
     compileOnly 'org.projectlombok:lombok'
@@ -64,5 +63,5 @@ test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
