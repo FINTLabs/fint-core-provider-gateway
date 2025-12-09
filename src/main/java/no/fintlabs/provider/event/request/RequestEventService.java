@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,8 +21,8 @@ public class RequestEventService {
     private static final int EXTRA_MINUTES_TO_KEEP_EVENTS = 20;
     private static final int DEFAULT_MINUTES_TO_KEEP_EVENTS = 60;
 
-    private final Map<String, RequestFintEvent> events = new LinkedHashMap<>();
-    private final Map<String, LocalDate> removedEvents = new HashMap<>();
+    private final Map<String, RequestFintEvent> events = new ConcurrentHashMap<>();
+    private final Map<String, LocalDate> removedEvents = new ConcurrentHashMap<>();
 
     public void addEvent(RequestFintEvent event) {
         ensureEventsTimeToLive(event);
