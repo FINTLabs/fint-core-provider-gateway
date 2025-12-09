@@ -98,6 +98,17 @@ class RequestCacheTest {
         assertThat(all.map { it.corrId }).containsExactlyInAnyOrder("1", "2")
     }
 
+    @Test
+    fun `should keep provided TTL if it is greater than zero`() {
+        val userProvidedTtl = 99999L
+        val event = createEvent("id-custom-ttl", userProvidedTtl)
+
+        requestCache.add(event)
+
+        // Ensure it wasn't changed to the default (120000)
+        assertThat(event.timeToLive).isEqualTo(userProvidedTtl)
+    }
+
     // --- Helpers ---
 
     private fun createEvent(
