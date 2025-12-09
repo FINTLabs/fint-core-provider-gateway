@@ -1,14 +1,18 @@
 package no.fintlabs.provider.event.request
 
 import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
+import no.fintlabs.provider.event.response.ResponseEventTopicProducer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.util.*
 import java.util.function.Consumer
 
 @Service
 class RequestEventService(
-    private val requestCache: RequestCache
+    private val requestCache: RequestCache,
+    private val responseProducer: ResponseEventTopicProducer
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -51,7 +55,16 @@ class RequestEventService(
      */
     private fun sendExpiredResponse(request: RequestFintEvent) {
         logger.info("Event ${request.corrId} expired. Sending expired response.")
-        // TODO: Create Response and publish it ok kafka
+        responseProducer.sendEvent(request.toResponse(), request)
     }
+
+    private fun RequestFintEvent.toResponse(): ResponseFintEvent =
+        ResponseFintEvent().apply {
+            corrId = this@toResponse.corrId
+            orgId = this@toResponse.orgId
+            handledAt = System.currentTimeMillis()
+            isFailed = true
+            errorMessage = "Event expired after waiting ${Duration.ofMillis(timeToLive).toMinutes()} minutes."
+        }
 
 }
