@@ -87,7 +87,7 @@ class EntityProducerTest {
 
         assertEquals(expected, record.topicNameParameters)
 
-        assertEquals(expectedLastModified, record.getHeaderValue(LAST_MODIEFIED).long())
+        assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
         assertEquals(expectedSynctype.ordinal.toByte(), record.getHeaderValue(SYNC_TYPE).first())
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
@@ -123,7 +123,7 @@ class EntityProducerTest {
             .resource("utdanning-vurdering-elevfravar")
             .build()
 
-        assertEquals(expectedLastModified, record.getHeaderValue(LAST_MODIEFIED).long())
+        assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
         assertNull(record.getHeader(SYNC_TYPE))
         assertNull(record.getHeader(SYNC_CORRELATION_ID))
