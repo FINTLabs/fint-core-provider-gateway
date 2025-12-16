@@ -48,9 +48,9 @@ public class RequestEventService {
     public List<RequestFintEvent> getEvents(Set<String> assets, String domainName, String packageName, String resourceName, int size) {
         Stream<RequestFintEvent> stream = events.values().stream()
                 .filter(event -> assets.contains(event.getOrgId()))
-                .filter(event -> StringUtils.isBlank(domainName) || event.getDomainName().equalsIgnoreCase(domainName))
-                .filter(event -> StringUtils.isBlank(packageName) || event.getPackageName().equalsIgnoreCase(packageName))
-                .filter(event -> StringUtils.isBlank(resourceName) || event.getResourceName().equalsIgnoreCase(resourceName));
+                .filter(event -> StringUtils.isBlank(domainName) || StringUtils.equalsIgnoreCase(event.getDomainName(), domainName))
+                .filter(event -> StringUtils.isBlank(packageName) || StringUtils.equalsIgnoreCase(event.getPackageName(), packageName))
+                .filter(event -> StringUtils.isBlank(resourceName) || StringUtils.equalsIgnoreCase(event.getResourceName(), resourceName));
 
         if (size > 0) stream = stream.limit(size);
 
