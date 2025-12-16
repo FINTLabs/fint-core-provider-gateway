@@ -46,11 +46,7 @@ public class RequestFintEventConsumer {
     }
 
     private String[] createEventNames() {
-        return resourceContext.getValidResources().stream().map(resource -> {
-            String eventName = resource + "-request";
-            log.info("Creating consumer for event: {}", eventName); // Need to verify that its formatted correctly
-            return eventName;
-        }).toArray(String[]::new);
+        return resourceContext.getValidResources().stream().map(resource -> resource + "-request").toArray(String[]::new);
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
