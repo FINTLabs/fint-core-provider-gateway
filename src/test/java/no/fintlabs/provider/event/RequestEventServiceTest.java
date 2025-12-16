@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class RequestEventServiceTest {
@@ -47,6 +46,22 @@ public class RequestEventServiceTest {
         List<RequestFintEvent> result = eventService.getEvents(new HashSet<>(List.of(ORG_ID)), "", "", "", 0);
         assertEquals(1, result.size());
         assertEquals(event, result.get(0));
+    }
+
+    @Test
+    public void testGetEventsHandlesNullFields() {
+        RequestFintEvent dangerousEvent = createEvent(ORG_ID, null, "vurdering", "fravar");
+        eventService.addEvent(dangerousEvent);
+
+        List<RequestFintEvent> results = eventService.getEvents(
+                new HashSet<>(List.of(ORG_ID)),
+                "utdanning",
+                "",
+                "",
+                0
+        );
+
+        assertEquals(0, results.size(), "Should return empty list and not crash when domain is null");
     }
 
     @Test
