@@ -34,6 +34,10 @@ public class EventController {
             @PathVariable(required = false) String resourceName,
             @RequestParam(defaultValue = "0") int size
     ) {
+        if (corePrincipal.getAssets().isEmpty()) {
+            log.error("No assets present in principal for user: {}", corePrincipal.getUsername());
+            return ResponseEntity.ok(List.of());
+        }
         return ResponseEntity.ok(requestEventService.getEvents(corePrincipal.getAssets(), domainName, packageName, resourceName, size));
     }
 
