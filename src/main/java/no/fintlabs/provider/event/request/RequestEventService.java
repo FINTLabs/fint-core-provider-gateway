@@ -53,6 +53,9 @@ public class RequestEventService {
                 .filter(event -> StringUtils.isBlank(resourceName) || StringUtils.equalsIgnoreCase(event.getResourceName(), resourceName));
 
         if (size > 0) stream = stream.limit(size);
+        if (assets.isEmpty()) {
+            log.info("No assets present (this shouldn't happen)");
+        }
 
         return stream.collect(Collectors.toList());
     }
