@@ -74,21 +74,24 @@ class EntityProducerTest {
             resource = mapOf("id" to 42)
         }
 
-        every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
-        every { clock.millis() } returns expectedLastModified
-
-        val record = sendAndCapture { sut.sendSyncEntity(syncPage, entry) }
-
-        val expected = EntityTopicNameParameters.builder()
+        val expectedTopic = EntityTopicNameParameters.builder()
             .orgId("fintlabs-no")
             .domainContext(FINT_CORE)
             .resource("utdanning-elev-student")
             .build()
 
-        assertEquals(expected, record.topicNameParameters)
+        every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
+        every { clock.millis() } returns expectedLastModified
 
+        val record = sendAndCapture { sut.sendSyncEntity(syncPage, entry) }
+
+        assertEquals(expectedTopic, record.topicNameParameters)
+
+        // Default-Header values match
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
+
+        // Sync-Header values match
         assertEquals(expectedSynctype.ordinal.toByte(), record.getHeaderValue(SYNC_TYPE).first())
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
         assertEquals(expectedSyncTotalSize, record.getHeaderValue(SYNC_TOTAL_SIZE).long())
@@ -123,14 +126,15 @@ class EntityProducerTest {
         every { clock.millis() } returns expectedLastModified
 
         val record = sendAndCapture { sut.sendEventEntity(request, entry, expectedLastModified) }
-        val topicName = record.topicNameParameters
 
-        assertEquals(expectedTopic.orgId, topicName.orgId)
-        assertEquals(expectedTopic.domainContext, topicName.domainContext)
-        assertEquals(expectedTopic.resource, topicName.resource)
+        // Topic matches
+        assertEquals(expectedTopic, record.topicNameParameters)
 
+        // Default-Header values match
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
+
+        // Headers are not set
         assertNull(record.getHeader(SYNC_TYPE))
         assertNull(record.getHeader(SYNC_CORRELATION_ID))
         assertNull(record.getHeader(SYNC_TOTAL_SIZE))
