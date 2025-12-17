@@ -112,16 +112,22 @@ class EntityProducerTest {
             resource = mapOf("id" to 42)
         }
 
-        every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
-        every { clock.millis() } returns expectedLastModified
-
-        val record = sendAndCapture { sut.sendEventEntity(request, entry) }
-
-        val expected = EntityTopicNameParameters.builder()
+        val expectedTopic = EntityTopicNameParameters.builder()
             .orgId("fintlabs-no")
             .domainContext(FINT_CORE)
             .resource("utdanning-vurdering-elevfravar")
             .build()
+
+
+        every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
+        every { clock.millis() } returns expectedLastModified
+
+        val record = sendAndCapture { sut.sendEventEntity(request, entry, expectedLastModified) }
+        val topicName = record.topicNameParameters
+
+        assertEquals(expectedTopic.orgId, topicName.orgId)
+        assertEquals(expectedTopic.domainContext, topicName.domainContext)
+        assertEquals(expectedTopic.resource, topicName.resource)
 
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())

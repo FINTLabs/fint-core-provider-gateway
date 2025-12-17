@@ -63,7 +63,7 @@ class EntityProducer(
 
     private fun RequestFintEvent.toTopic(): EntityTopicNameParameters =
         EntityTopicNameParameters.builder()
-            .orgId(orgId.replace("-", "."))
+            .orgId(orgId.topicFormat())
             .domainContext(FINT_CORE)
             .resource("$domainName-$packageName-$resourceName")
             .build()
@@ -72,7 +72,6 @@ class EntityProducer(
         this.split("/")
             .take(3)
             .joinToString("-")
-
 
     private fun String.topicFormat() = this.replace(".", "-")
 
