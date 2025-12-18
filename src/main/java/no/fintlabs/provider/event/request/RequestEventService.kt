@@ -6,7 +6,7 @@ import no.fintlabs.provider.event.response.ResponseEventTopicProducer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.Duration
-import java.util.Optional
+import java.util.*
 import java.util.function.Consumer
 
 @Service
@@ -23,10 +23,10 @@ class RequestEventService(
 
     fun getEvents(
         assets: Set<String>,
-        domainName: String?,
-        packageName: String?,
-        resourceName: String?,
-        size: Int
+        domainName: String? = null,
+        packageName: String? = null,
+        resourceName: String? = null,
+        size: Int = 0
     ): List<RequestFintEvent> {
         val stream = requestCache.getAll()
             .filter { assets.contains(it.orgId) }
