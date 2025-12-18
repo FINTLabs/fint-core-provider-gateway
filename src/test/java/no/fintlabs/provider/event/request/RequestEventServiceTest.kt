@@ -1,6 +1,11 @@
 package no.fintlabs.provider.event.request
 
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.event.ResponseFintEvent
 import no.fintlabs.provider.event.response.ResponseEventTopicProducer
