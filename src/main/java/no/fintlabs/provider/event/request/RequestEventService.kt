@@ -39,13 +39,13 @@ class RequestEventService(
 
     fun addEvent(event: RequestFintEvent) {
         if (requestCache.add(event)) {
-            logger.debug("Event with corrId: ${event.corrId} added")
+            logger.debug("Event with corrId: {} added", event.corrId)
         }
     }
 
     fun removeEvent(corrId: String) {
         requestCache.remove(corrId)
-        logger.debug("Event with corrId: $corrId removed")
+        logger.debug("Event with corrId: {} removed", corrId)
     }
 
     fun getEvent(corrId: String): Optional<RequestFintEvent> = Optional.ofNullable(requestCache.get(corrId))
@@ -54,7 +54,7 @@ class RequestEventService(
      * Caffeine triggers this automatically when an item expires.
      */
     private fun sendExpiredResponse(request: RequestFintEvent) {
-        logger.info("Event ${request.corrId} expired. Sending expired response.")
+        logger.info("Event {} expired. Sending expired response.", request.corrId)
         responseProducer.sendEvent(request.toResponse(), request)
     }
 
