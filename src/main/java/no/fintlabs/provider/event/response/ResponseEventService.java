@@ -44,10 +44,6 @@ public class ResponseEventService {
     /**
      * Validates that the response event is valid.
      * Sets handledAt to current time if not set.
-     * @param request
-     * @param response
-     * @param corePrincipal
-     * @throws InvalidOrgIdException
      */
     private void validateEvent(RequestFintEvent request, ResponseFintEvent response, CorePrincipal corePrincipal) throws InvalidOrgIdException {
         if (Objects.isNull(response.getOperationType())) {
