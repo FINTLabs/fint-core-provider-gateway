@@ -18,9 +18,10 @@ class RequestCacheTest {
     private lateinit var requestCache: RequestCache
     private lateinit var onExpiredMock: Consumer<RequestFintEvent>
 
+    private val corrId = "id-1"
+
     @BeforeEach
     fun setup() {
-        // Fix time to: 2023-01-01T12:00:00Z
         clock = Clock.fixed(Instant.parse("2023-01-01T12:00:00.00Z"), ZoneId.of("UTC"))
         onExpiredMock = mockk(relaxed = true)
 
@@ -30,23 +31,23 @@ class RequestCacheTest {
 
     @Test
     fun `should add event to cache if valid`() {
-        val event = createEvent("id-1", 10000L)
+        val event = createEvent(corrId, 10000L)
 
         val result = requestCache.add(event)
 
         assertThat(result).isTrue
-        assertThat(requestCache.get("id-1")).isEqualTo(event)
+        assertThat(requestCache.get(corrId)).isEqualTo(event)
     }
 
     @Test
     fun `should reject event if it arrives already expired`() {
         // Created 20 seconds ago, TTL is 10 seconds
-        val event = createEvent("id-expired", 10000L, createdOffset = -20000L)
+        val event = createEvent(corrId, 10000L, createdOffset = -20000L)
 
         val result = requestCache.add(event)
 
         assertThat(result).isFalse
-        assertThat(requestCache.get("id-expired")).isNull()
+        assertThat(requestCache.get(corrId)).isNull()
 
         // Should trigger the expired callback immediately
         verify(exactly = 1) { onExpiredMock.accept(event) }
@@ -54,7 +55,7 @@ class RequestCacheTest {
 
     @Test
     fun `should set default TTL if not provided`() {
-        val event = createEvent("id-no-ttl", 0L) // TTL 0
+        val event = createEvent(corrId, 0L) // TTL 0
 
         requestCache.add(event)
 
@@ -64,12 +65,12 @@ class RequestCacheTest {
 
     @Test
     fun `remove should invalidate cache and create tombstone`() {
-        val event = createEvent("id-remove", 10000L)
+        val event = createEvent(corrId, 10000L)
         requestCache.add(event)
 
-        requestCache.remove("id-remove")
+        requestCache.remove(corrId)
 
-        assertThat(requestCache.get("id-remove")).isNull()
+        assertThat(requestCache.get(corrId)).isNull()
 
         // Try to add it again - should fail due to tombstone
         val addedAgain = requestCache.add(event)
@@ -78,11 +79,11 @@ class RequestCacheTest {
 
     @Test
     fun `remove (explicit) should NOT trigger onExpired callback`() {
-        val event = createEvent("id-explicit-remove", 100000L)
+        val event = createEvent(corrId, 100000L)
         requestCache.add(event)
 
         // Explicit removal
-        requestCache.remove("id-explicit-remove")
+        requestCache.remove(corrId)
 
         verify(exactly = 0) { onExpiredMock.accept(any()) }
     }
@@ -101,7 +102,7 @@ class RequestCacheTest {
     @Test
     fun `should keep provided TTL if it is greater than zero`() {
         val userProvidedTtl = 99999L
-        val event = createEvent("id-custom-ttl", userProvidedTtl)
+        val event = createEvent(corrId, userProvidedTtl)
 
         requestCache.add(event)
 
