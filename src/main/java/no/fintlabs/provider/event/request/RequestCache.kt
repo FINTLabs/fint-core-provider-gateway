@@ -19,7 +19,7 @@ class RequestCache(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     private val defaultTtl = TimeUnit.MINUTES.toMillis(2)
-    private val tombstoneTtlMins = 5L
+    private val tombstoneTtlMins = 30L
 
     var onExpired: Consumer<RequestFintEvent>? = null
 
