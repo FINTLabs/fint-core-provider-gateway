@@ -32,6 +32,7 @@ public class ResponseEventService {
         validateEvent(requestEvent, responseFintEvent, corePrincipal);
 
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
+        requestEventService.removeEvent(responseFintEvent.getCorrId());
 
         if (!createRequestFailed(responseFintEvent) && eventIsNotValidate(responseFintEvent)) {
             entityProducer.sendEventEntity(requestEvent, responseFintEvent.getValue(), responseFintEvent.getHandledAt());
