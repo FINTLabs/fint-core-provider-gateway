@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
-import java.util.*
 
 @RequiredArgsConstructor
 @Service
@@ -47,9 +46,7 @@ class SyncPageService(
     ) {
         syncPageMetadata.time = System.currentTimeMillis()
         syncPageMetadata.uriRef =
-            domain.lowercase(Locale.getDefault()) + '/' + packageName.lowercase(Locale.getDefault()) + '/' + resourceName.lowercase(
-                Locale.getDefault()
-            )
+            domain.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
     }
 
     private fun sendEntities(page: SyncPage) {
@@ -67,7 +64,7 @@ class SyncPageService(
     private fun logSyncStart(syncType: SyncType, metadata: SyncPageMetadata, resourceSize: Int): Instant {
         log.info(
             "Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
-            syncType.toString().lowercase(Locale.getDefault()),
+            syncType.toString().lowercase(),
             metadata.corrId,
             metadata.orgId,
             metadata.uriRef,
@@ -83,7 +80,7 @@ class SyncPageService(
     private fun logSyncEnd(syncType: SyncType, corrId: String?, timeTaken: Duration) {
         log.info(
             "End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
-            syncType.toString().lowercase(Locale.getDefault()),
+            syncType.toString().lowercase(),
             corrId,
             timeTaken.toHoursPart(),
             timeTaken.toMinutesPart(),
