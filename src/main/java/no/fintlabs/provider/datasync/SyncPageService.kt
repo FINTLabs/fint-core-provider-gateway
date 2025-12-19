@@ -1,80 +1,93 @@
-package no.fintlabs.provider.datasync;
+package no.fintlabs.provider.datasync
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.sync.SyncPage;
-import no.fintlabs.adapter.models.sync.SyncPageMetadata;
-import no.fintlabs.adapter.models.sync.SyncType;
-import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.time.Instant;
-
-import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
+import lombok.RequiredArgsConstructor
+import no.fintlabs.adapter.models.sync.SyncPage
+import no.fintlabs.adapter.models.sync.SyncPageMetadata
+import no.fintlabs.adapter.models.sync.SyncType
+import no.fintlabs.provider.kafka.TopicNamesConstants
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import java.time.Duration
+import java.time.Instant
+import java.util.*
 
 @RequiredArgsConstructor
-@Slf4j
 @Service
-public class SyncPageService {
+class SyncPageService(
+    private val entityProducer: EntityProducer,
+    private val metaDataKafkaProducer: MetaDataKafkaProducer
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
-    private final EntityProducer entityProducer;
-    private final MetaDataKafkaProducer metaDataKafkaProducer;
+    fun <T : SyncPage> doSync(syncPage: T, domain: String, packageName: String, entity: String) {
+        val start = logSyncStart(syncPage.syncType, syncPage.metadata, syncPage.resources.size)
 
-    public <T extends SyncPage> void doSync(T syncPage, String domain, String packageName, String entity) {
-        Instant start = logSyncStart(syncPage.getSyncType(), syncPage.getMetadata(), syncPage.getResources().size());
-
-        if (syncPage.getSyncType().equals(SyncType.DELETE)) {
-            syncPage.getResources().forEach(syncPageEntry -> syncPageEntry.setResource(null));
+        if (syncPage.syncType == SyncType.DELETE) {
+            syncPage.resources.forEach { syncPageEntry -> syncPageEntry.resource = null }
         }
 
-        mutateMetadata(syncPage.getMetadata(), domain, packageName, entity);
-        String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
-        metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, eventName);
-        sendEntities(syncPage);
+        mutateMetadata(syncPage.metadata, domain, packageName, entity)
+        val syncType = syncPage.syncType.toString().lowercase()
+        val eventName = "adapter-$syncType-sync"
+        metaDataKafkaProducer.send(syncPage.metadata, TopicNamesConstants.FINTLABS_NO, eventName)
+        sendEntities(syncPage)
 
-        logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
+        logSyncEnd(
+            syncPage.syncType,
+            syncPage.metadata.corrId,
+            Duration.between(start, Instant.now())
+        )
     }
 
-    private void mutateMetadata(SyncPageMetadata syncPageMetadata, String domain, String packageName, String resourceName) {
-        syncPageMetadata.setTime(System.currentTimeMillis());
-        syncPageMetadata.setUriRef("%s/%s/%s".formatted(domain.toLowerCase(), packageName.toLowerCase(), resourceName.toLowerCase()));
+    private fun mutateMetadata(
+        syncPageMetadata: SyncPageMetadata,
+        domain: String,
+        packageName: String,
+        resourceName: String
+    ) {
+        syncPageMetadata.time = System.currentTimeMillis()
+        syncPageMetadata.uriRef =
+            domain.lowercase(Locale.getDefault()) + '/' + packageName.lowercase(Locale.getDefault()) + '/' + resourceName.lowercase(
+                Locale.getDefault()
+            )
     }
 
-    private void sendEntities(SyncPage page) {
-        page.getResources().forEach(syncPageEntry -> {
-            entityProducer.sendSyncEntity(page, syncPageEntry).whenComplete((result, error) -> {
+    private fun sendEntities(page: SyncPage) {
+        page.resources.forEach { syncPageEntry ->
+            entityProducer.sendSyncEntity(page, syncPageEntry).whenComplete { result, error ->
                 if (result != null) {
-                    log.debug("Entity sent successfully");
+                    log.debug("Entity sent successfully")
                 } else {
-                    log.error("Error sending entity: " + error.getMessage(), error);
+                    log.error("Error sending entity: " + error.message, error)
                 }
-            });
-        });
+            }
+        }
     }
 
-    private Instant logSyncStart(SyncType syncType, SyncPageMetadata metadata, int resourceSize) {
-        log.info("Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
-                syncType.toString().toLowerCase(),
-                metadata.getCorrId(),
-                metadata.getOrgId(),
-                metadata.getUriRef(),
-                metadata.getTotalSize(),
-                resourceSize,
-                metadata.getPage(),
-                metadata.getTotalPages()
-        );
+    private fun logSyncStart(syncType: SyncType, metadata: SyncPageMetadata, resourceSize: Int): Instant {
+        log.info(
+            "Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
+            syncType.toString().lowercase(Locale.getDefault()),
+            metadata.corrId,
+            metadata.orgId,
+            metadata.uriRef,
+            metadata.totalSize,
+            resourceSize,
+            metadata.page,
+            metadata.totalPages
+        )
 
-        return Instant.now();
+        return Instant.now()
     }
 
-    private void logSyncEnd(SyncType syncType, String corrId, Duration timeTaken) {
-        log.info("End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
-                syncType.toString().toLowerCase(),
-                corrId,
-                timeTaken.toHoursPart(),
-                timeTaken.toMinutesPart(),
-                timeTaken.toSecondsPart()
-        );
+    private fun logSyncEnd(syncType: SyncType, corrId: String?, timeTaken: Duration) {
+        log.info(
+            "End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
+            syncType.toString().lowercase(Locale.getDefault()),
+            corrId,
+            timeTaken.toHoursPart(),
+            timeTaken.toMinutesPart(),
+            timeTaken.toSecondsPart()
+        )
     }
-
 }
