@@ -57,34 +57,20 @@ class RequestCacheTest {
     fun `should set default TTL if Null`() {
         val event = createEvent(corrId) // TTL 0
 
-
-        val before = System.currentTimeMillis()
-
-        requestCache.add(event)
-
-        val after = System.currentTimeMillis()
-
         requestCache.add(event)
 
         // Default TTL in code is 2 minutes (120000ms)
-        assertThat(event.timeToLive).isBetween(before, after + 120000L)
+        assertThat(event.timeToLive).isEqualTo(event.created + 120000L)
     }
 
     @Test
     fun `should set default TTL if not provided`() {
         val event = createEvent(corrId, 0L) // TTL 0
 
-
-        val before = System.currentTimeMillis()
-
-        requestCache.add(event)
-
-        val after = System.currentTimeMillis()
-
         requestCache.add(event)
 
         // Default TTL in code is 2 minutes (120000ms)
-        assertThat(event.timeToLive).isBetween(before, after + 120000L)
+        assertThat(event.timeToLive).isEqualTo(event.created + 120000L)
     }
 
     @Test
