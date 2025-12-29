@@ -41,7 +41,9 @@ class RequestCache(
         }
 
         // Apply default if missing
-        if (event.timeToLive <= 0) event.timeToLive = defaultTtl
+        if (event.timeToLive == null || event.timeToLive <= 0) {
+            event.timeToLive = defaultTtl;
+        }
 
         if (event.isExpired()) {
             logger.debug("Event ${event.corrId} rejected: Arrived expired.")
