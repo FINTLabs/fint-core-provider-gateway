@@ -42,7 +42,7 @@ class RequestCache(
 
         // Apply default if missing
         if (event.timeToLive == null || event.timeToLive <= 0) {
-            event.timeToLive = defaultTtl;
+            event.timeToLive = System.currentTimeMillis() + defaultTtl;
         }
 
         if (event.isExpired()) {
