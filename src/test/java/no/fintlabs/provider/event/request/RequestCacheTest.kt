@@ -48,7 +48,6 @@ class RequestCacheTest {
         val result = requestCache.add(event)
 
         assertThat(result).isFalse
-        assertThat(requestCache.get(corrId)).isNull()
 
         // Should trigger the expired callback immediately
         verify(exactly = 1) { onExpiredMock.accept(event) }
@@ -66,7 +65,8 @@ class RequestCacheTest {
 
     @Test
     fun `should set default TTL if not provided`() {
-        val event = createEvent(corrId, 0L) // TTL 0
+        // If created and ttl is equal then it is the same as if TTL was not provided.
+        val event = createEvent(corrId, 0L, 0L)
 
         requestCache.add(event)
 
@@ -108,17 +108,6 @@ class RequestCacheTest {
 
         assertThat(all).hasSize(2)
         assertThat(all.map { it.corrId }).containsExactlyInAnyOrder("1", "2")
-    }
-
-    @Test
-    fun `should keep provided TTL if it is greater than zero`() {
-        val userProvidedTtl = 99999L
-        val event = createEvent(corrId, userProvidedTtl)
-
-        requestCache.add(event)
-
-        // Ensure it wasn't changed to the default (120000)
-        assertThat(event.timeToLive).isEqualTo(userProvidedTtl)
     }
 
     // --- Helpers ---

@@ -66,7 +66,7 @@ class RequestCache(
 
     private fun isTombstoned(corrId: String): Boolean = tombstoneCache.getIfPresent(corrId) != null
 
-    private fun RequestFintEvent.isExpired(): Boolean = (clock.millis() - created) >= timeToLive
+    private fun RequestFintEvent.isExpired(): Boolean = timeToLive - clock.millis() <= 0
 
     /**
      * Handles Caffeine eviction.
@@ -79,10 +79,6 @@ class RequestCache(
         }
     }
 
-    /**
-     * Calculates the exact nanoseconds remaining for a specific item
-     * based on its creation timestamp.
-     */
     private inner class RequestExpiryPolicy : Expiry<String, RequestFintEvent> {
         override fun expireAfterCreate(key: String, value: RequestFintEvent, now: Long): Long {
             val remainingMillis = value.timeToLive - clock.millis()
