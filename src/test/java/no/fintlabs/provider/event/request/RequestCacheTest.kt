@@ -1,6 +1,5 @@
 package no.fintlabs.provider.event.request
 
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.fintlabs.adapter.models.event.RequestFintEvent
@@ -11,6 +10,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.util.function.Consumer
+import kotlin.time.Duration.Companion.minutes
 
 class RequestCacheTest {
 
@@ -42,7 +42,8 @@ class RequestCacheTest {
     @Test
     fun `should reject event if it arrives already expired`() {
         // Created 20 seconds ago, TTL is 10 seconds
-        val event = createEvent(corrId, 10000L, createdOffset = -20000L)
+        val createdOffset = clock.millis() - 20000L
+        val event = createEvent(corrId, 10000L, created = createdOffset)
 
         val result = requestCache.add(event)
 
@@ -124,30 +125,16 @@ class RequestCacheTest {
 
     private fun createEvent(
         corrId: String,
-        ttl: Long,
-        createdOffset: Long = 0
-    ): RequestFintEvent {
-        val event = mockk<RequestFintEvent>(relaxed = true)
-        every { event.corrId } returns corrId
-        every { event.timeToLive } returns ttl
-        every { event.timeToLive = any() } answers { every { event.timeToLive } returns firstArg() }
+        ttl: Long = 2.minutes.inWholeMilliseconds,
+        created: Long = clock.millis()
+    ): RequestFintEvent =
+        RequestFintEvent().apply {
+            this.corrId = corrId
+            orgId = "fint.no"
+            this.created = created
+            timeToLive = created + ttl
+        }
 
-        val createdTime = clock.millis() + createdOffset
-        every { event.created } returns createdTime
 
-        return event
-    }
 
-    private fun createEvent(
-        corrId: String,
-    ): RequestFintEvent {
-        val event = mockk<RequestFintEvent>(relaxed = true)
-        every { event.corrId } returns corrId
-        every { event.timeToLive = any() } answers { every { event.timeToLive } returns firstArg() }
-
-        val createdTime = clock.millis()
-        every { event.created } returns createdTime
-
-        return event
-    }
 }

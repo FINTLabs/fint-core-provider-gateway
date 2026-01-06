@@ -41,8 +41,8 @@ class RequestCache(
         }
 
         // Apply default if missing
-        if (event.timeToLive == null || event.timeToLive <= 0) {
-            event.timeToLive = event.created + defaultTtl;
+        if (event.timeToLive <= 0) {
+            event.timeToLive = event.created + defaultTtl
         }
 
         if (event.isExpired()) {
@@ -85,8 +85,7 @@ class RequestCache(
      */
     private inner class RequestExpiryPolicy : Expiry<String, RequestFintEvent> {
         override fun expireAfterCreate(key: String, value: RequestFintEvent, now: Long): Long {
-            val expirationTime = value.created + value.timeToLive
-            val remainingMillis = expirationTime - clock.millis()
+            val remainingMillis = value.timeToLive - clock.millis()
 
             // Caffeine requires non-negative nanoseconds
             return TimeUnit.MILLISECONDS.toNanos(max(0, remainingMillis))
