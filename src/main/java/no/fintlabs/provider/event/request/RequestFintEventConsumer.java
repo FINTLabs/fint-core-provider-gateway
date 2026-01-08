@@ -46,7 +46,7 @@ public class RequestFintEventConsumer {
     }
 
     private String[] createEventNames() {
-        return metamodelService.getResources().stream().map(resource -> resource + "-request").toArray(String[]::new);
+        return metamodelService.getResources().stream().map(resource -> resource.getName() + "-request").toArray(String[]::new);
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
