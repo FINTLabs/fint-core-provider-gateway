@@ -1,9 +1,9 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.3'
+    id 'org.springframework.boot' version '3.5.9'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'groovy'
-    id "com.github.ben-manes.versions" version "0.51.0"
+    id "com.github.ben-manes.versions" version "0.53.0"
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'org.jetbrains.kotlin.jvm' version '2.2.0'
 }
@@ -38,6 +38,7 @@ dependencies {
     implementation "no.fint:fint-ressurs-resource-model-java:${fintVersion}"
     implementation "no.fint:fint-arkiv-resource-model-java:${fintVersion}"
 
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0-M1"
@@ -56,10 +57,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation "io.mockk:mockk:1.14.6"
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    testImplementation "io.mockk:mockk:1.13.13"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 configurations {
