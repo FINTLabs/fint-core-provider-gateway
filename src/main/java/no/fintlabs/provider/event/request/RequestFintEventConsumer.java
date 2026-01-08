@@ -8,8 +8,8 @@ import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
 import no.fintlabs.kafka.event.EventConsumerConfiguration;
 import no.fintlabs.kafka.event.EventConsumerFactoryService;
 import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
+import no.fintlabs.metamodel.MetamodelService;
 import no.fintlabs.provider.config.KafkaConfig;
-import no.fintlabs.provider.security.resource.ResourceContext;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -22,7 +22,7 @@ public class RequestFintEventConsumer {
 
     private final EventConsumerFactoryService eventConsumerFactoryService;
     private final RequestEventService requestEventService;
-    private final ResourceContext resourceContext;
+    private final MetamodelService metamodelService;
     private final KafkaConfig kafkaConfig;
 
     @Bean
@@ -46,7 +46,7 @@ public class RequestFintEventConsumer {
     }
 
     private String[] createEventNames() {
-        return resourceContext.getValidResources().stream().map(resource -> resource + "-request").toArray(String[]::new);
+        return metamodelService.getResources().stream().map(resource -> resource.getName() + "-request").toArray(String[]::new);
     }
 
     private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
