@@ -35,6 +35,7 @@ dependencies {
     implementation "no.fint:fint-ressurs-resource-model-java:${fintVersion}"
     implementation "no.fint:fint-arkiv-resource-model-java:${fintVersion}"
 
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0-M1"
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0'
@@ -43,7 +44,7 @@ dependencies {
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
     implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
-    implementation 'no.fintlabs:fint-core-resource-server-security:2.1.0'
+    implementation 'no.fintlabs:fint-core-resource-server-security:2.1.1'
     implementation 'no.novari:fint-core-metamodel:2.0.0'
 
     compileOnly 'org.projectlombok:lombok'
@@ -72,5 +73,5 @@ test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
