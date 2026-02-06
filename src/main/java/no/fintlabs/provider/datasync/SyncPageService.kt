@@ -14,11 +14,16 @@ import java.time.Instant
 @Service
 class SyncPageService(
     private val entityProducer: EntityProducer,
-    private val metaDataKafkaProducer: MetaDataKafkaProducer
+    private val metaDataKafkaProducer: MetaDataKafkaProducer,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun <T : SyncPage> doSync(syncPage: T, domain: String, packageName: String, entity: String) {
+    fun <T : SyncPage> doSync(
+        syncPage: T,
+        domain: String,
+        packageName: String,
+        entity: String,
+    ) {
         val start = logSyncStart(syncPage.syncType, syncPage.metadata, syncPage.resources.size)
 
         if (syncPage.syncType == SyncType.DELETE) {
@@ -34,7 +39,7 @@ class SyncPageService(
         logSyncEnd(
             syncPage.syncType,
             syncPage.metadata.corrId,
-            Duration.between(start, Instant.now())
+            Duration.between(start, Instant.now()),
         )
     }
 
@@ -42,11 +47,10 @@ class SyncPageService(
         syncPageMetadata: SyncPageMetadata,
         domain: String,
         packageName: String,
-        resourceName: String
+        resourceName: String,
     ) {
         syncPageMetadata.time = System.currentTimeMillis()
-        syncPageMetadata.uriRef =
-            domain.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
+        syncPageMetadata.uriRef = domain.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
     }
 
     private fun sendEntities(page: SyncPage) {
@@ -61,7 +65,11 @@ class SyncPageService(
         }
     }
 
-    private fun logSyncStart(syncType: SyncType, metadata: SyncPageMetadata, resourceSize: Int): Instant {
+    private fun logSyncStart(
+        syncType: SyncType,
+        metadata: SyncPageMetadata,
+        resourceSize: Int,
+    ): Instant {
         log.info(
             "Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
             syncType.toString().lowercase(),
@@ -71,20 +79,24 @@ class SyncPageService(
             metadata.totalSize,
             resourceSize,
             metadata.page,
-            metadata.totalPages
+            metadata.totalPages,
         )
 
         return Instant.now()
     }
 
-    private fun logSyncEnd(syncType: SyncType, corrId: String?, timeTaken: Duration) {
+    private fun logSyncEnd(
+        syncType: SyncType,
+        corrId: String?,
+        timeTaken: Duration,
+    ) {
         log.info(
             "End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
             syncType.toString().lowercase(),
             corrId,
             timeTaken.toHoursPart(),
             timeTaken.toMinutesPart(),
-            timeTaken.toSecondsPart()
+            timeTaken.toSecondsPart(),
         )
     }
 }

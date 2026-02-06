@@ -15,32 +15,42 @@ import no.fintlabs.provider.security.AdapterRequestValidator
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.Map
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping
-class ProviderController (
+class ProviderController(
     private val requestValidator: AdapterRequestValidator,
     private val registrationService: RegistrationService,
     private val heartbeatService: HeartbeatService,
-    private val syncPageService: SyncPageService) {
-
+    private val syncPageService: SyncPageService,
+) {
     @GetMapping("status")
-    fun status(@AuthenticationPrincipal corePrincipal: CorePrincipal): ResponseEntity<MutableMap<String, Any>> {
-        return ResponseEntity.ok<MutableMap<String, Any>>(
+    fun status(
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+    ): ResponseEntity<MutableMap<String, Any>> =
+        ResponseEntity.ok<MutableMap<String, Any>>(
             Map.of<String, Any>(
-                "status", "Greetings form FINTLabs 👋",
-                "corePrincipal", corePrincipal
-            )
+                "status",
+                "Greetings form FINTLabs 👋",
+                "corePrincipal",
+                corePrincipal,
+            ),
         )
-    }
 
     @PostMapping("heartbeat")
     fun heartbeat(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
-        @RequestBody adapterHeartbeat: AdapterHeartbeat
+        @RequestBody adapterHeartbeat: AdapterHeartbeat,
     ): ResponseEntity<String> {
         requestValidator.validateOrgId(corePrincipal, adapterHeartbeat.orgId)
         //        requestValidator.validateAdapterId(corePrincipal, adapterHeartbeat.getAdapterId());
@@ -54,10 +64,8 @@ class ProviderController (
         @RequestBody syncPage: FullSyncPage,
         @PathVariable domain: String,
         @PathVariable packageName: String,
-        @PathVariable entity: String
-    ): ResponseEntity<Void> {
-        return handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
-    }
+        @PathVariable entity: String,
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
 
     @PatchMapping("{domain}/{packageName}/{entity}")
     fun deltaSync(
@@ -65,10 +73,8 @@ class ProviderController (
         @RequestBody syncPage: DeltaSyncPage,
         @PathVariable domain: String,
         @PathVariable packageName: String,
-        @PathVariable entity: String
-    ): ResponseEntity<Void> {
-        return handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
-    }
+        @PathVariable entity: String,
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
 
     @DeleteMapping("{domain}/{packageName}/{entity}")
     fun deleteSync(
@@ -76,15 +82,13 @@ class ProviderController (
         @RequestBody syncPage: DeleteSyncPage,
         @PathVariable domain: String,
         @PathVariable packageName: String,
-        @PathVariable entity: String
-    ): ResponseEntity<Void> {
-        return handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.OK)
-    }
+        @PathVariable entity: String,
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.OK)
 
     @PostMapping("register")
     fun register(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
-        @RequestBody adapterContract: AdapterContract
+        @RequestBody adapterContract: AdapterContract,
     ): ResponseEntity<Void?> {
         requestValidator.validateOrgId(corePrincipal, adapterContract.orgId)
         requestValidator.validateUsername(corePrincipal, adapterContract.username)
@@ -99,7 +103,7 @@ class ProviderController (
         domain: String,
         packageName: String,
         entity: String,
-        status: HttpStatus
+        status: HttpStatus,
     ): ResponseEntity<Void> {
         requestValidator.validateOrgId(corePrincipal, syncPage.metadata.orgId)
         requestValidator.validateRole(corePrincipal, domain, packageName)
@@ -108,7 +112,7 @@ class ProviderController (
             syncPage.metadata.adapterId,
             domain,
             packageName,
-            entity
+            entity,
         )
 
         syncPageService.doSync(syncPage, domain, packageName, entity)
