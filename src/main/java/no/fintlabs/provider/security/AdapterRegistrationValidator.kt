@@ -1,6 +1,7 @@
 package no.fintlabs.provider.security
 
 import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.provider.config.ProviderProperties
 import no.fintlabs.provider.exception.InvalidAdapterCapabilityException
 import no.fintlabs.provider.security.resource.ComponentResourceRegistry
 import org.slf4j.LoggerFactory
@@ -8,12 +9,9 @@ import org.springframework.stereotype.Component
 
 @Component
 class AdapterRegistrationValidator(
-    private val componentResourceRegistry: ComponentResourceRegistry
+    private val componentResourceRegistry: ComponentResourceRegistry,
+    private val providerProperties: ProviderProperties
 ) {
-
-    companion object {
-        const val MAX_FULL_SYNC_INTERVAL_DAYS = 7
-    }
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -36,6 +34,6 @@ class AdapterRegistrationValidator(
         )
 
     private fun invalidFullSyncInterval(fullSyncIntervalInDays: Int): Boolean =
-        fullSyncIntervalInDays !in 1..MAX_FULL_SYNC_INTERVAL_DAYS
+        fullSyncIntervalInDays !in 1..providerProperties.maximumRetentionTimeDays
 
 }
