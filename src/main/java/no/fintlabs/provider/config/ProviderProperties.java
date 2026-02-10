@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 @Data
 @Configuration
 public class ProviderProperties {
@@ -23,6 +25,9 @@ public class ProviderProperties {
 
     @Value("${fint.provider.adapter.delete-sync.retention-time-ms:86400000}")
     private long adapterDeleteSyncRetentionTimeMs;
+
+    @Value("${fint.provider.adapter.maximum-retention-time:7d}")
+    private Duration maximumRetentionTime;
 
     @Value("${fint.provider.pod-url:http://fint-core-provider-gateway:8080}")
     private String podUrl;
