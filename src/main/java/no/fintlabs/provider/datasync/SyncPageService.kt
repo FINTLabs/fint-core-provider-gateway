@@ -7,7 +7,7 @@ import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.provider.kafka.TopicNamesConstants
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 @RequiredArgsConstructor
 @Service
@@ -56,9 +56,7 @@ class SyncPageService(
         }
     }
 
-    private inline fun SyncPage.logSync(
-        action: () -> Unit,
-    ) {
+    private inline fun SyncPage.logSync(action: () -> Unit) {
         log.info(
             "Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
             syncType.toString().lowercase(),
@@ -71,15 +69,22 @@ class SyncPageService(
             metadata.totalPages,
         )
 
-        val timeElapsed = measureTimeMillis {
-            action()
-        }
+        val timeElapsed =
+            measureTime {
+                action()
+            }
 
         log.info(
-            "End {} sync ({}). It took {} milliseconds to complete",
+            "Processed {} sync {}/{} for {}: duration={}ms, total size={}, page size={}, page={}, total pages={}",
             syncType.toString().lowercase(),
+            metadata.orgId,
             metadata.corrId,
-            timeElapsed
+            metadata.uriRef,
+            timeElapsed.inWholeMilliseconds,
+            metadata.totalSize,
+            resources.size,
+            metadata.page,
+            metadata.totalPages,
         )
     }
 }
