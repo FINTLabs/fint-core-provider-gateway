@@ -23,9 +23,7 @@ class SyncPageService(
         domain: String,
         packageName: String,
         entity: String,
-    ) {
-        val start = logSyncStart(syncPage.syncType, syncPage.metadata, syncPage.resources.size)
-
+    ) = logSync(syncPage) {
         if (syncPage.syncType == SyncType.DELETE) {
             syncPage.resources.forEach { syncPageEntry -> syncPageEntry.resource = null }
         }
@@ -35,12 +33,6 @@ class SyncPageService(
         val eventName = "adapter-$syncType-sync"
         metaDataKafkaProducer.send(syncPage.metadata, TopicNamesConstants.FINTLABS_NO, eventName)
         sendEntities(syncPage)
-
-        logSyncEnd(
-            syncPage.syncType,
-            syncPage.metadata.corrId,
-            Duration.between(start, Instant.now()),
-        )
     }
 
     private fun mutateMetadata(
@@ -65,11 +57,10 @@ class SyncPageService(
         }
     }
 
-    private fun logSyncStart(
-        syncType: SyncType,
-        metadata: SyncPageMetadata,
-        resourceSize: Int,
-    ): Instant {
+    private inline fun logSync(
+        syncPage: SyncPage,
+        action: () -> Unit,
+    ) = with(syncPage) {
         log.info(
             "Start {} sync: {}({}), {}, total size: {}, page size: {}, page: {}, total pages: {}",
             syncType.toString().lowercase(),
@@ -77,26 +68,22 @@ class SyncPageService(
             metadata.orgId,
             metadata.uriRef,
             metadata.totalSize,
-            resourceSize,
+            resources.size,
             metadata.page,
             metadata.totalPages,
         )
 
-        return Instant.now()
-    }
+        val time = Instant.now()
+        action()
+        val timeTaken = Duration.between(time, Instant.now())
 
-    private fun logSyncEnd(
-        syncType: SyncType,
-        corrId: String?,
-        timeTaken: Duration,
-    ) {
         log.info(
-            "End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
+            "End {} sync ({}). It took {} minutes, {} seconds, {} milliseconds to complete",
             syncType.toString().lowercase(),
-            corrId,
-            timeTaken.toHoursPart(),
-            timeTaken.toMinutesPart(),
+            metadata.corrId,
+            timeTaken.toMinutes(),
             timeTaken.toSecondsPart(),
+            timeTaken.toMillisPart(),
         )
     }
 }
