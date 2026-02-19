@@ -19,6 +19,7 @@ public class AdapterRegistrationTopicService {
 
     public void ensureCapabilityTopics(AdapterContract adapterContract) {
         adapterContract.getCapabilities().forEach(capability -> {
+            // TODO: Change retention time to be based on capability (Verify that Visma agrees with the latest contract)
             long retentionTime = Duration.ofDays(7).toMillis();
             EntityTopicNameParameters topicNameParameters = createTopicNameParameters(adapterContract.getOrgId(), capability);
 
