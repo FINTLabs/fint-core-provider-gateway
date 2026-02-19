@@ -49,6 +49,7 @@ dependencies {
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
     implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.1'
+    // Version 3 of metamodel supports v4 of information model
     implementation 'no.novari:fint-core-metamodel:3.0.0'
 
     compileOnly 'org.projectlombok:lombok'
