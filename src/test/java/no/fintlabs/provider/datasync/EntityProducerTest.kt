@@ -74,24 +74,21 @@ class EntityProducerTest {
             resource = mapOf("id" to 42)
         }
 
-        val expectedTopic = EntityTopicNameParameters.builder()
-            .orgId("fintlabs-no")
-            .domainContext(FINT_CORE)
-            .resource("utdanning-elev-student")
-            .build()
-
         every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
         every { clock.millis() } returns expectedLastModified
 
         val record = sendAndCapture { sut.sendSyncEntity(syncPage, entry) }
 
-        assertEquals(expectedTopic, record.topicNameParameters)
+        val expected = EntityTopicNameParameters.builder()
+            .orgId("fintlabs-no")
+            .domainContext(FINT_CORE)
+            .resource("utdanning-elev-student")
+            .build()
 
-        // Default-Header values match
-        assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
+        assertEquals(expected, record.topicNameParameters)
+
+        assertEquals(expectedLastModified, record.getHeaderValue(LAST_MODIEFIED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
-
-        // Sync-Header values match
         assertEquals(expectedSynctype.ordinal.toByte(), record.getHeaderValue(SYNC_TYPE).first())
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
         assertEquals(expectedSyncTotalSize, record.getHeaderValue(SYNC_TOTAL_SIZE).long())
@@ -115,26 +112,19 @@ class EntityProducerTest {
             resource = mapOf("id" to 42)
         }
 
-        val expectedTopic = EntityTopicNameParameters.builder()
+        every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
+        every { clock.millis() } returns expectedLastModified
+
+        val record = sendAndCapture { sut.sendEventEntity(request, entry) }
+
+        val expected = EntityTopicNameParameters.builder()
             .orgId("fintlabs-no")
             .domainContext(FINT_CORE)
             .resource("utdanning-vurdering-elevfravar")
             .build()
 
-
-        every { topicService.getRetensionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
-        every { clock.millis() } returns expectedLastModified
-
-        val record = sendAndCapture { sut.sendEventEntity(request, entry, expectedLastModified) }
-
-        // Topic matches
-        assertEquals(expectedTopic, record.topicNameParameters)
-
-        // Default-Header values match
-        assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
+        assertEquals(expectedLastModified, record.getHeaderValue(LAST_MODIEFIED).long())
         assertEquals(expectedTopicRetention, record.getHeaderValue(TOPIC_RETENTION_TIME).long())
-
-        // Headers are not set
         assertNull(record.getHeader(SYNC_TYPE))
         assertNull(record.getHeader(SYNC_CORRELATION_ID))
         assertNull(record.getHeader(SYNC_TOTAL_SIZE))

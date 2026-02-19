@@ -40,15 +40,14 @@ class EntityProducer(
 
     fun sendEventEntity(
         request: RequestFintEvent,
-        syncPageEntry: SyncPageEntry,
-        lastUpdated: Long
+        syncPageEntry: SyncPageEntry
     ): CompletableFuture<SendResult<String, Any>> =
         request.toTopic().let { topic ->
             producer.send(
                 EntityProducerRecord.builder<Any>()
                     .key(syncPageEntry.identifier)
                     .topicNameParameters(topic)
-                    .headers(attachDefaultHeaders(topic, lastUpdated)) // not sync
+                    .headers(attachDefaultHeaders(topic)) // not sync
                     .value(syncPageEntry.resource)
                     .build()
             )
@@ -63,7 +62,7 @@ class EntityProducer(
 
     private fun RequestFintEvent.toTopic(): EntityTopicNameParameters =
         EntityTopicNameParameters.builder()
-            .orgId(orgId.topicFormat())
+            .orgId(orgId.replace("-", "."))
             .domainContext(FINT_CORE)
             .resource("$domainName-$packageName-$resourceName")
             .build()
@@ -73,11 +72,12 @@ class EntityProducer(
             .take(3)
             .joinToString("-")
 
+
     private fun String.topicFormat() = this.replace(".", "-")
 
-    private fun attachDefaultHeaders(topic: TopicNameParameters, lastUpdated: Long = clock.millis()) =
+    private fun attachDefaultHeaders(topic: TopicNameParameters) =
         RecordHeaders().apply {
-            add(LAST_UPDATED, lastUpdated.toByteArray())
+            add(LAST_MODIEFIED, clock.millis().toByteArray())
             attachTopicRetentionIfValid(this, topic)
         }
 
