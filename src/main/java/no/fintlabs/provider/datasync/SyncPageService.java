@@ -68,12 +68,10 @@ public class SyncPageService {
     }
 
     private void logSyncEnd(SyncType syncType, String corrId, Duration timeTaken) {
-        log.info("End {} sync ({}). It took {} hours, {} minutes, {} seconds to complete",
+        log.info("End {} sync ({}). Completed in {} ms",
                 syncType.toString().toLowerCase(),
                 corrId,
-                timeTaken.toHoursPart(),
-                timeTaken.toMinutesPart(),
-                timeTaken.toSecondsPart()
+                timeTaken.toMillis()
         );
     }
 

@@ -19,15 +19,16 @@ public class AdapterRegistrationTopicService {
 
     public void ensureCapabilityTopics(AdapterContract adapterContract) {
         adapterContract.getCapabilities().forEach(capability -> {
-            long retensionTime = Duration.ofDays(capability.getFullSyncIntervalInDays()).toMillis();
+            // TODO: Change retention time to be based on capability (Verify that Visma agrees with the latest contract)
+            long retentionTime = Duration.ofDays(7).toMillis();
             EntityTopicNameParameters topicNameParameters = createTopicNameParameters(adapterContract.getOrgId(), capability);
 
             if (providerTopicService.topicExists(topicNameParameters)) {
-                if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retensionTime)) {
-                    providerTopicService.ensureTopic(topicNameParameters, retensionTime);
+                if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retentionTime)) {
+                    providerTopicService.ensureTopic(topicNameParameters, retentionTime);
                 }
             } else {
-                providerTopicService.ensureTopic(topicNameParameters, retensionTime);
+                providerTopicService.ensureTopic(topicNameParameters, retentionTime);
             }
         });
     }
