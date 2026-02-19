@@ -32,19 +32,14 @@ public class ResponseEventService {
         validateEvent(requestEvent, responseFintEvent, corePrincipal);
 
         responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
-        requestEventService.removeEvent(responseFintEvent.getCorrId());
 
         if (!createRequestFailed(responseFintEvent) && eventIsNotValidate(responseFintEvent)) {
-            entityProducer.sendEventEntity(requestEvent, responseFintEvent.getValue(), responseFintEvent.getHandledAt());
+            entityProducer.sendEventEntity(requestEvent, responseFintEvent.getValue());
         } else {
             log.info("Not sending entity to Kafka because it is a validate event or create request failed");
         }
     }
 
-    /**
-     * Validates that the response event is valid.
-     * Sets handledAt to current time if not set.
-     */
     private void validateEvent(RequestFintEvent request, ResponseFintEvent response, CorePrincipal corePrincipal) throws InvalidOrgIdException {
         if (Objects.isNull(response.getOperationType())) {
             log.error("Recieved event with no OperationType, returning BAD_REQUEST for {}", corePrincipal.getUsername());
@@ -59,11 +54,6 @@ public class ResponseEventService {
         if (syncPageEntryIsNullWhenRequired(response)) {
             log.error("Recieved a SyncPageEntry that is null for {}", corePrincipal.getUsername());
             throw new InvalidSyncPageEntryException("SyncPageEntry is null");
-        }
-
-        if (response.getHandledAt() <= 0) {
-            log.error("Overriding handledAt for event: {}", response.getCorrId());
-            response.setHandledAt(System.currentTimeMillis());
         }
     }
 

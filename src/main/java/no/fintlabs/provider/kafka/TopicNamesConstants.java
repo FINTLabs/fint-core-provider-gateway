@@ -5,7 +5,7 @@ public class TopicNamesConstants {
     public static String FINTLABS_NO = "fintlabs-no";
     public static String FINT_CORE = "fint-core";
     public static String TOPIC_RETENTION_TIME = "topic-retention-time";
-    public static String LAST_UPDATED = "entity-retention-time"; // TODO: Change this to last-modified
+    public static String LAST_MODIEFIED = "entity-retention-time"; // TODO: Change this to last-modified
     public static String SYNC_CORRELATION_ID = "sync-correlation-id";
     public static String SYNC_TOTAL_SIZE = "sync-total-size";
     public static String SYNC_TYPE = "sync-type";
