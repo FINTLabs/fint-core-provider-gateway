@@ -1,7 +1,7 @@
 package no.fintlabs.provider.security.resource
 
 import lombok.Getter
-import no.fintlabs.metamodel.MetamodelService
+import no.novari.metamodel.MetamodelService
 import org.springframework.stereotype.Component
 
 @Getter

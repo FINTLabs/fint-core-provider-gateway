@@ -31,12 +31,12 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
-    implementation "no.fint:fint-utdanning-resource-model-java:${fintVersion}"
-    implementation "no.fint:fint-administrasjon-resource-model-java:${fintVersion}"
-    implementation "no.fint:fint-personvern-resource-model-java:${fintVersion}"
-    implementation "no.fint:fint-okonomi-resource-model-java:${fintVersion}"
-    implementation "no.fint:fint-ressurs-resource-model-java:${fintVersion}"
-    implementation "no.fint:fint-arkiv-resource-model-java:${fintVersion}"
+    implementation "no.novari:fint-utdanning-resource-model-java:${fintVersion}"
+    implementation "no.novari:fint-administrasjon-resource-model-java:${fintVersion}"
+    implementation "no.novari:fint-personvern-resource-model-java:${fintVersion}"
+    implementation "no.novari:fint-okonomi-resource-model-java:${fintVersion}"
+    implementation "no.novari:fint-ressurs-resource-model-java:${fintVersion}"
+    implementation "no.novari:fint-arkiv-resource-model-java:${fintVersion}"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
@@ -49,7 +49,8 @@ dependencies {
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
     implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.1'
-    implementation 'no.novari:fint-core-metamodel:4.0.0-rc-1'
+    // Version 3 of metamodel supports v4 of information model
+    implementation 'no.novari:fint-core-metamodel:3.0.0'
 
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'

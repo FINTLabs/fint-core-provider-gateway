@@ -5,8 +5,7 @@ import no.fintlabs.adapter.models.event.ResponseFintEvent
 import no.fintlabs.provider.event.response.ResponseEventTopicProducer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.Duration
-import java.util.Optional
+import java.util.*
 import java.util.function.Consumer
 
 @Service
@@ -64,7 +63,7 @@ class RequestEventService(
             orgId = this@toResponse.orgId
             handledAt = System.currentTimeMillis()
             isFailed = true
-            errorMessage = "Event expired after waiting ${Duration.ofMillis(timeToLive).toMinutes()} minutes."
+            errorMessage = "Event expired."
         }
 
 }
