@@ -38,7 +38,6 @@ dependencies {
     implementation "no.fint:fint-ressurs-resource-model-java:${fintVersion}"
     implementation "no.fint:fint-arkiv-resource-model-java:${fintVersion}"
 
-    implementation 'io.github.microutils:kotlin-logging-jvm:3.0.5'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.3'
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
