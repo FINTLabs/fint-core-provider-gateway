@@ -23,7 +23,7 @@ open class RequestFintEventConsumer(
     private val logger = KotlinLogging.logger {}
 
     @Bean
-    open fun registerRequestFintEventListener(): ConcurrentMessageListenerContainer<String?, RequestFintEvent> {
+    open fun equestFintEventListenerContainer(): ConcurrentMessageListenerContainer<String?, RequestFintEvent> {
         return eventConsumerFactoryService.createFactory(
             RequestFintEvent::class.java,
             this::processEvent,
