@@ -13,7 +13,6 @@ import no.fintlabs.kafka.common.topic.TopicNameParameters
 import no.fintlabs.kafka.entity.EntityProducerFactory
 import no.fintlabs.kafka.entity.EntityProducerRecord
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters
-import no.fintlabs.provider.kafka.ProviderTopicService
 import no.fintlabs.provider.kafka.TopicNamesConstants.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
