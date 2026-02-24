@@ -1,52 +1,44 @@
-package no.fintlabs.provider.event.response;
+package no.fintlabs.provider.event.response
 
-import no.fintlabs.adapter.models.event.RequestFintEvent;
-import no.fintlabs.adapter.models.event.ResponseFintEvent;
-import no.fintlabs.kafka.event.EventProducer;
-import no.fintlabs.kafka.event.EventProducerFactory;
-import no.fintlabs.kafka.event.EventProducerRecord;
-import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
-import no.fintlabs.provider.kafka.ProviderTopicService;
-import org.springframework.stereotype.Service;
-
-import java.time.Duration;
+import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
+import no.fintlabs.kafka.event.EventProducerFactory
+import no.fintlabs.kafka.event.EventProducerRecord
+import no.fintlabs.kafka.event.topic.EventTopicNameParameters
+import no.fintlabs.kafka.event.topic.EventTopicService
+import org.springframework.stereotype.Service
+import java.time.Duration
 
 @Service
-public class ResponseEventTopicProducer {
+class ResponseEventTopicProducer(
+    eventProducerFactory: EventProducerFactory,
+    private val eventTopicService: EventTopicService
+) {
 
-    private final EventProducer<Object> eventProducer;
-    private final ProviderTopicService topicService;
+    private val eventProducer = eventProducerFactory.createProducer(ResponseFintEvent::class.java)
 
-    public ResponseEventTopicProducer(EventProducerFactory eventProducerFactory, ProviderTopicService topicService) {
-        this.eventProducer = eventProducerFactory.createProducer(Object.class);
-        this.topicService = topicService;
-    }
+    fun sendEvent(responseFintEvent: ResponseFintEvent, requestFintEvent: RequestFintEvent) {
+        val topicNameParameters = EventTopicNameParameters
+            .builder()
+            .orgId(responseFintEvent.orgId)
+            .domainContext("fint-core")
+            .eventName(createEventName(requestFintEvent))
+            .build()
 
-    public void sendEvent(ResponseFintEvent responseFintEvent, RequestFintEvent requestFintEvent) {
-        EventTopicNameParameters topicNameParameters = EventTopicNameParameters
-                .builder()
-                .orgId(responseFintEvent.getOrgId())
-                .domainContext("fint-core")
-                .eventName(createEventName(requestFintEvent))
-                .build();
-
-        if (!topicService.topicExists(topicNameParameters))
-            topicService.ensureTopic(topicNameParameters, Duration.ofDays(2).toMillis());
+        eventTopicService.ensureTopic(
+            topicNameParameters,
+            Duration.ofDays(2).toMillis()
+        )
 
         eventProducer.send(
-                EventProducerRecord.builder()
-                        .topicNameParameters(topicNameParameters)
-                        .value(responseFintEvent)
-                        .build()
-        );
+            EventProducerRecord.builder<ResponseFintEvent>()
+                .topicNameParameters(topicNameParameters)
+                .value(responseFintEvent)
+                .build()
+        )
     }
 
-    private String createEventName(RequestFintEvent requestFintEvent) {
-        return "%s-%s-%s-response".formatted(
-                requestFintEvent.getDomainName(),
-                requestFintEvent.getPackageName(),
-                requestFintEvent.getResourceName()
-        );
-    }
+    private fun createEventName(requestFintEvent: RequestFintEvent): String =
+        "${requestFintEvent.domainName}-${requestFintEvent.packageName}-${requestFintEvent.resourceName}-response"
 
 }
