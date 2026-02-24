@@ -52,6 +52,6 @@ open class RequestFintEventConsumer(
 
     private fun processEvent(consumerRecord: ConsumerRecord<String?, RequestFintEvent>) {
         logger.info("RequestFintEvent received: ${consumerRecord.value().orgId} - ${consumerRecord.value().corrId}")
-        requestEventService.addEvent(consumerRecord.value()!!)
+        requestEventService.addEvent(consumerRecord.value())
     }
 }
