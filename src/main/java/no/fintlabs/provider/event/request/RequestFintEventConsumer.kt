@@ -24,7 +24,7 @@ open class RequestFintEventConsumer(
 
     @Bean
     // The String is the corrId of the RequestFintEvent
-    open fun equestFintEventListenerContainer(): ConcurrentMessageListenerContainer<String, RequestFintEvent> {
+    open fun requestFintEventListenerContainer(): ConcurrentMessageListenerContainer<String, RequestFintEvent> {
         return eventConsumerFactoryService.createFactory(
             RequestFintEvent::class.java,
             this::processEvent,
