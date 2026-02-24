@@ -1,56 +1,56 @@
-package no.fintlabs.provider.event.request;
+package no.fintlabs.provider.event.request
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.event.RequestFintEvent;
-import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
-import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
-import no.fintlabs.kafka.event.EventConsumerConfiguration;
-import no.fintlabs.kafka.event.EventConsumerFactoryService;
-import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
-import no.fintlabs.metamodel.MetamodelService;
-import no.fintlabs.provider.config.KafkaConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.context.annotation.Bean;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.stereotype.Service;
+import mu.KotlinLogging
+import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern
+import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern
+import no.fintlabs.kafka.event.EventConsumerConfiguration
+import no.fintlabs.kafka.event.EventConsumerFactoryService
+import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters
+import no.fintlabs.metamodel.MetamodelService
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class RequestFintEventConsumer {
+@Configuration
+open class RequestFintEventConsumer(
+    private val eventConsumerFactoryService: EventConsumerFactoryService,
+    private val requestEventService: RequestEventService,
+    private val metamodelService: MetamodelService,
+) {
 
-    private final EventConsumerFactoryService eventConsumerFactoryService;
-    private final RequestEventService requestEventService;
-    private final MetamodelService metamodelService;
-    private final KafkaConfig kafkaConfig;
+    private val logger = KotlinLogging.logger {}
 
     @Bean
-    public ConcurrentMessageListenerContainer<String, RequestFintEvent> registerRequestFintEventListener() {
+    open fun registerRequestFintEventListener(): ConcurrentMessageListenerContainer<String?, RequestFintEvent> {
         return eventConsumerFactoryService.createFactory(
-                RequestFintEvent.class,
-                this::processEvent,
-                EventConsumerConfiguration
-                        .builder()
-                        .seekingOffsetResetOnAssignment(true)
-                        .groupIdSuffix(kafkaConfig.getGroupIdSuffix())
-                        .build()
+            RequestFintEvent::class.java,
+            this::processEvent,
+            EventConsumerConfiguration
+                .builder()
+                .seekingOffsetResetOnAssignment(true)
+                .build()
         ).createContainer(
-                EventTopicNamePatternParameters
-                        .builder()
-                        .orgId(FormattedTopicComponentPattern.any())
-                        .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                        .eventName(ValidatedTopicComponentPattern.anyOf(createEventNames()))
-                        .build()
-        );
+            EventTopicNamePatternParameters
+                .builder()
+                .orgId(FormattedTopicComponentPattern.any())
+                .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
+                .eventName(ValidatedTopicComponentPattern.anyOf(*createEventNames()))
+                .build()
+        )
     }
 
-    private String[] createEventNames() {
-        return metamodelService.getResources().stream().map(resource -> resource.getName() + "-request").toArray(String[]::new);
-    }
+    // Creates event name from component and resources names - utdanning-vurdering-elevfravar-request
+    private fun createEventNames(): Array<String> =
+        metamodelService.getComponents().flatMap { component ->
+            component.resources.map { resource ->
+                "${component.domainName}-${component.packageName}-${resource.name}-request"
+            }
+        }.toTypedArray()
 
-    private void processEvent(ConsumerRecord<String, RequestFintEvent> consumerRecord) {
-        log.info("RequestFintEvent received: {} - {}", consumerRecord.value().getOrgId(), consumerRecord.value().getCorrId());
-        requestEventService.addEvent(consumerRecord.value());
+    private fun processEvent(consumerRecord: ConsumerRecord<String?, RequestFintEvent>) {
+        logger.info("RequestFintEvent received: ${consumerRecord.value().orgId} - ${consumerRecord.value().corrId}")
+        requestEventService!!.addEvent(consumerRecord.value()!!)
     }
 }
