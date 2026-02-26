@@ -1,10 +1,11 @@
 package no.fintlabs.provider.config;
 
-import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-@Data
+import java.time.Duration;
+
 @Configuration
 public class ProviderProperties {
 
@@ -24,7 +25,28 @@ public class ProviderProperties {
     @Value("${fint.provider.adapter.delete-sync.retention-time-ms:86400000}")
     private long adapterDeleteSyncRetentionTimeMs;
 
+    @Getter
     @Value("${fint.provider.pod-url:http://fint-core-provider-gateway:8080}")
     private String podUrl;
+
+    public Duration getAdapterHeartbeatRetentionTime() {
+        return Duration.ofMillis(adapterHeartbeatRetentionTimeMs);
+    }
+
+    public Duration getAdapterRegisterRetentionTime() {
+        return Duration.ofMillis(adapterRegisterRetentionTimeMs);
+    }
+
+    public Duration getAdapterFullSyncRetentionTime() {
+        return Duration.ofMillis(adapterFullSyncRetentionTimeMs);
+    }
+
+    public Duration getAdapterDeltaSyncRetentionTime() {
+        return Duration.ofMillis(adapterDeltaSyncRetentionTimeMs);
+    }
+
+    public Duration getAdapterDeleteSyncRetentionTime() {
+        return Duration.ofMillis(adapterDeleteSyncRetentionTimeMs);
+    }
 
 }

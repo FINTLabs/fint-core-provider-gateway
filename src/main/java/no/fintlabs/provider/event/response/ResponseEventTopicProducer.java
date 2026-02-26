@@ -2,11 +2,12 @@ package no.fintlabs.provider.event.response;
 
 import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.adapter.models.event.ResponseFintEvent;
-import no.fintlabs.kafka.event.EventProducer;
-import no.fintlabs.kafka.event.EventProducerFactory;
-import no.fintlabs.kafka.event.EventProducerRecord;
-import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
 import no.fintlabs.provider.kafka.ProviderTopicService;
+import no.novari.kafka.producing.ParameterizedProducerRecord;
+import no.novari.kafka.producing.ParameterizedTemplate;
+import no.novari.kafka.producing.ParameterizedTemplateFactory;
+import no.novari.kafka.topic.name.EventTopicNameParameters;
+import no.novari.kafka.topic.name.TopicNamePrefixParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -14,27 +15,32 @@ import java.time.Duration;
 @Service
 public class ResponseEventTopicProducer {
 
-    private final EventProducer<Object> eventProducer;
+    private final ParameterizedTemplate<Object> eventProducer;
     private final ProviderTopicService topicService;
 
-    public ResponseEventTopicProducer(EventProducerFactory eventProducerFactory, ProviderTopicService topicService) {
-        this.eventProducer = eventProducerFactory.createProducer(Object.class);
+    public ResponseEventTopicProducer(ParameterizedTemplateFactory parameterizedTemplateFactory, ProviderTopicService topicService) {
+        this.eventProducer = parameterizedTemplateFactory.createTemplate(Object.class);
         this.topicService = topicService;
     }
 
     public void sendEvent(ResponseFintEvent responseFintEvent, RequestFintEvent requestFintEvent) {
         EventTopicNameParameters topicNameParameters = EventTopicNameParameters
                 .builder()
-                .orgId(responseFintEvent.getOrgId())
-                .domainContext("fint-core")
+                .topicNamePrefixParameters(
+                        TopicNamePrefixParameters
+                                .stepBuilder()
+                                .orgId(responseFintEvent.getOrgId().replace(".", "-"))
+                                .domainContextApplicationDefault()
+                                .build()
+                )
                 .eventName(createEventName(requestFintEvent))
                 .build();
 
         if (!topicService.topicExists(topicNameParameters))
-            topicService.ensureTopic(topicNameParameters, Duration.ofDays(2).toMillis());
+            topicService.createOrModifyTopic(topicNameParameters, Duration.ofDays(2));
 
         eventProducer.send(
-                EventProducerRecord.builder()
+                ParameterizedProducerRecord.builder()
                         .topicNameParameters(topicNameParameters)
                         .value(responseFintEvent)
                         .build()

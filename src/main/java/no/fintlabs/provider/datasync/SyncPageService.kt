@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
-import no.fintlabs.provider.kafka.TopicNamesConstants
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import kotlin.time.measureTime
@@ -35,7 +34,7 @@ class SyncPageService(
         mutateMetadata(syncPage.metadata, domain, packageName, entity)
         val syncType = syncPage.syncType.toString().lowercase()
         val eventName = "adapter-$syncType-sync"
-        metaDataKafkaProducer.send(syncPage.metadata, TopicNamesConstants.FINTLABS_NO, eventName)
+        metaDataKafkaProducer.send(syncPage.metadata, eventName)
         sendEntities(syncPage)
     }
 
