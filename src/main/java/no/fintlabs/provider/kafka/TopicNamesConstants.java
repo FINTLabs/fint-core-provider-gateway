@@ -1,19 +1,20 @@
 package no.fintlabs.provider.kafka;
 
-public class TopicNamesConstants {
+public final class TopicNamesConstants {
 
-    public static String FINTLABS_NO = "fintlabs-no";
-    public static String FINT_CORE = "fint-core";
-    public static String TOPIC_RETENTION_TIME = "topic-retention-time";
-    public static String LAST_MODIEFIED = "entity-retention-time"; // TODO: Change this to last-modified
-    public static String SYNC_CORRELATION_ID = "sync-correlation-id";
-    public static String SYNC_TOTAL_SIZE = "sync-total-size";
-    public static String SYNC_TYPE = "sync-type";
+    private TopicNamesConstants() {
+    }
 
-    public static String HEARTBEAT_EVENT_NAME = "adapter-health";
-    public static String ADAPTER_REGISTER_EVENT_NAME = "adapter-register";
-    public static String ADAPTER_FULL_SYNC_EVENT_NAME = "adapter-full-sync";
-    public static String ADAPTER_DELTA_SYNC_EVENT_NAME = "adapter-delta-sync";
-    public static String ADAPTER_DELETE_SYNC_EVENT_NAME = "adapter-delete-sync";
+    public static final String TOPIC_RETENTION_TIME = "topic-retention-time";
+    public static final String LAST_MODIEFIED = "entity-retention-time"; // TODO: Change this to last-modified
+    public static final String SYNC_CORRELATION_ID = "sync-correlation-id";
+    public static final String SYNC_TOTAL_SIZE = "sync-total-size";
+    public static final String SYNC_TYPE = "sync-type";
+
+    public static final String HEARTBEAT_EVENT_NAME = "adapter-health";
+    public static final String ADAPTER_REGISTER_EVENT_NAME = "adapter-register";
+    public static final String ADAPTER_FULL_SYNC_EVENT_NAME = "adapter-full-sync";
+    public static final String ADAPTER_DELTA_SYNC_EVENT_NAME = "adapter-delta-sync";
+    public static final String ADAPTER_DELETE_SYNC_EVENT_NAME = "adapter-delete-sync";
 
 }

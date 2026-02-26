@@ -3,13 +3,15 @@ package no.fintlabs.provider.event.request;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.event.RequestFintEvent;
-import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern;
-import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern;
-import no.fintlabs.kafka.event.EventConsumerConfiguration;
-import no.fintlabs.kafka.event.EventConsumerFactoryService;
-import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters;
 import no.fintlabs.provider.config.KafkaConfig;
 import no.fintlabs.provider.security.resource.ResourceContext;
+import no.novari.kafka.consuming.ErrorHandlerConfiguration;
+import no.novari.kafka.consuming.ErrorHandlerFactory;
+import no.novari.kafka.consuming.ListenerConfiguration;
+import no.novari.kafka.consuming.ParameterizedListenerContainerFactoryService;
+import no.novari.kafka.topic.name.EventTopicNamePatternParameters;
+import no.novari.kafka.topic.name.TopicNamePatternParameterPattern;
+import no.novari.kafka.topic.name.TopicNamePatternPrefixParameters;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -20,27 +22,42 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RequestFintEventConsumer {
 
-    private final EventConsumerFactoryService eventConsumerFactoryService;
+    private final ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService;
+    private final ErrorHandlerFactory errorHandlerFactory;
     private final RequestEventService requestEventService;
     private final ResourceContext resourceContext;
     private final KafkaConfig kafkaConfig;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, RequestFintEvent> registerRequestFintEventListener() {
-        return eventConsumerFactoryService.createFactory(
+        return parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
                 RequestFintEvent.class,
                 this::processEvent,
-                EventConsumerConfiguration
-                        .builder()
-                        .seekingOffsetResetOnAssignment(true)
-                        .groupIdSuffix(kafkaConfig.getGroupIdSuffix())
-                        .build()
+                ListenerConfiguration
+                        .stepBuilder()
+                        .groupIdApplicationDefaultWithSuffix(kafkaConfig.getGroupIdSuffix())
+                        .maxPollRecordsKafkaDefault()
+                        .maxPollIntervalKafkaDefault()
+                        .seekToBeginningOnAssignment()
+                        .build(),
+                errorHandlerFactory.createErrorHandler(
+                        ErrorHandlerConfiguration
+                                .<RequestFintEvent>stepBuilder()
+                                .noRetries()
+                                .skipFailedRecords()
+                                .build()
+                )
         ).createContainer(
                 EventTopicNamePatternParameters
                         .builder()
-                        .orgId(FormattedTopicComponentPattern.any())
-                        .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                        .eventName(ValidatedTopicComponentPattern.anyOf(createEventNames()))
+                        .topicNamePatternPrefixParameters(
+                                TopicNamePatternPrefixParameters
+                                        .stepBuilder()
+                                        .orgId(TopicNamePatternParameterPattern.any())
+                                        .domainContextApplicationDefault()
+                                        .build()
+                        )
+                        .eventName(TopicNamePatternParameterPattern.anyOf(createEventNames()))
                         .build()
         );
     }

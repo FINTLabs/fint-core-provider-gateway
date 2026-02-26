@@ -12,8 +12,11 @@ fint:
       /ready,
       /offset
   kafka:
-    application-id: provider
     enable-ssl: false
+
+novari:
+  kafka:
+    application-id: provider
     default-replicas: 1
 
 spring:

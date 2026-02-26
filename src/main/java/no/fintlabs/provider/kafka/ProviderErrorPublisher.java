@@ -1,11 +1,14 @@
 package no.fintlabs.provider.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.kafka.event.EventProducer;
-import no.fintlabs.kafka.event.EventProducerFactory;
-import no.fintlabs.kafka.event.EventProducerRecord;
-import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
-import no.fintlabs.kafka.event.topic.EventTopicService;
+import no.novari.kafka.producing.ParameterizedProducerRecord;
+import no.novari.kafka.producing.ParameterizedTemplate;
+import no.novari.kafka.producing.ParameterizedTemplateFactory;
+import no.novari.kafka.topic.EventTopicService;
+import no.novari.kafka.topic.configuration.EventCleanupFrequency;
+import no.novari.kafka.topic.configuration.EventTopicConfiguration;
+import no.novari.kafka.topic.name.EventTopicNameParameters;
+import no.novari.kafka.topic.name.TopicNamePrefixParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -15,19 +18,29 @@ import java.util.UUID;
 @Service
 public class ProviderErrorPublisher {
 
-    private final EventProducer<ProviderError> eventProducer;
+    private static final Duration RETENTION_TIME = Duration.ofDays(7);
+    private static final int PARTITIONS = 1;
+    private final ParameterizedTemplate<ProviderError> eventProducer;
     private final EventTopicNameParameters eventName;
 
-    public ProviderErrorPublisher(EventProducerFactory eventProducerFactory, EventTopicService eventTopicService) {
-        this.eventProducer = eventProducerFactory.createProducer(ProviderError.class);
+    public ProviderErrorPublisher(ParameterizedTemplateFactory parameterizedTemplateFactory, EventTopicService eventTopicService) {
+        this.eventProducer = parameterizedTemplateFactory.createTemplate(ProviderError.class);
         this.eventName = createEventName();
-        eventTopicService.ensureTopic(eventName, Duration.ofDays(7).toMillis());
+        eventTopicService.createOrModifyTopic(
+                eventName,
+                EventTopicConfiguration
+                        .stepBuilder()
+                        .partitions(PARTITIONS)
+                        .retentionTime(RETENTION_TIME)
+                        .cleanupFrequency(EventCleanupFrequency.NORMAL)
+                        .build()
+        );
     }
 
     public void publish(ProviderError providerError) {
         log.info("Publishing provider-error to Kafka!");
         eventProducer.send(
-                EventProducerRecord.<ProviderError>builder()
+                ParameterizedProducerRecord.<ProviderError>builder()
                         .key(UUID.randomUUID().toString())
                         .topicNameParameters(eventName)
                         .value(providerError)
@@ -37,8 +50,13 @@ public class ProviderErrorPublisher {
 
     private EventTopicNameParameters createEventName() {
         return EventTopicNameParameters.builder()
-                .orgId("fintlabs-no")
-                .domainContext("fint-core")
+                .topicNamePrefixParameters(
+                        TopicNamePrefixParameters
+                                .stepBuilder()
+                                .orgIdApplicationDefault()
+                                .domainContextApplicationDefault()
+                                .build()
+                )
                 .eventName("provider-error")
                 .build();
     }
