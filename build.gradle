@@ -1,17 +1,17 @@
 plugins {
-    id 'org.springframework.boot' version '3.2.3'
-    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.springframework.boot' version '3.5.10'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'groovy'
-    id "com.github.ben-manes.versions" version "0.51.0"
+    id "com.github.ben-manes.versions" version "0.53.0"
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
-    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.3.10'
 }
 
 group = 'no.fintlabs'
 version = System.getenv("RELEASE_VERSION") ?: '0.0.1-SNAPSHOT'
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -28,14 +28,13 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
-    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.107.Final:osx-aarch_64'
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0-M1"
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0'
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
-    implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
+    implementation 'no.novari:kafka:6.0.0'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.1'
 
     compileOnly 'org.projectlombok:lombok'
@@ -45,8 +44,6 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "io.mockk:mockk:1.14.6"
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
@@ -64,5 +61,5 @@ test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.FINTLABS_NO;
-
 @RequiredArgsConstructor
 @Slf4j
 @Service
@@ -29,7 +27,7 @@ public class SyncPageService {
 
         mutateMetadata(syncPage.getMetadata(), domain, packageName, entity);
         String eventName = "adapter-%s-sync".formatted(syncPage.getSyncType().toString().toLowerCase());
-        metaDataKafkaProducer.send(syncPage.getMetadata(), FINTLABS_NO, eventName);
+        metaDataKafkaProducer.send(syncPage.getMetadata(), eventName);
         sendEntities(syncPage);
 
         logSyncEnd(syncPage.getSyncType(), syncPage.getMetadata().getCorrId(), Duration.between(start, Instant.now()));
@@ -41,15 +39,14 @@ public class SyncPageService {
     }
 
     private void sendEntities(SyncPage page) {
-        page.getResources().forEach(syncPageEntry -> {
-            entityProducer.sendSyncEntity(page, syncPageEntry).whenComplete((result, error) -> {
-                if (result != null) {
-                    log.debug("Entity sent successfully");
-                } else {
-                    log.error("Error sending entity: " + error.getMessage(), error);
-                }
-            });
-        });
+        page.getResources().forEach(syncPageEntry -> entityProducer.sendSyncEntity(page, syncPageEntry)
+                .whenComplete((result, error) -> {
+            if (result != null) {
+                log.debug("Entity sent successfully");
+            } else {
+                log.error("Error sending entity: " + error.getMessage(), error);
+            }
+        }));
     }
 
     private Instant logSyncStart(SyncType syncType, SyncPageMetadata metadata, int resourceSize) {

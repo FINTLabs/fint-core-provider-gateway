@@ -3,13 +3,12 @@ package no.fintlabs.provider.register;
 import lombok.RequiredArgsConstructor;
 import no.fintlabs.adapter.models.AdapterCapability;
 import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.provider.kafka.ProviderTopicService;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
+import no.novari.kafka.topic.name.TopicNamePrefixParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-
-import static no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE;
 
 @Service
 @RequiredArgsConstructor
@@ -19,24 +18,29 @@ public class AdapterRegistrationTopicService {
 
     public void ensureCapabilityTopics(AdapterContract adapterContract) {
         adapterContract.getCapabilities().forEach(capability -> {
-            long retentionTime = Duration.ofDays(7).toMillis();
+            Duration retentionTime = Duration.ofDays(7);
             EntityTopicNameParameters topicNameParameters = createTopicNameParameters(adapterContract.getOrgId(), capability);
 
             if (providerTopicService.topicExists(topicNameParameters)) {
                 if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retentionTime)) {
-                    providerTopicService.ensureTopic(topicNameParameters, retentionTime);
+                    providerTopicService.createOrModifyTopic(topicNameParameters, retentionTime);
                 }
             } else {
-                providerTopicService.ensureTopic(topicNameParameters, retentionTime);
+                providerTopicService.createOrModifyTopic(topicNameParameters, retentionTime);
             }
         });
     }
 
     private EntityTopicNameParameters createTopicNameParameters(String org, AdapterCapability adapterCapability) {
         return EntityTopicNameParameters.builder()
-                .orgId(org.replace(".", "-"))
-                .domainContext(FINT_CORE)
-                .resource(getResourceName(adapterCapability))
+                .topicNamePrefixParameters(
+                        TopicNamePrefixParameters
+                                .stepBuilder()
+                                .orgId(org.replace(".", "-"))
+                                .domainContextApplicationDefault()
+                                .build()
+                )
+                .resourceName(getResourceName(adapterCapability))
                 .build();
     }
 

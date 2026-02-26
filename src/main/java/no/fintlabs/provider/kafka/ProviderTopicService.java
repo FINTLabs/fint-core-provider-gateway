@@ -2,57 +2,87 @@ package no.fintlabs.provider.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.kafka.common.topic.TopicNameParameters;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
-import no.fintlabs.kafka.entity.topic.EntityTopicService;
-import no.fintlabs.kafka.event.topic.EventTopicNameParameters;
-import no.fintlabs.kafka.event.topic.EventTopicService;
+import no.novari.kafka.topic.EntityTopicService;
+import no.novari.kafka.topic.EventTopicService;
+import no.novari.kafka.topic.configuration.EntityCleanupFrequency;
+import no.novari.kafka.topic.configuration.EntityTopicConfiguration;
+import no.novari.kafka.topic.configuration.EventCleanupFrequency;
+import no.novari.kafka.topic.configuration.EventTopicConfiguration;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
+import no.novari.kafka.topic.name.EventTopicNameParameters;
+import no.novari.kafka.topic.name.TopicNameParameters;
+import no.novari.kafka.topic.name.TopicNameService;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProviderTopicService {
 
-    private final Map<String, Long> topicToRetensionMap = new HashMap<>();
+    private static final int PARTITIONS = 1;
+    private final Map<String, Duration> topicToRetentionMap = new ConcurrentHashMap<>();
     private final EntityTopicService entityTopicService;
     private final EventTopicService eventTopicService;
+    private final TopicNameService topicNameService;
 
-    public long getRetensionTime(TopicNameParameters topicNameParameters) {
-        if (topicToRetensionMap.containsKey(topicNameParameters.getTopicName())) {
-            return topicToRetensionMap.get(topicNameParameters.getTopicName());
+    public Duration getRetentionTime(TopicNameParameters topicNameParameters) {
+        String topicName = topicNameService.validateAndMapToTopicName(topicNameParameters);
+        if (topicToRetentionMap.containsKey(topicName)) {
+            return topicToRetentionMap.get(topicName);
         } else {
-            log.error("Cant get retension time because topic is not ensured: {}", topicNameParameters.getTopicName());
-            return 0L;
+            log.error("Cant get retention time because topic is not ensured: {}", topicName);
+            return Duration.ZERO;
         }
     }
 
-    public boolean topicHasDifferentRetentionTime(TopicNameParameters topicNameParameters, Long retentionTime) {
-        return !topicToRetensionMap.getOrDefault(topicNameParameters.getTopicName(), 0L).equals(retentionTime);
+    public boolean topicHasDifferentRetentionTime(TopicNameParameters topicNameParameters, Duration retentionTime) {
+        String topicName = topicNameService.validateAndMapToTopicName(topicNameParameters);
+        return !topicToRetentionMap.getOrDefault(topicName, Duration.ZERO).equals(retentionTime);
     }
 
 
     public boolean topicExists(TopicNameParameters topicNameParameters) {
-        return topicToRetensionMap.containsKey(topicNameParameters.getTopicName());
+        String topicName = topicNameService.validateAndMapToTopicName(topicNameParameters);
+        return topicToRetentionMap.containsKey(topicName);
     }
 
-    public void ensureTopic(EntityTopicNameParameters topicName, Long retensionTime) {
-        logEnsuringOfTopic(topicName.getTopicName(), retensionTime);
-        entityTopicService.ensureTopic(topicName, retensionTime);
-        topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
+    public void createOrModifyTopic(EntityTopicNameParameters topicName, Duration retentionTime) {
+        String mappedTopicName = topicNameService.validateAndMapToTopicName(topicName);
+        logEnsuringOfTopic(mappedTopicName, retentionTime);
+        entityTopicService.createOrModifyTopic(
+                topicName,
+                EntityTopicConfiguration
+                        .stepBuilder()
+                        .partitions(PARTITIONS)
+                        .lastValueRetentionTime(retentionTime)
+                        .nullValueRetentionTime(retentionTime)
+                        .cleanupFrequency(EntityCleanupFrequency.NORMAL)
+                        .build()
+        );
+        topicToRetentionMap.put(mappedTopicName, retentionTime);
     }
 
-    public void ensureTopic(EventTopicNameParameters topicName, Long retensionTime) {
-        logEnsuringOfTopic(topicName.getTopicName(), retensionTime);
-        eventTopicService.ensureTopic(topicName, retensionTime);
-        topicToRetensionMap.put(topicName.getTopicName(), retensionTime);
+    public void createOrModifyTopic(EventTopicNameParameters topicName, Duration retentionTime) {
+        String mappedTopicName = topicNameService.validateAndMapToTopicName(topicName);
+        logEnsuringOfTopic(mappedTopicName, retentionTime);
+        eventTopicService.createOrModifyTopic(
+                topicName,
+                EventTopicConfiguration
+                        .stepBuilder()
+                        .partitions(PARTITIONS)
+                        .retentionTime(retentionTime)
+                        .cleanupFrequency(EventCleanupFrequency.NORMAL)
+                        .build()
+        );
+        topicToRetentionMap.put(mappedTopicName, retentionTime);
     }
 
-    private void logEnsuringOfTopic(String topicName, Long retensionTime) {
-        log.info("Ensuring topic: {} - {}", topicName, retensionTime);
+    private void logEnsuringOfTopic(String topicName, Duration retentionTime) {
+        log.info("Ensuring topic: {} - {}", topicName, retentionTime);
     }
 
 }
