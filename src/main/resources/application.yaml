@@ -20,6 +20,9 @@ novari:
       org-id: fintlabs-no
       domain-context: fint-core
     application-id: provider
+    producer:
+      linger: 10ms
+      batch-size: 64KB
 
 spring:
   kafka:
