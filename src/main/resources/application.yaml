@@ -21,7 +21,7 @@ novari:
       domain-context: fint-core
     application-id: provider
     producer:
-      linger: 10ms
+      linger: 0ms
       batch-size: 64KB
 
 spring:
