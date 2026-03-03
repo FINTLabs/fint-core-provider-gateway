@@ -1,5 +1,10 @@
 package no.fintlabs.provider.datasync
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.future.await
 import lombok.RequiredArgsConstructor
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
@@ -17,7 +22,7 @@ class SyncPageService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun <T : SyncPage> doSync(
+    suspend fun <T : SyncPage> doSync(
         syncPage: T,
         domain: String,
         packageName: String,
@@ -44,16 +49,27 @@ class SyncPageService(
         syncPageMetadata.uriRef = domain.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
     }
 
-    private fun sendEntities(page: SyncPage) {
-        page.resources.forEach { syncPageEntry ->
-            entityProducer.sendSyncEntity(page, syncPageEntry).whenComplete { result, error ->
-                if (result != null) {
-                    log.debug("Entity sent successfully")
-                } else {
-                    log.error("Error sending entity: " + error.message, error)
+    private suspend fun sendEntities(page: SyncPage) = coroutineScope {
+        page.resources.map { syncPageEntry ->
+            async {
+                try {
+                    entityProducer.sendSyncEntity(page, syncPageEntry).await()
+                    log.debug(
+                        "Successfully sent entity [orgId={}, uriRef={}]",
+                        page.metadata.orgId,
+                        page.metadata.uriRef
+                    )
+                } catch (e: CancellationException) {
+                    log.error(
+                        "Failed to send entity [orgId={}, uriRef={}]: {}",
+                        page.metadata.orgId,
+                        page.metadata.uriRef,
+                        e.message,
+                        e
+                    )
                 }
             }
-        }
+        }.awaitAll()
     }
 
     private inline fun SyncPage.logSync(action: () -> Unit) {
