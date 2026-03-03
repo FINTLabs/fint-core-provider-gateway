@@ -81,6 +81,24 @@ jar {
 test {
     useJUnitPlatform()
 }
+
+tasks.register('benchmarkKafkaProducer', JavaExec) {
+    group = 'verification'
+    description = 'Run Kafka producer benchmark against a local Kafka broker'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'no.fintlabs.provider.performance.KafkaProducerBenchmark'
+
+    def benchmarkSystemProperties = System.properties.findAll { entry ->
+        entry.key.toString().startsWith('benchmark.')
+    }
+    systemProperties benchmarkSystemProperties
+
+    project.properties.findAll { entry ->
+        entry.key.toString().startsWith('benchmark.')
+    }.each { entry ->
+        systemProperty(entry.key.toString(), entry.value.toString())
+    }
+}
 kotlin {
     jvmToolchain(21)
 }
