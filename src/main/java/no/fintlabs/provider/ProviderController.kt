@@ -100,6 +100,7 @@ class ProviderController(
     ): ResponseEntity<Void> {
         requestValidator.validateOrgId(corePrincipal, syncPage.metadata.orgId)
         requestValidator.validateRole(corePrincipal, domain, packageName)
+        // TODO: Enable validationg of AdapterId once we persist AdapterContracts
         //        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
         requestValidator.validateAdapterCapabilityPermission(
             syncPage.metadata.adapterId,
