@@ -45,10 +45,14 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0'
     implementation "org.jetbrains.kotlin:kotlin-reflect"
 
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8'
+
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
     implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
-    implementation 'no.fintlabs:fint-core-resource-server-security:2.1.1'
+    implementation 'no.fintlabs:fint-core-resource-server-security:2.1.2'
     // Version 3 of metamodel supports v4 of information model
     implementation 'no.novari:fint-core-metamodel:3.0.0'
 
@@ -57,6 +61,8 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
 
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "io.mockk:mockk:1.13.13"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
