@@ -91,7 +91,7 @@ class EntityProducer(
 
     private fun String.topicFormat() = this.replace(".", "-")
 
-    private fun attachDefaultHeaders(topic: TopicNameParameters, lastUpdated: Long) =
+    private fun attachDefaultHeaders(topic: TopicNameParameters, lastUpdated: Long = clock.millis()) =
         RecordHeaders().apply {
             add(LAST_UPDATED, lastUpdated.toByteArray())
             attachTopicRetentionIfValid(this, topic)
