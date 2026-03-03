@@ -21,4 +21,8 @@ public class KafkaConfig {
         log.info("Group-id: %s-%s".formatted(groupId, groupIdSuffix));
     }
 
+    public String getGroupIdSuffix() {
+        return groupIdSuffix;
+    }
+
 }
