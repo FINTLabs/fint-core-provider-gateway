@@ -4,12 +4,14 @@ import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
-import no.fintlabs.kafka.common.topic.TopicNameParameters
 import no.fintlabs.kafka.entity.EntityProducerFactory
 import no.fintlabs.kafka.entity.EntityProducerRecord
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters
-import no.fintlabs.provider.kafka.ProviderTopicService
-import no.fintlabs.provider.kafka.TopicNamesConstants.*
+import no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE
+import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
+import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
+import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
+import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
 import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.stereotype.Component
@@ -20,7 +22,6 @@ import java.util.concurrent.CompletableFuture
 @Component
 class EntityProducer(
     entityProducerFactory: EntityProducerFactory,
-    private val topicService: ProviderTopicService,
     private val clock: Clock
 ) {
 
@@ -32,7 +33,7 @@ class EntityProducer(
                 EntityProducerRecord.builder<Any>()
                     .key(syncEntry.identifier)
                     .topicNameParameters(topic)
-                    .headers(attachSyncHeaders(topic, syncPage))
+                    .headers(attachSyncHeaders(syncPage))
                     .value(syncEntry.resource)
                     .build()
             )
@@ -48,7 +49,7 @@ class EntityProducer(
                 EntityProducerRecord.builder<Any>()
                     .key(syncPageEntry.identifier)
                     .topicNameParameters(topic)
-                    .headers(attachDefaultHeaders(topic, lastUpdated)) // not sync
+                    .headers(attachDefaultHeaders(lastUpdated)) // not sync
                     .value(syncPageEntry.resource)
                     .build()
             )
@@ -75,24 +76,15 @@ class EntityProducer(
 
     private fun String.topicFormat() = this.replace(".", "-")
 
-    private fun attachDefaultHeaders(topic: TopicNameParameters, lastUpdated: Long = clock.millis()) =
-        RecordHeaders().apply {
-            add(LAST_UPDATED, lastUpdated.toByteArray())
-            attachTopicRetentionIfValid(this, topic)
-        }
+    private fun attachDefaultHeaders(lastUpdated: Long = clock.millis()) =
+        RecordHeaders().apply { add(LAST_UPDATED, lastUpdated.toByteArray()) }
 
-    private fun attachSyncHeaders(topic: TopicNameParameters, syncPage: SyncPage) =
-        attachDefaultHeaders(topic).apply {
+    private fun attachSyncHeaders(syncPage: SyncPage) =
+        attachDefaultHeaders().apply {
             add(SYNC_TYPE, byteArrayOf(syncPage.syncType.ordinal.toByte()))
             add(SYNC_CORRELATION_ID, syncPage.metadata.corrId.toByteArray())
             add(SYNC_TOTAL_SIZE, syncPage.metadata.totalSize.toByteArray())
         }
-
-    private fun attachTopicRetentionIfValid(records: RecordHeaders, topic: TopicNameParameters) =
-        topicService.getRetensionTime(topic).takeIf { it.validRetentionTime() }
-            ?.let { records.add(TOPIC_RETENTION_TIME, it.toByteArray()) }
-
-    private fun Long.validRetentionTime() = this != 0L
 
     private fun Long.toByteArray(): ByteArray =
         ByteBuffer.allocate(Long.SIZE_BYTES)
