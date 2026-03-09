@@ -1,24 +1,25 @@
-package no.fintlabs.provider.config;
+package no.fintlabs.provider.config
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.apache.commons.lang3.RandomStringUtils
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Configuration
 
-@Getter
-@Slf4j
 @Configuration
-public class KafkaConfig {
+open class KafkaConfig(
+    @param:Value("\${spring.kafka.consumer.group-id:}") private val groupId: String
+) {
 
-    public static final int SUFFIX_LENGTH = 8;
-    private final String groupIdSuffix;
+    private val logger = LoggerFactory.getLogger(javaClass)
+    val groupIdSuffix: String = createGroupIdSuffix(groupId)
 
-    public KafkaConfig(Environment environment) {
-        groupIdSuffix = RandomStringUtils.random(SUFFIX_LENGTH, true, true).toLowerCase();
-
-        String groupId = environment.getProperty("spring.kafka.consumer.group-id");
-        log.info("Group-id: %s-%s".formatted(groupId, groupIdSuffix));
+    private fun createGroupIdSuffix(groupId: String): String {
+        val suffix = RandomStringUtils.secure().nextAlphanumeric(SUFFIX_LENGTH).lowercase()
+        logger.info("Group-id: $groupId-$suffix")
+        return suffix
     }
 
+    companion object {
+        const val SUFFIX_LENGTH: Int = 8
+    }
 }
