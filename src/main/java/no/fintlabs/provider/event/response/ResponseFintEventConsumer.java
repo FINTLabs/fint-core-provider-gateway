@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.event.ResponseFintEvent;
 import no.fintlabs.provider.config.KafkaConfig;
 import no.fintlabs.provider.event.request.RequestEventService;
-import no.novari.metamodel.MetamodelService;
 import no.novari.kafka.consuming.ErrorHandlerConfiguration;
 import no.novari.kafka.consuming.ErrorHandlerFactory;
 import no.novari.kafka.consuming.ListenerConfiguration;
@@ -13,6 +12,7 @@ import no.novari.kafka.consuming.ParameterizedListenerContainerFactoryService;
 import no.novari.kafka.topic.name.EventTopicNamePatternParameters;
 import no.novari.kafka.topic.name.TopicNamePatternParameterPattern;
 import no.novari.kafka.topic.name.TopicNamePatternPrefixParameters;
+import no.novari.metamodel.MetamodelService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -64,7 +64,11 @@ public class ResponseFintEventConsumer {
     }
 
     private String[] createEventNames() {
-        return metamodelService.getResources().stream().map(resource -> resource.getName() + "-response").toArray(String[]::new);
+        return metamodelService.getComponents().stream().flatMap(component ->
+                component.getResources().stream().map(resource ->
+                        "%s-%s-%s-response".formatted(component.getDomainName(), component.getPackageName(), resource.getName())
+                )
+        ).toArray(String[]::new);
     }
 
     private void processEvent(ConsumerRecord<String, ResponseFintEvent> consumerRecord) {
