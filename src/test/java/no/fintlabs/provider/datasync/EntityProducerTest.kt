@@ -9,7 +9,6 @@ import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
-import no.fintlabs.provider.kafka.ProviderTopicService
 import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
@@ -34,7 +33,6 @@ import java.util.concurrent.CompletableFuture
 class EntityProducerTest {
 
     private lateinit var factory: ParameterizedTemplateFactory
-    private lateinit var topicService: ProviderTopicService
     private lateinit var kafkaProducer: ParameterizedTemplate<Any>
     private lateinit var clock: Clock
     private lateinit var sut: EntityProducer
@@ -42,7 +40,6 @@ class EntityProducerTest {
     @BeforeEach
     fun setup() {
         factory = mockk()
-        topicService = mockk()
         kafkaProducer = mockk()
         clock = mockk()
 

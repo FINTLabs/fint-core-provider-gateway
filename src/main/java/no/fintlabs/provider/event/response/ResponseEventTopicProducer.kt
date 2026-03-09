@@ -2,43 +2,58 @@ package no.fintlabs.provider.event.response
 
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.event.ResponseFintEvent
-import no.fintlabs.kafka.event.EventProducerFactory
-import no.fintlabs.kafka.event.EventProducerRecord
-import no.fintlabs.kafka.event.topic.EventTopicNameParameters
-import no.fintlabs.kafka.event.topic.EventTopicService
+import no.novari.kafka.producing.ParameterizedProducerRecord
+import no.novari.kafka.producing.ParameterizedTemplateFactory
+import no.novari.kafka.topic.EventTopicService
+import no.novari.kafka.topic.configuration.EventCleanupFrequency
+import no.novari.kafka.topic.configuration.EventTopicConfiguration
+import no.novari.kafka.topic.name.EventTopicNameParameters
+import no.novari.kafka.topic.name.TopicNamePrefixParameters
 import org.springframework.stereotype.Service
 import java.time.Duration
 
+
 @Service
 class ResponseEventTopicProducer(
-    eventProducerFactory: EventProducerFactory,
+    eventProducerFactory: ParameterizedTemplateFactory,
     private val eventTopicService: EventTopicService
 ) {
 
-    private val eventProducer = eventProducerFactory.createProducer(ResponseFintEvent::class.java)
+    private val eventProducer = eventProducerFactory.createTemplate(ResponseFintEvent::class.java)
 
     fun sendEvent(responseFintEvent: ResponseFintEvent, requestFintEvent: RequestFintEvent) {
-        val topicNameParameters = EventTopicNameParameters
+        val topicNameParameters = requestFintEvent.toTopicNameParameters()
+
+        eventTopicService.createOrModifyTopic(
+                topicNameParameters,
+                EventTopicConfiguration.stepBuilder()
+                    .partitions(1)
+                    .retentionTime(Duration.ofDays(7))
+                    .cleanupFrequency(EventCleanupFrequency.NORMAL)
+                    .build()
+            )
+
+            eventProducer.send(
+                ParameterizedProducerRecord.builder<ResponseFintEvent>()
+                    .topicNameParameters(topicNameParameters)
+                    .value(responseFintEvent)
+                    .build()
+            )
+        }
+
+    private fun RequestFintEvent.toTopicNameParameters() =
+        EventTopicNameParameters
             .builder()
-            .orgId(responseFintEvent.orgId)
-            .domainContext("fint-core")
-            .eventName(createEventName(requestFintEvent))
+            .topicNamePrefixParameters(
+                TopicNamePrefixParameters
+                    .stepBuilder()
+                    .orgId(orgId.replace(".", "-"))
+                    .domainContextApplicationDefault()
+                    .build()
+            )
+            .eventName(toTopicEventName())
             .build()
 
-        eventTopicService.ensureTopic(
-            topicNameParameters,
-            Duration.ofDays(2).toMillis()
-        )
-
-        eventProducer.send(
-            EventProducerRecord.builder<ResponseFintEvent>()
-                .topicNameParameters(topicNameParameters)
-                .value(responseFintEvent)
-                .build()
-        )
-    }
-
-    private fun createEventName(requestFintEvent: RequestFintEvent): String =
-        "${requestFintEvent.domainName}-${requestFintEvent.packageName}-${requestFintEvent.resourceName}-response"
+    private fun RequestFintEvent.toTopicEventName(): String = "${domainName}-${packageName}-${resourceName}-response"
 
 }

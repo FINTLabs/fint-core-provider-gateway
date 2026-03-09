@@ -1,13 +1,15 @@
 package no.fintlabs.provider.event.response
 
 import no.fintlabs.adapter.models.event.ResponseFintEvent
-import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern
-import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern
-import no.fintlabs.kafka.event.EventConsumerConfiguration
-import no.fintlabs.kafka.event.EventConsumerFactoryService
-import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters
 import no.fintlabs.provider.config.KafkaConfig
 import no.fintlabs.provider.event.request.RequestEventService
+import no.novari.kafka.consuming.ErrorHandlerConfiguration
+import no.novari.kafka.consuming.ErrorHandlerFactory
+import no.novari.kafka.consuming.ListenerConfiguration
+import no.novari.kafka.consuming.ParameterizedListenerContainerFactoryService
+import no.novari.kafka.topic.name.EventTopicNamePatternParameters
+import no.novari.kafka.topic.name.TopicNamePatternParameterPattern
+import no.novari.kafka.topic.name.TopicNamePatternPrefixParameters
 import no.novari.metamodel.MetamodelService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -15,9 +17,11 @@ import org.springframework.context.annotation.Bean
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer
 import org.springframework.stereotype.Service
 
+
 @Service
 class ResponseFintEventConsumer(
-    private val eventConsumerFactoryService: EventConsumerFactoryService,
+    private val parameterizedListenerContainerFactoryService: ParameterizedListenerContainerFactoryService,
+    private val errorHandlerFactory: ErrorHandlerFactory,
     private val requestEventService: RequestEventService,
     private val metamodelService: MetamodelService,
     private val kafkaConfig: KafkaConfig,
@@ -26,21 +30,34 @@ class ResponseFintEventConsumer(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Bean
-    fun registerResponseFintEventListener(): ConcurrentMessageListenerContainer<String?, ResponseFintEvent> =
-        eventConsumerFactoryService.createFactory(
+    fun responseFintEventListenerContainer(): ConcurrentMessageListenerContainer<String?, ResponseFintEvent> =
+        parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
             ResponseFintEvent::class.java,
             this::processEvent,
-            EventConsumerConfiguration
-                .builder()
-                .seekingOffsetResetOnAssignment(true)
-                .groupIdSuffix(kafkaConfig.groupIdSuffix)
-                .build()
+            ListenerConfiguration.stepBuilder()
+                .groupIdApplicationDefaultWithSuffix(kafkaConfig.groupIdSuffix)
+                .maxPollRecordsKafkaDefault()
+                .maxPollIntervalKafkaDefault()
+                .seekToBeginningOnAssignment()
+                .build(),
+            errorHandlerFactory.createErrorHandler(
+                ErrorHandlerConfiguration
+                    .stepBuilder<ResponseFintEvent?>()
+                    .noRetries()
+                    .skipFailedRecords()
+                    .build()
+            )
         ).createContainer(
             EventTopicNamePatternParameters
                 .builder()
-                .orgId(FormattedTopicComponentPattern.any())
-                .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                .eventName(ValidatedTopicComponentPattern.anyOf(*createEventNames()))
+                .topicNamePatternPrefixParameters(
+                    TopicNamePatternPrefixParameters
+                        .stepBuilder()
+                        .orgId(TopicNamePatternParameterPattern.any())
+                        .domainContextApplicationDefault()
+                        .build()
+                )
+                .eventName(TopicNamePatternParameterPattern.anyOf(*createEventNames()))
                 .build()
         )
 
