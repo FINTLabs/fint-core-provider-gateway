@@ -61,6 +61,7 @@ open class RequestFintEventConsumer(
         )
     }
 
+    // Example topic: utdanning-vurdering-fravarsregistrering-request
     private fun createEventNames(): Array<String> =
         metamodelService.getComponents().flatMap { component ->
             component.resources.map { resource ->
