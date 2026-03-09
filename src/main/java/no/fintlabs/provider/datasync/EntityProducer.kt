@@ -1,32 +1,27 @@
 package no.fintlabs.provider.datasync
 
-import java.nio.ByteBuffer
-import java.time.Clock
-import java.time.Duration
-import java.util.concurrent.CompletableFuture
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
-import no.fintlabs.provider.kafka.ProviderTopicService
 import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
-import no.fintlabs.provider.kafka.TopicNamesConstants.TOPIC_RETENTION_TIME
 import no.novari.kafka.producing.ParameterizedProducerRecord
 import no.novari.kafka.producing.ParameterizedTemplateFactory
 import no.novari.kafka.topic.name.EntityTopicNameParameters
-import no.novari.kafka.topic.name.TopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
 import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.stereotype.Component
+import java.nio.ByteBuffer
+import java.time.Clock
+import java.util.concurrent.CompletableFuture
 
 @Component
 class EntityProducer(
     parameterizedTemplateFactory: ParameterizedTemplateFactory,
-    private val topicService: ProviderTopicService,
     private val clock: Clock
 ) {
 
@@ -38,7 +33,7 @@ class EntityProducer(
                 ParameterizedProducerRecord.builder<Any>()
                     .key(syncEntry.identifier)
                     .topicNameParameters(topic)
-                    .headers(attachSyncHeaders(topic, syncPage))
+                    .headers(attachSyncHeaders(syncPage))
                     .value(syncEntry.resource)
                     .build()
             )
@@ -47,14 +42,14 @@ class EntityProducer(
     fun sendEventEntity(
         request: RequestFintEvent,
         syncPageEntry: SyncPageEntry,
-        lastUpdated: Long = clock.millis()
+        lastUpdated: Long
     ): CompletableFuture<SendResult<String, Any>> =
         request.toTopic().let { topic ->
             producer.send(
                 ParameterizedProducerRecord.builder<Any>()
                     .key(syncPageEntry.identifier)
                     .topicNameParameters(topic)
-                    .headers(attachDefaultHeaders(topic, lastUpdated))
+                    .headers(attachDefaultHeaders(lastUpdated)) // not sync
                     .value(syncPageEntry.resource)
                     .build()
             )
@@ -91,33 +86,19 @@ class EntityProducer(
 
     private fun String.topicFormat() = this.replace(".", "-")
 
-    private fun attachDefaultHeaders(topic: TopicNameParameters, lastUpdated: Long = clock.millis()) =
-        RecordHeaders().apply {
-            add(LAST_UPDATED, lastUpdated.toByteArray())
-            attachTopicRetentionIfValid(this, topic)
-        }
+    private fun attachDefaultHeaders(lastUpdated: Long = clock.millis()) =
+        RecordHeaders().apply { add(LAST_UPDATED, lastUpdated.toByteArray()) }
 
-    private fun attachSyncHeaders(topic: TopicNameParameters, syncPage: SyncPage) =
-        attachDefaultHeaders(topic).apply {
+    private fun attachSyncHeaders(syncPage: SyncPage) =
+        attachDefaultHeaders().apply {
             add(SYNC_TYPE, byteArrayOf(syncPage.syncType.ordinal.toByte()))
             add(SYNC_CORRELATION_ID, syncPage.metadata.corrId.toByteArray())
             add(SYNC_TOTAL_SIZE, syncPage.metadata.totalSize.toByteArray())
         }
 
-    private fun attachTopicRetentionIfValid(records: RecordHeaders, topic: TopicNameParameters) =
-        topicService.getRetentionTime(topic).takeIf { it.validRetentionTime() }
-            ?.let { records.add(TOPIC_RETENTION_TIME, it.toByteArray()) }
-
-    private fun Duration.validRetentionTime() = !this.isZero
-
     private fun Long.toByteArray(): ByteArray =
         ByteBuffer.allocate(Long.SIZE_BYTES)
             .putLong(this)
-            .array()
-
-    private fun Duration.toByteArray(): ByteArray =
-        ByteBuffer.allocate(Long.SIZE_BYTES)
-            .putLong(this.toMillis())
             .array()
 
 }

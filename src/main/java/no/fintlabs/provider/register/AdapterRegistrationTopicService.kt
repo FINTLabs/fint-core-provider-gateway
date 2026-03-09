@@ -1,51 +1,37 @@
-package no.fintlabs.provider.register;
+package no.fintlabs.provider.register
 
-import lombok.RequiredArgsConstructor;
-import no.fintlabs.adapter.models.AdapterCapability;
-import no.fintlabs.adapter.models.AdapterContract;
-import no.fintlabs.provider.kafka.ProviderTopicService;
-import no.novari.kafka.topic.name.EntityTopicNameParameters;
-import no.novari.kafka.topic.name.TopicNamePrefixParameters;
-import org.springframework.stereotype.Service;
-
-import java.time.Duration;
+import no.fintlabs.adapter.models.AdapterCapability
+import no.fintlabs.adapter.models.AdapterContract
+import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters
+import no.fintlabs.kafka.entity.topic.EntityTopicService
+import no.fintlabs.provider.kafka.TopicNamesConstants
+import org.springframework.stereotype.Service
+import java.time.Duration
+import java.util.function.Consumer
 
 @Service
-@RequiredArgsConstructor
-public class AdapterRegistrationTopicService {
+class AdapterRegistrationTopicService(
+    private val entityTopicService: EntityTopicService
+) {
 
-    private final ProviderTopicService providerTopicService;
+    fun ensureCapabilityTopics(adapterContract: AdapterContract) {
+        adapterContract.capabilities.forEach(Consumer { capability: AdapterCapability ->
+            // TODO: Change retention time to be based on capability (Verify that Visma agrees with the latest contract)
+            val retentionTime = Duration.ofDays(7).toMillis()
 
-    public void ensureCapabilityTopics(AdapterContract adapterContract) {
-        adapterContract.getCapabilities().forEach(capability -> {
-            Duration retentionTime = Duration.ofDays(7);
-            EntityTopicNameParameters topicNameParameters = createTopicNameParameters(adapterContract.getOrgId(), capability);
-
-            if (providerTopicService.topicExists(topicNameParameters)) {
-                if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retentionTime)) {
-                    providerTopicService.createOrModifyTopic(topicNameParameters, retentionTime);
-                }
-            } else {
-                providerTopicService.createOrModifyTopic(topicNameParameters, retentionTime);
-            }
-        });
+            val topicNameParameters = createTopicNameParameters(adapterContract.orgId, capability)
+            entityTopicService.ensureTopic(topicNameParameters, retentionTime)
+        })
     }
 
-    private EntityTopicNameParameters createTopicNameParameters(String org, AdapterCapability adapterCapability) {
-        return EntityTopicNameParameters.builder()
-                .topicNamePrefixParameters(
-                        TopicNamePrefixParameters
-                                .stepBuilder()
-                                .orgId(org.replace(".", "-"))
-                                .domainContextApplicationDefault()
-                                .build()
-                )
-                .resourceName(getResourceName(adapterCapability))
-                .build();
-    }
+    private fun createTopicNameParameters(
+        org: String,
+        adapterCapability: AdapterCapability
+    ) = EntityTopicNameParameters.builder()
+        .orgId(org.replace(".", "-"))
+        .domainContext(TopicNamesConstants.FINT_CORE)
+        .resource(adapterCapability.toTopicResourceName())
+        .build()
 
-    private String getResourceName(AdapterCapability capability) {
-        return "%s-%s-%s".formatted(capability.getDomainName(), capability.getPackageName(), capability.getResourceName());
-    }
-
+    private fun AdapterCapability.toTopicResourceName(): String = "$domainName-$packageName-$resourceName"
 }

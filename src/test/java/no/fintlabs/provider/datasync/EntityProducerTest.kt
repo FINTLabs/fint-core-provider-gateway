@@ -4,12 +4,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.unmockkAll
-import java.nio.ByteBuffer
-import java.nio.charset.Charset
-import java.time.Clock
-import java.time.Duration
-import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
@@ -20,12 +14,10 @@ import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
-import no.fintlabs.provider.kafka.TopicNamesConstants.TOPIC_RETENTION_TIME
 import no.novari.kafka.producing.ParameterizedProducerRecord
 import no.novari.kafka.producing.ParameterizedTemplate
 import no.novari.kafka.producing.ParameterizedTemplateFactory
 import no.novari.kafka.topic.name.EntityTopicNameParameters
-import no.novari.kafka.topic.name.TopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -33,6 +25,11 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.kafka.support.SendResult
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import java.time.Clock
+import java.util.*
+import java.util.concurrent.CompletableFuture
 
 class EntityProducerTest {
 
@@ -54,7 +51,7 @@ class EntityProducerTest {
             CompletableFuture.completedFuture(mockk<SendResult<String, Any>>(relaxed = true))
         }
 
-        sut = EntityProducer(factory, topicService, clock)
+        sut = EntityProducer(factory, clock)
     }
 
     @AfterEach
@@ -63,7 +60,6 @@ class EntityProducerTest {
     @Test
     fun `sendSyncEntity builds expected topic and headers`() {
         val expectedLastModified = 1337L
-        val expectedTopicRetention = Duration.ofMillis(42)
         val expectedSyncType = SyncType.FULL
         val expectedSyncCorrId = UUID.randomUUID().toString()
         val expectedSyncTotalSize = 9L
@@ -81,7 +77,6 @@ class EntityProducerTest {
             resource = mapOf("id" to 42)
         }
 
-        every { topicService.getRetentionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
         every { clock.millis() } returns expectedLastModified
 
         val record = sendAndCapture { sut.sendSyncEntity(syncPage, entry) }
@@ -99,7 +94,6 @@ class EntityProducerTest {
 
         assertEquals(expected, record.topicNameParameters)
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
-        assertEquals(expectedTopicRetention.toMillis(), record.getHeaderValue(TOPIC_RETENTION_TIME).long())
         assertEquals(expectedSyncType.ordinal.toByte(), record.getHeaderValue(SYNC_TYPE).first())
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
         assertEquals(expectedSyncTotalSize, record.getHeaderValue(SYNC_TOTAL_SIZE).long())
@@ -110,7 +104,6 @@ class EntityProducerTest {
     @Test
     fun `sendEventEntity builds expected topic and headers`() {
         val expectedLastModified = 133710428L
-        val expectedTopicRetention = Duration.ofMillis(3489138423L)
         val request = RequestFintEvent().apply {
             orgId = "fintlabs.no"
             domainName = "utdanning"
@@ -122,7 +115,6 @@ class EntityProducerTest {
             resource = mapOf("id" to 42)
         }
 
-        every { topicService.getRetentionTime(any<TopicNameParameters>()) } returns expectedTopicRetention
         every { clock.millis() } returns expectedLastModified
 
         val record = sendAndCapture { sut.sendEventEntity(request, entry, expectedLastModified) }
@@ -140,7 +132,6 @@ class EntityProducerTest {
 
         assertEquals(expected, record.topicNameParameters)
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
-        assertEquals(expectedTopicRetention.toMillis(), record.getHeaderValue(TOPIC_RETENTION_TIME).long())
         assertNull(record.getHeader(SYNC_TYPE))
         assertNull(record.getHeader(SYNC_CORRELATION_ID))
         assertNull(record.getHeader(SYNC_TOTAL_SIZE))
