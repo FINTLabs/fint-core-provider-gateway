@@ -34,7 +34,7 @@ open class RequestFintEventConsumer(
             this::processEvent,
             ListenerConfiguration
                 .stepBuilder()
-                .groupIdApplicationDefaultWithSuffix(kafkaConfig.getGroupIdSuffix())
+                .groupIdApplicationDefaultWithSuffix(kafkaConfig.groupIdSuffix)
                 .maxPollRecordsKafkaDefault()
                 .maxPollIntervalKafkaDefault()
                 .seekToBeginningOnAssignment()
