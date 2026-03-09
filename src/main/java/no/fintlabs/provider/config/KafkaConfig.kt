@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 open class KafkaConfig(
-    @param:Value("\${spring.kafka.consumer.group-id:}") private val groupId: String
+    @Value($$"${spring.kafka.consumer.group-id:}") groupId: String
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
