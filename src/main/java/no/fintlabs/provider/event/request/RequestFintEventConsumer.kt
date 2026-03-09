@@ -62,9 +62,11 @@ open class RequestFintEventConsumer(
     }
 
     private fun createEventNames(): Array<String> =
-        metamodelService.getResources()
-            .map { "${it.name}-request" }
-            .toTypedArray()
+        metamodelService.getComponents().flatMap { component ->
+            component.resources.map { resource ->
+                "${component.domainName}-${component.packageName}-${resource.name}-request"
+            }
+        }.toTypedArray()
 
     private fun processEvent(consumerRecord: ConsumerRecord<String, RequestFintEvent>) {
         logger.info("RequestFintEvent received: {} - {}", consumerRecord.value().orgId, consumerRecord.value().corrId)
