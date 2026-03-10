@@ -1,6 +1,6 @@
 package no.fintlabs.provider.kafka
 
-import no.fintlabs.provider.config.ProviderProperties
+import no.fintlabs.provider.config.AdapterKafkaProperties
 import no.novari.kafka.topic.EventTopicService
 import no.novari.kafka.topic.configuration.EventCleanupFrequency
 import no.novari.kafka.topic.configuration.EventTopicConfiguration
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class EventTopicEnsurer(
-    private val providerProperties: ProviderProperties,
+    private val adapterKafkaProperties: AdapterKafkaProperties,
     private val eventTopicService: EventTopicService
 ) {
     @EventListener(ApplicationReadyEvent::class)
-    fun ensureEventTopics() = with(providerProperties.kafka.adapter) {
+    fun ensureEventTopics() = with(adapterKafkaProperties) {
         listOf(
             TopicNamesConstants.HEARTBEAT_EVENT_NAME to heartbeatRetentionTime,
             TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME to registerRetentionTime,
@@ -36,7 +36,7 @@ class EventTopicEnsurer(
                     .build(),
                 EventTopicConfiguration
                     .stepBuilder()
-                    .partitions(providerProperties.kafka.entityPartitions)
+                    .partitions(partitions)
                     .retentionTime(retentionTime)
                     .cleanupFrequency(EventCleanupFrequency.NORMAL)
                     .build()
