@@ -1,7 +1,8 @@
-package no.fintlabs.provider.event.request
+package no.fintlabs.provider.event.response
 
-import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
 import no.fintlabs.provider.config.KafkaConfig
+import no.fintlabs.provider.event.request.RequestEventService
 import no.novari.kafka.consuming.ErrorHandlerConfiguration
 import no.novari.kafka.consuming.ErrorHandlerFactory
 import no.novari.kafka.consuming.ListenerConfiguration
@@ -13,11 +14,12 @@ import no.novari.metamodel.MetamodelService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer
+import org.springframework.stereotype.Service
 
-@Configuration
-open class RequestFintEventConsumer(
+
+@Service
+class ResponseFintEventConsumer(
     private val parameterizedListenerContainerFactoryService: ParameterizedListenerContainerFactoryService,
     private val errorHandlerFactory: ErrorHandlerFactory,
     private val requestEventService: RequestEventService,
@@ -28,12 +30,11 @@ open class RequestFintEventConsumer(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Bean
-    open fun requestFintEventListenerContainer(): ConcurrentMessageListenerContainer<String, RequestFintEvent> {
-        return parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
-            RequestFintEvent::class.java,
+    fun responseFintEventListenerContainer(): ConcurrentMessageListenerContainer<String?, ResponseFintEvent> =
+        parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
+            ResponseFintEvent::class.java,
             this::processEvent,
-            ListenerConfiguration
-                .stepBuilder()
+            ListenerConfiguration.stepBuilder()
                 .groupIdApplicationDefaultWithSuffix(kafkaConfig.groupIdSuffix)
                 .maxPollRecordsKafkaDefault()
                 .maxPollIntervalKafkaDefault()
@@ -41,7 +42,7 @@ open class RequestFintEventConsumer(
                 .build(),
             errorHandlerFactory.createErrorHandler(
                 ErrorHandlerConfiguration
-                    .stepBuilder<RequestFintEvent>()
+                    .stepBuilder<ResponseFintEvent?>()
                     .noRetries()
                     .skipFailedRecords()
                     .build()
@@ -59,18 +60,16 @@ open class RequestFintEventConsumer(
                 .eventName(TopicNamePatternParameterPattern.anyOf(*createEventNames()))
                 .build()
         )
-    }
 
-    // Example topic: utdanning-vurdering-fravarsregistrering-request
     private fun createEventNames(): Array<String> =
         metamodelService.getComponents().flatMap { component ->
             component.resources.map { resource ->
-                "${component.domainName}-${component.packageName}-${resource.name}-request"
+                "${component.domainName}-${component.packageName}-${resource.name}-response"
             }
         }.toTypedArray()
 
-    private fun processEvent(consumerRecord: ConsumerRecord<String, RequestFintEvent>) {
-        logger.info("RequestFintEvent received: {} - {}", consumerRecord.value().orgId, consumerRecord.value().corrId)
-        requestEventService.addEvent(consumerRecord.value())
+    private fun processEvent(consumerRecord: ConsumerRecord<String?, ResponseFintEvent>) {
+        logger.info("ResponseFintEvent received: {} - {}", consumerRecord.value().orgId, consumerRecord.value().corrId)
+        requestEventService.removeEvent(consumerRecord.value().corrId)
     }
 }
