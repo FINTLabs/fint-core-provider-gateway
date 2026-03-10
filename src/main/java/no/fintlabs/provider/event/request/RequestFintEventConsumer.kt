@@ -1,11 +1,14 @@
 package no.fintlabs.provider.event.request
 
 import no.fintlabs.adapter.models.event.RequestFintEvent
-import no.fintlabs.kafka.common.topic.pattern.FormattedTopicComponentPattern
-import no.fintlabs.kafka.common.topic.pattern.ValidatedTopicComponentPattern
-import no.fintlabs.kafka.event.EventConsumerConfiguration
-import no.fintlabs.kafka.event.EventConsumerFactoryService
-import no.fintlabs.kafka.event.topic.EventTopicNamePatternParameters
+import no.fintlabs.provider.config.KafkaConfig
+import no.novari.kafka.consuming.ErrorHandlerConfiguration
+import no.novari.kafka.consuming.ErrorHandlerFactory
+import no.novari.kafka.consuming.ListenerConfiguration
+import no.novari.kafka.consuming.ParameterizedListenerContainerFactoryService
+import no.novari.kafka.topic.name.EventTopicNamePatternParameters
+import no.novari.kafka.topic.name.TopicNamePatternParameterPattern
+import no.novari.kafka.topic.name.TopicNamePatternPrefixParameters
 import no.novari.metamodel.MetamodelService
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -15,34 +18,50 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer
 
 @Configuration
 open class RequestFintEventConsumer(
-    private val eventConsumerFactoryService: EventConsumerFactoryService,
+    private val parameterizedListenerContainerFactoryService: ParameterizedListenerContainerFactoryService,
+    private val errorHandlerFactory: ErrorHandlerFactory,
     private val requestEventService: RequestEventService,
     private val metamodelService: MetamodelService,
+    private val kafkaConfig: KafkaConfig,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Bean
-    // The String is the corrId of the RequestFintEvent
     open fun requestFintEventListenerContainer(): ConcurrentMessageListenerContainer<String, RequestFintEvent> {
-        return eventConsumerFactoryService.createFactory(
+        return parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
             RequestFintEvent::class.java,
             this::processEvent,
-            EventConsumerConfiguration
-                .builder()
-                .seekingOffsetResetOnAssignment(true)
-                .build()
+            ListenerConfiguration
+                .stepBuilder()
+                .groupIdApplicationDefaultWithSuffix(kafkaConfig.groupIdSuffix)
+                .maxPollRecordsKafkaDefault()
+                .maxPollIntervalKafkaDefault()
+                .seekToBeginningOnAssignment()
+                .build(),
+            errorHandlerFactory.createErrorHandler(
+                ErrorHandlerConfiguration
+                    .stepBuilder<RequestFintEvent>()
+                    .noRetries()
+                    .skipFailedRecords()
+                    .build()
+            )
         ).createContainer(
             EventTopicNamePatternParameters
                 .builder()
-                .orgId(FormattedTopicComponentPattern.any())
-                .domainContext(FormattedTopicComponentPattern.anyOf("fint-core"))
-                .eventName(ValidatedTopicComponentPattern.anyOf(*createEventNames()))
+                .topicNamePatternPrefixParameters(
+                    TopicNamePatternPrefixParameters
+                        .stepBuilder()
+                        .orgId(TopicNamePatternParameterPattern.any())
+                        .domainContextApplicationDefault()
+                        .build()
+                )
+                .eventName(TopicNamePatternParameterPattern.anyOf(*createEventNames()))
                 .build()
         )
     }
 
-    // Creates event name from component and resources names - utdanning-vurdering-elevfravar-request
+    // Example topic: utdanning-vurdering-fravarsregistrering-request
     private fun createEventNames(): Array<String> =
         metamodelService.getComponents().flatMap { component ->
             component.resources.map { resource ->
@@ -50,7 +69,7 @@ open class RequestFintEventConsumer(
             }
         }.toTypedArray()
 
-    private fun processEvent(consumerRecord: ConsumerRecord<String?, RequestFintEvent>) {
+    private fun processEvent(consumerRecord: ConsumerRecord<String, RequestFintEvent>) {
         logger.info("RequestFintEvent received: {} - {}", consumerRecord.value().orgId, consumerRecord.value().corrId)
         requestEventService.addEvent(consumerRecord.value())
     }

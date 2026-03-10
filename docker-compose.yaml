@@ -1,7 +1,6 @@
-version: '3'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.5.3
     networks:
       - broker-kafka
     environment:
@@ -9,7 +8,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.6.8
     networks:
       - broker-kafka
     depends_on:
@@ -24,14 +23,14 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  kafdrop:
-    image: ghcr.io/kafbat/kafka-ui:latest
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
     networks:
       - broker-kafka
     depends_on:
       - kafka
     ports:
-      - 9090:9000
+      - 9090:8080
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092

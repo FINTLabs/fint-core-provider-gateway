@@ -6,6 +6,7 @@ plugins {
     id "com.github.ben-manes.versions" version "0.53.0"
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'org.jetbrains.kotlin.jvm' version '2.2.0'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.2.0'
 }
 
 group = 'no.fintlabs'
@@ -51,7 +52,7 @@ dependencies {
 
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
-    implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
+    implementation 'no.novari:kafka:6.0.0'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.2'
     // Version 3 of metamodel supports v4 of information model
     implementation 'no.novari:fint-core-metamodel:3.0.0'
@@ -80,6 +81,24 @@ jar {
 
 test {
     useJUnitPlatform()
+}
+
+tasks.register('benchmarkKafkaProducer', JavaExec) {
+    group = 'verification'
+    description = 'Run Kafka producer benchmark against a local Kafka broker'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'no.fintlabs.provider.performance.KafkaProducerBenchmark'
+
+    def benchmarkSystemProperties = System.properties.findAll { entry ->
+        entry.key.toString().startsWith('benchmark.')
+    }
+    systemProperties benchmarkSystemProperties
+
+    project.properties.findAll { entry ->
+        entry.key.toString().startsWith('benchmark.')
+    }.each { entry ->
+        systemProperty(entry.key.toString(), entry.value.toString())
+    }
 }
 kotlin {
     jvmToolchain(21)

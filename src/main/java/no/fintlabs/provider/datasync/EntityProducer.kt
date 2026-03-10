@@ -4,14 +4,14 @@ import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
-import no.fintlabs.kafka.entity.EntityProducerFactory
-import no.fintlabs.kafka.entity.EntityProducerRecord
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters
-import no.fintlabs.provider.kafka.TopicNamesConstants.FINT_CORE
 import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
+import no.novari.kafka.producing.ParameterizedProducerRecord
+import no.novari.kafka.producing.ParameterizedTemplateFactory
+import no.novari.kafka.topic.name.EntityTopicNameParameters
+import no.novari.kafka.topic.name.TopicNamePrefixParameters
 import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.stereotype.Component
@@ -21,16 +21,16 @@ import java.util.concurrent.CompletableFuture
 
 @Component
 class EntityProducer(
-    entityProducerFactory: EntityProducerFactory,
+    parameterizedTemplateFactory: ParameterizedTemplateFactory,
     private val clock: Clock
 ) {
 
-    private val producer = entityProducerFactory.createProducer(Any::class.java)
+    private val producer = parameterizedTemplateFactory.createTemplate(Any::class.java)
 
     fun sendSyncEntity(syncPage: SyncPage, syncEntry: SyncPageEntry): CompletableFuture<SendResult<String, Any>> =
         syncPage.metadata.toTopic().let { topic ->
             producer.send(
-                EntityProducerRecord.builder<Any>()
+                ParameterizedProducerRecord.builder<Any>()
                     .key(syncEntry.identifier)
                     .topicNameParameters(topic)
                     .headers(attachSyncHeaders(syncPage))
@@ -46,7 +46,7 @@ class EntityProducer(
     ): CompletableFuture<SendResult<String, Any>> =
         request.toTopic().let { topic ->
             producer.send(
-                EntityProducerRecord.builder<Any>()
+                ParameterizedProducerRecord.builder<Any>()
                     .key(syncPageEntry.identifier)
                     .topicNameParameters(topic)
                     .headers(attachDefaultHeaders(lastUpdated)) // not sync
@@ -57,16 +57,26 @@ class EntityProducer(
 
     private fun SyncPageMetadata.toTopic() =
         EntityTopicNameParameters.builder()
-            .orgId(this.orgId.topicFormat())
-            .domainContext(FINT_CORE)
-            .resource(uriRef.toTopicResource())
+            .topicNamePrefixParameters(
+                TopicNamePrefixParameters
+                    .stepBuilder()
+                    .orgId(this.orgId.topicFormat())
+                    .domainContextApplicationDefault()
+                    .build()
+            )
+            .resourceName(uriRef.toTopicResource())
             .build()
 
     private fun RequestFintEvent.toTopic(): EntityTopicNameParameters =
         EntityTopicNameParameters.builder()
-            .orgId(orgId.topicFormat())
-            .domainContext(FINT_CORE)
-            .resource("$domainName-$packageName-$resourceName")
+            .topicNamePrefixParameters(
+                TopicNamePrefixParameters
+                    .stepBuilder()
+                    .orgId(orgId.topicFormat())
+                    .domainContextApplicationDefault()
+                    .build()
+            )
+            .resourceName("$domainName-$packageName-$resourceName")
             .build()
 
     private fun String.toTopicResource() =
