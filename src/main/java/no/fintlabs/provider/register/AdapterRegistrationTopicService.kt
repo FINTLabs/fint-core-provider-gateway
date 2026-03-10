@@ -8,6 +8,7 @@ import no.novari.kafka.topic.configuration.EntityCleanupFrequency
 import no.novari.kafka.topic.configuration.EntityTopicConfiguration
 import no.novari.kafka.topic.name.EntityTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.function.Consumer
 
@@ -17,9 +18,18 @@ class AdapterRegistrationTopicService(
     private val entityKafkaProperties: EntityKafkaProperties,
 ) {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     fun ensureCapabilityTopics(adapterContract: AdapterContract) {
         adapterContract.capabilities.forEach(Consumer { capability: AdapterCapability ->
             // TODO: Change retention time to be based on capability (Verify that Visma agrees with the latest contract)
+            if (logger.isDebugEnabled) {
+                logger.debug(
+                    "Ensuring entity-topic for capability: {} with partitions: {}",
+                    capability.toTopicResourceName(),
+                    entityKafkaProperties.partitions
+                )
+            }
             entityTopicService.createOrModifyTopic(
                 createTopicNameParameters(adapterContract.orgId, capability),
                 EntityTopicConfiguration
