@@ -1,6 +1,7 @@
 package no.fintlabs.provider.admin
 
 import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewPartitions
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaAdmin
@@ -14,11 +15,14 @@ class KafkaAdminService(
     companion object {
         private val logger = LoggerFactory.getLogger(KafkaAdminService::class.java)
         private const val FINT_CORE_ENTITY = "fint-core.entity"
+        private const val BATCH_SIZE = 20
+        private const val ADMIN_REQUEST_TIMEOUT_MS = 120_000
     }
 
-
     private fun <T> withAdminClient(block: (AdminClient) -> T): T {
-        val properties = kafkaAdmin.configurationProperties
+        val properties = HashMap(kafkaAdmin.configurationProperties)
+        properties[AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG] = ADMIN_REQUEST_TIMEOUT_MS
+        properties[AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG] = ADMIN_REQUEST_TIMEOUT_MS
         return AdminClient.create(properties).use { client -> block(client) }
     }
 
@@ -35,16 +39,18 @@ class KafkaAdminService(
 
     fun rebalanceEntityTopics(): RebalanceResult = withAdminClient { client ->
         val topics = client.listTopics().names().get()
-            .filter { it.contains("fint-core.entity") }
+            .filter { it.contains(FINT_CORE_ENTITY) }
             .sorted()
 
         if (topics.isEmpty()) {
             return@withAdminClient RebalanceResult(
                 topics = emptyList(),
                 consumerGroupsCleared = emptyList(),
-                message = "No topics matching 'fint-core.entity' found"
+                message = "No topics matching '$FINT_CORE_ENTITY' found"
             )
         }
+
+        val topicSet = topics.toSet()
 
         val consumerGroups = client.listConsumerGroups().all().get()
             .map { it.groupId() }
@@ -54,9 +60,7 @@ class KafkaAdminService(
             val offsets = client.listConsumerGroupOffsets(groupId)
                 .partitionsToOffsetAndMetadata().get()
 
-            val hasEntityAssignment = offsets.keys.any { tp ->
-                topics.contains(tp.topic())
-            }
+            val hasEntityAssignment = offsets.keys.any { tp -> topicSet.contains(tp.topic()) }
 
             if (hasEntityAssignment) {
                 affectedGroups.add(groupId)
@@ -68,7 +72,7 @@ class KafkaAdminService(
                 val offsets = client.listConsumerGroupOffsets(groupId)
                     .partitionsToOffsetAndMetadata().get()
 
-                val entityOffsets = offsets.filter { (tp, _) -> topics.contains(tp.topic()) }
+                val entityOffsets = offsets.filter { (tp, _) -> topicSet.contains(tp.topic()) }
 
                 if (entityOffsets.isNotEmpty()) {
                     client.alterConsumerGroupOffsets(groupId, entityOffsets).all().get()
@@ -92,7 +96,7 @@ class KafkaAdminService(
         require(newPartitionCount > 0) { "Partition count must be greater than 0" }
 
         val topics = client.listTopics().names().get()
-            .filter { it.contains("fint-core.entity") }
+            .filter { it.contains(FINT_CORE_ENTITY) }
             .sorted()
 
         if (topics.isEmpty()) {
@@ -100,7 +104,7 @@ class KafkaAdminService(
                 updated = emptyList(),
                 skipped = emptyList(),
                 failed = emptyList(),
-                message = "No topics matching 'fint-core.entity' found"
+                message = "No topics matching '$FINT_CORE_ENTITY' found"
             )
         }
 
@@ -121,8 +125,13 @@ class KafkaAdminService(
         val updated = mutableListOf<TopicPartitionInfo>()
         val failed = mutableListOf<TopicPartitionFailure>()
 
-        if (toUpdate.isNotEmpty()) {
-            val results = client.createPartitions(toUpdate)
+        logger.info("Updating partitions to {} for {} topics ({} skipped, already >= {})", newPartitionCount, toUpdate.size, skipped.size, newPartitionCount)
+
+        toUpdate.entries.chunked(BATCH_SIZE).forEachIndexed { batchIndex, batch ->
+            val batchMap = batch.associate { it.key to it.value }
+            logger.info("Processing batch {}/{} ({} topics)", batchIndex + 1, (toUpdate.size + BATCH_SIZE - 1) / BATCH_SIZE, batchMap.size)
+
+            val results = client.createPartitions(batchMap)
             for ((topicName, future) in results.values()) {
                 val currentCount = descriptions[topicName]?.partitions()?.size ?: 0
                 try {
