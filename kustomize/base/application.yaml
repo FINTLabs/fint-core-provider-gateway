@@ -1,12 +1,12 @@
 apiVersion: fintlabs.no/v1alpha1
 kind: Application
 metadata:
-  name: fint-core-provider-gateway
+  name: fint-core-provider-gateway-daniel
   namespace: fint-core
 spec:
   port: 8080
   orgId: fintlabs.no
-  image: ghcr.io/fintlabs/fint-core-provider-gateway-test:latest
+  image: ghcr.io/fintlabs/fint-core-provider-gateway:1.9.3-rc.4-4.0.10
   env:
     - name: JAVA_TOOL_OPTIONS
       value: '-XX:+ExitOnOutOfMemoryError -Xmx786m'

@@ -5,8 +5,8 @@ resources:
   - application.yaml
 labels:
   - pairs:
-      app.kubernetes.io/name: fint-core-provider-gateway
-      app.kubernetes.io/instance: fint-core-provider-gateway_fintlabs_no
+      app.kubernetes.io/name: fint-core-provider-gateway-daniel
+      app.kubernetes.io/instance: fint-core-provider-gateway-daniel_fintlabs_no
       app.kubernetes.io/version: latest
       app.kubernetes.io/component: provider
       app.kubernetes.io/part-of: fint-core

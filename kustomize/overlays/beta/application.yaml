@@ -1,16 +1,24 @@
 apiVersion: fintlabs.no/v1alpha1
 kind: Application
 metadata:
-  name: fint-core-provider-gateway
+  name: fint-core-provider-gateway-daniel
   namespace: fint-core
 spec:
   env:
     - name: JAVA_TOOL_OPTIONS
-      value: '-XX:+ExitOnOutOfMemoryError -Xmx786m'
+      value: '-XX:+ExitOnOutOfMemoryError -Xmx9700m'
+#    - name: novari.kafka.producer.linger
+#      value: "100ms"
+#    - name: novari.kafka.producer.batch-size
+#      value: "512KB"
+    - name: FINT_PROVIDER_KAFKA_ENTITY_PARTITIONS
+      value: "12"
+    - name: spring.webflux.base-path
+      value: "/coretest/provider"
   ingress:
     routes:
       - host: beta.felleskomponent.no
-        path: /provider
+        path: /coretest/provider
   observability:
     metrics:
       enabled: true
@@ -18,8 +26,8 @@ spec:
       path: /actuator/prometheus
   resources:
     limits:
-      memory: "1024Mi"
-      cpu: "1"
+      memory: 10Gi
+      cpu: "5"
     requests:
       memory: "128Mi"
       cpu: "100m"
