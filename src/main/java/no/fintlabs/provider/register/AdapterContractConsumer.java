@@ -27,6 +27,7 @@ public class AdapterContractConsumer {
     private final ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService;
     private final ErrorHandlerFactory errorHandlerFactory;
     private final KafkaConfig kafkaConfig;
+    private final AdapterRegistrationTopicService adapterRegistrationTopicService;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, AdapterContract> registerAdapterContractListener() {
@@ -63,6 +64,7 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
+        adapterRegistrationTopicService.createOrModifyCapabilityTopics(consumerRecord.value());
         adapterContractContext.add(consumerRecord.value());
     }
 
