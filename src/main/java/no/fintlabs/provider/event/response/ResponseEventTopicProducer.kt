@@ -55,6 +55,6 @@ class ResponseEventTopicProducer(
             .eventName(toTopicEventName())
             .build()
 
-    private fun RequestFintEvent.toTopicEventName(): String = "${domainName}-${packageName}-${resourceName}-response"
+    private fun RequestFintEvent.toTopicEventName(): String = "${domainName}-${packageName}-response"
 
 }

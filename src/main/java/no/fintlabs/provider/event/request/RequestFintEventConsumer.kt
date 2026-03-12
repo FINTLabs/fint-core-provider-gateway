@@ -61,13 +61,11 @@ open class RequestFintEventConsumer(
         )
     }
 
-    // Example topic: utdanning-vurdering-fravarsregistrering-request
+    // Example topic: utdanning-vurdering-request
     private fun createEventNames(): Array<String> =
-        metamodelService.getComponents().flatMap { component ->
-            component.resources.map { resource ->
-                "${component.domainName}-${component.packageName}-${resource.name}-request"
-            }
-        }.toTypedArray()
+        metamodelService.getComponents()
+            .map { component -> "${component.domainName}-${component.packageName}-request" }
+            .toTypedArray()
 
     private fun processEvent(consumerRecord: ConsumerRecord<String, RequestFintEvent>) {
         logger.info("RequestFintEvent received: {} - {}", consumerRecord.value().orgId, consumerRecord.value().corrId)
