@@ -5,6 +5,7 @@ import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
+import no.fintlabs.provider.kafka.TopicNamesConstants.RESOURCE_NAME
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
@@ -49,7 +50,7 @@ class EntityProducer(
                 ParameterizedProducerRecord.builder<Any>()
                     .key(syncPageEntry.identifier)
                     .topicNameParameters(topic)
-                    .headers(attachDefaultHeaders(lastUpdated)) // not sync
+                    .headers(attachDefaultHeaders(request.resourceName, lastUpdated)) // not sync
                     .value(syncPageEntry.resource)
                     .build()
             )
@@ -64,7 +65,7 @@ class EntityProducer(
                     .domainContextApplicationDefault()
                     .build()
             )
-            .resourceName(uriRef.toTopicResource())
+            .resourceName(uriRef.toComponentPattern())
             .build()
 
     private fun RequestFintEvent.toTopic(): EntityTopicNameParameters =
@@ -79,22 +80,27 @@ class EntityProducer(
             .resourceName("$domainName-$packageName-$resourceName")
             .build()
 
-    private fun String.toTopicResource() =
+    private fun String.toComponentPattern() =
         this.split("/")
-            .take(3)
+            .take(2)
             .joinToString("-")
 
     private fun String.topicFormat() = this.replace(".", "-")
 
-    private fun attachDefaultHeaders(lastUpdated: Long = clock.millis()) =
-        RecordHeaders().apply { add(LAST_UPDATED, lastUpdated.toByteArray()) }
+    private fun attachDefaultHeaders(resourceName: String, lastUpdated: Long = clock.millis()) =
+        RecordHeaders().apply {
+            add(RESOURCE_NAME, resourceName.toByteArray())
+            add(LAST_UPDATED, lastUpdated.toByteArray())
+        }
 
     private fun attachSyncHeaders(syncPage: SyncPage) =
-        attachDefaultHeaders().apply {
+        attachDefaultHeaders(syncPage.getResourceName()).apply {
             add(SYNC_TYPE, byteArrayOf(syncPage.syncType.ordinal.toByte()))
             add(SYNC_CORRELATION_ID, syncPage.metadata.corrId.toByteArray())
             add(SYNC_TOTAL_SIZE, syncPage.metadata.totalSize.toByteArray())
         }
+
+    private fun SyncPage.getResourceName() = metadata.uriRef.split("/").last()
 
     private fun Long.toByteArray(): ByteArray =
         ByteBuffer.allocate(Long.SIZE_BYTES)
