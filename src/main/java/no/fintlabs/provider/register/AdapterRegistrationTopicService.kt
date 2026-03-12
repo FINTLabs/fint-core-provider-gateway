@@ -10,7 +10,6 @@ import no.novari.kafka.topic.name.EntityTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.function.Consumer
 
 @Service
 class AdapterRegistrationTopicService(
@@ -20,27 +19,29 @@ class AdapterRegistrationTopicService(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun ensureCapabilityTopics(adapterContract: AdapterContract) {
-        adapterContract.capabilities.forEach(Consumer { capability: AdapterCapability ->
-            // TODO: Change retention time to be based on capability (Verify that Visma agrees with the latest contract)
-            if (logger.isDebugEnabled) {
-                logger.debug(
-                    "Ensuring entity-topic for capability: {} with partitions: {}",
-                    capability.toTopicResourceName(),
-                    entityKafkaProperties.partitions
+    fun createOrModifyCapabilityTopics(adapterContract: AdapterContract) {
+        adapterContract.capabilities
+            .distinctBy { it.component }
+            .forEach { capability ->
+                if (logger.isDebugEnabled) {
+                    logger.debug(
+                        "Ensuring entity-topic for capability: {} with partitions: {}",
+                        capability.component,
+                        entityKafkaProperties.partitions
+                    )
+                }
+                entityTopicService.createOrModifyTopic(
+                    createTopicNameParameters(adapterContract.orgId, capability),
+                    EntityTopicConfiguration
+                        .stepBuilder()
+                        .partitions(entityKafkaProperties.partitions)
+                        .lastValueRetentionTime(entityKafkaProperties.retentionTime)
+                        .nullValueRetentionTime(entityKafkaProperties.retentionTime)
+                        .cleanupFrequency(EntityCleanupFrequency.NORMAL)
+                        .build()
                 )
             }
-            entityTopicService.createOrModifyTopic(
-                createTopicNameParameters(adapterContract.orgId, capability),
-                EntityTopicConfiguration
-                    .stepBuilder()
-                    .partitions(entityKafkaProperties.partitions)
-                    .lastValueRetentionTime(entityKafkaProperties.retentionTime)
-                    .nullValueRetentionTime(entityKafkaProperties.retentionTime)
-                    .cleanupFrequency(EntityCleanupFrequency.NORMAL)
-                    .build()
-            )
-        })
+
     }
 
     private fun createTopicNameParameters(
@@ -54,8 +55,7 @@ class AdapterRegistrationTopicService(
                 .domainContextApplicationDefault()
                 .build()
         )
-        .resourceName(adapterCapability.toTopicResourceName())
+        .resourceName(adapterCapability.component)
         .build();
 
-    private fun AdapterCapability.toTopicResourceName(): String = "$domainName-$packageName-$resourceName"
 }
