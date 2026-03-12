@@ -19,7 +19,7 @@ class AdapterRegistrationTopicService(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun createOrModifyCapabilityTopics(adapterContract: AdapterContract) {
+    fun createCapabilityTopics(adapterContract: AdapterContract) {
         adapterContract.capabilities
             .distinctBy { it.component }
             .forEach { capability ->
