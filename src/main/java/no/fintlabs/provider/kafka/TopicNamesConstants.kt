@@ -4,6 +4,7 @@ object TopicNamesConstants {
     const val FINTLABS_NO = "fintlabs-no"
     const val FINT_CORE = "fint-core"
     const val LAST_UPDATED = "entity-retention-time" // TODO: Change this to last-modified
+    const val RESOURCE_NAME = "resource-name"
     const val SYNC_CORRELATION_ID = "sync-correlation-id"
     const val SYNC_TOTAL_SIZE = "sync-total-size"
     const val SYNC_TYPE = "sync-type"

@@ -10,6 +10,7 @@ import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
 import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
+import no.fintlabs.provider.kafka.TopicNamesConstants.RESOURCE_NAME
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
@@ -60,12 +61,13 @@ class EntityProducerTest {
         val expectedSyncType = SyncType.FULL
         val expectedSyncCorrId = UUID.randomUUID().toString()
         val expectedSyncTotalSize = 9L
+        val expectedResourceName = "student"
 
         val syncPage = SyncPage(expectedSyncType).apply {
             metadata = SyncPageMetadata().apply {
                 orgId = "fintlabs.no"
                 corrId = expectedSyncCorrId
-                uriRef = "utdanning/elev/student"
+                uriRef = "utdanning/elev/$expectedResourceName"
                 totalSize = expectedSyncTotalSize
             }
         }
@@ -86,13 +88,14 @@ class EntityProducerTest {
                     .domainContextApplicationDefault()
                     .build()
             )
-            .resourceName("utdanning-elev-student")
+            .resourceName("utdanning-elev")
             .build()
 
         assertEquals(expected, record.topicNameParameters)
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
         assertEquals(expectedSyncType.ordinal.toByte(), record.getHeaderValue(SYNC_TYPE).first())
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
+        assertEquals(expectedResourceName, record.getHeaderValue(RESOURCE_NAME).toString(Charset.defaultCharset()))
         assertEquals(expectedSyncTotalSize, record.getHeaderValue(SYNC_TOTAL_SIZE).long())
         assertEquals(entry.identifier, record.key)
         assertEquals(entry.resource, record.value)
@@ -101,11 +104,12 @@ class EntityProducerTest {
     @Test
     fun `sendEventEntity builds expected topic and headers`() {
         val expectedLastModified = 133710428L
+        val expectedResourceName = "elevfravar"
         val request = RequestFintEvent().apply {
             orgId = "fintlabs.no"
             domainName = "utdanning"
             packageName = "vurdering"
-            resourceName = "elevfravar"
+            resourceName = expectedResourceName
         }
         val entry = SyncPageEntry().apply {
             identifier = UUID.randomUUID().toString()
@@ -129,6 +133,7 @@ class EntityProducerTest {
 
         assertEquals(expected, record.topicNameParameters)
         assertEquals(expectedLastModified, record.getHeaderValue(LAST_UPDATED).long())
+        assertEquals(expectedResourceName, record.getHeaderValue(RESOURCE_NAME).toString(Charset.defaultCharset()))
         assertNull(record.getHeader(SYNC_TYPE))
         assertNull(record.getHeader(SYNC_CORRELATION_ID))
         assertNull(record.getHeader(SYNC_TOTAL_SIZE))
