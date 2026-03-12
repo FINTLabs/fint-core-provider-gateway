@@ -23,30 +23,87 @@ class AdminController(
 
     @GetMapping("entity-topics")
     fun listEntityTopics(
-        @AuthenticationPrincipal corePrincipal: CorePrincipal
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam(required = false) org: String?,
+        @RequestParam(required = false) pattern: String?
     ): ResponseEntity<List<String>> {
         validateAdminAccess(corePrincipal)
-        return ResponseEntity.ok(kafkaAdminService.getEntityTopics())
+        return ResponseEntity.ok(kafkaAdminService.getTopics(TopicType.ENTITY, org, pattern))
     }
 
     @PostMapping("entity-topics/rebalance")
     fun rebalanceEntityTopics(
-        @AuthenticationPrincipal corePrincipal: CorePrincipal
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam org: String,
+        @RequestParam(required = false) pattern: String?
     ): ResponseEntity<RebalanceResult> {
         validateAdminAccess(corePrincipal)
-        return ResponseEntity.ok(kafkaAdminService.rebalanceEntityTopics())
+        return ResponseEntity.ok(kafkaAdminService.rebalanceTopics(TopicType.ENTITY, org, pattern))
     }
 
     @PutMapping("entity-topics/partitions")
     fun updateEntityTopicPartitions(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
-        @RequestParam partitions: Int
+        @RequestParam org: String,
+        @RequestParam partitions: Int,
+        @RequestParam(required = false) pattern: String?
     ): ResponseEntity<PartitionUpdateResult> {
         validateAdminAccess(corePrincipal)
-        return ResponseEntity.ok(kafkaAdminService.updateEntityTopicPartitions(partitions))
+        return ResponseEntity.ok(kafkaAdminService.updateTopicPartitions(TopicType.ENTITY, org, pattern, partitions))
     }
 
-    @GetMapping("entity-topics/{topic}/partitions")
+    @DeleteMapping("entity-topics")
+    fun deleteEntityTopics(
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam org: String,
+        @RequestParam(required = false) pattern: String?
+    ): ResponseEntity<DeleteResult> {
+        validateAdminAccess(corePrincipal)
+        return ResponseEntity.ok(kafkaAdminService.deleteTopics(TopicType.ENTITY, org, pattern))
+    }
+
+    @GetMapping("event-topics")
+    fun listEventTopics(
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam(required = false) org: String?,
+        @RequestParam(required = false) pattern: String?
+    ): ResponseEntity<List<String>> {
+        validateAdminAccess(corePrincipal)
+        return ResponseEntity.ok(kafkaAdminService.getTopics(TopicType.EVENT, org, pattern))
+    }
+
+    @PostMapping("event-topics/rebalance")
+    fun rebalanceEventTopics(
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam org: String,
+        @RequestParam(required = false) pattern: String?
+    ): ResponseEntity<RebalanceResult> {
+        validateAdminAccess(corePrincipal)
+        return ResponseEntity.ok(kafkaAdminService.rebalanceTopics(TopicType.EVENT, org, pattern))
+    }
+
+    @PutMapping("event-topics/partitions")
+    fun updateEventTopicPartitions(
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam org: String,
+        @RequestParam partitions: Int,
+        @RequestParam(required = false) pattern: String?
+    ): ResponseEntity<PartitionUpdateResult> {
+        validateAdminAccess(corePrincipal)
+        return ResponseEntity.ok(kafkaAdminService.updateTopicPartitions(TopicType.EVENT, org, pattern, partitions))
+    }
+
+    @DeleteMapping("event-topics")
+    fun deleteEventTopics(
+        @AuthenticationPrincipal corePrincipal: CorePrincipal,
+        @RequestParam org: String,
+        @RequestParam(required = false) pattern: String?
+    ): ResponseEntity<DeleteResult> {
+        validateAdminAccess(corePrincipal)
+        return ResponseEntity.ok(kafkaAdminService.deleteTopics(TopicType.EVENT, org, pattern))
+    }
+
+    @GetMapping("topics/{topic}/partitions")
     fun getTopicPartitions(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @PathVariable topic: String
