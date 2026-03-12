@@ -64,7 +64,7 @@ class EntityProducer(
                     .domainContextApplicationDefault()
                     .build()
             )
-            .resourceName(uriRef.toTopicResource())
+            .resourceName(uriRef.toComponentPattern())
             .build()
 
     private fun RequestFintEvent.toTopic(): EntityTopicNameParameters =
@@ -79,9 +79,9 @@ class EntityProducer(
             .resourceName("$domainName-$packageName-$resourceName")
             .build()
 
-    private fun String.toTopicResource() =
+    private fun String.toComponentPattern() =
         this.split("/")
-            .take(3)
+            .take(2)
             .joinToString("-")
 
     private fun String.topicFormat() = this.replace(".", "-")
