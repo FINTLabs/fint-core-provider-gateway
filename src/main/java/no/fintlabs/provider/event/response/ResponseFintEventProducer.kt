@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class ResponseEventTopicProducer(
+class ResponseFintEventProducer(
     eventProducerFactory: ParameterizedTemplateFactory,
     private val eventTopicService: EventTopicService,
     private val responseProducerProperties: ProducerProperties
