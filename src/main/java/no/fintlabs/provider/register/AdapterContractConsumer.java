@@ -64,7 +64,7 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
-        adapterRegistrationTopicService.createOrModifyCapabilityTopics(consumerRecord.value());
+        adapterRegistrationTopicService.createCapabilityTopics(consumerRecord.value());
         adapterContractContext.add(consumerRecord.value());
     }
 
