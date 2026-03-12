@@ -2,7 +2,7 @@ package no.fintlabs.provider.event.request
 
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.event.ResponseFintEvent
-import no.fintlabs.provider.event.response.ResponseEventTopicProducer
+import no.fintlabs.provider.event.response.ResponseFintEventProducer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.*
@@ -11,7 +11,7 @@ import java.util.function.Consumer
 @Service
 class RequestEventService(
     private val requestCache: RequestCache,
-    private val responseProducer: ResponseEventTopicProducer
+    private val responseProducer: ResponseFintEventProducer
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)

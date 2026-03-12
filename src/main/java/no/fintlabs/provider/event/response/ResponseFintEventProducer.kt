@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 
 
 @Service
-class ResponseEventTopicProducer(
+class ResponseFintEventProducer(
     eventProducerFactory: ParameterizedTemplateFactory,
     private val eventTopicService: EventTopicService,
     private val responseProducerProperties: ProducerProperties
@@ -55,6 +55,6 @@ class ResponseEventTopicProducer(
             .eventName(toTopicEventName())
             .build()
 
-    private fun RequestFintEvent.toTopicEventName(): String = "${domainName}-${packageName}-${resourceName}-response"
+    private fun RequestFintEvent.toTopicEventName(): String = "${domainName}-${packageName}-response"
 
 }
