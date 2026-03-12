@@ -61,12 +61,11 @@ class ResponseFintEventConsumer(
                 .build()
         )
 
+    // Example topic: utdanning-vurdering-response
     private fun createEventNames(): Array<String> =
-        metamodelService.getComponents().flatMap { component ->
-            component.resources.map { resource ->
-                "${component.domainName}-${component.packageName}-${resource.name}-response"
-            }
-        }.toTypedArray()
+        metamodelService.getComponents()
+            .map { component -> "${component.domainName}-${component.packageName}-response" }
+            .toTypedArray()
 
     private fun processEvent(consumerRecord: ConsumerRecord<String?, ResponseFintEvent>) {
         logger.info("ResponseFintEvent received: {} - {}", consumerRecord.value().orgId, consumerRecord.value().corrId)

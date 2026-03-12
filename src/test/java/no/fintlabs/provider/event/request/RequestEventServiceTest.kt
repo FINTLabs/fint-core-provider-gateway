@@ -8,7 +8,7 @@ import io.mockk.slot
 import io.mockk.verify
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.event.ResponseFintEvent
-import no.fintlabs.provider.event.response.ResponseEventTopicProducer
+import no.fintlabs.provider.event.response.ResponseFintEventProducer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -18,7 +18,7 @@ import java.util.function.Consumer
 class RequestEventServiceTest {
 
     private lateinit var requestCache: RequestCache
-    private lateinit var responseProducer: ResponseEventTopicProducer
+    private lateinit var responseProducer: ResponseFintEventProducer
     private lateinit var service: RequestEventService
 
     @BeforeEach
