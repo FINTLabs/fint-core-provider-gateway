@@ -28,6 +28,10 @@ class EntityProducer(
 
     private val producer = parameterizedTemplateFactory.createTemplate(Any::class.java)
 
+    companion object {
+        const val KEY_DELIMITER = "\u001F"
+    }
+
     fun sendSyncEntity(
         syncPage: SyncPage,
         syncEntry: SyncPageEntry
@@ -35,7 +39,7 @@ class EntityProducer(
         syncPage.metadata.toTopic().let { topic ->
             producer.send(
                 ParameterizedProducerRecord.builder<Any>()
-                    .key("${syncPage.getResourceName()}_${syncEntry.identifier}")
+                    .key("${syncPage.getResourceName()}$KEY_DELIMITER${syncEntry.identifier}")
                     .topicNameParameters(topic)
                     .headers(attachSyncHeaders(syncPage))
                     .value(syncEntry.resource)
@@ -51,7 +55,7 @@ class EntityProducer(
         request.toTopic().let { topic ->
             producer.send(
                 ParameterizedProducerRecord.builder<Any>()
-                    .key("${request.resourceName}_${syncEntry.identifier}")
+                    .key("${request.resourceName}$KEY_DELIMITER${syncEntry.identifier}")
                     .topicNameParameters(topic)
                     .headers(attachDefaultHeaders(request.resourceName, lastUpdated)) // not sync
                     .value(syncEntry.resource)
