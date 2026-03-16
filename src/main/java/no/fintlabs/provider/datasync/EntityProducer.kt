@@ -28,11 +28,18 @@ class EntityProducer(
 
     private val producer = parameterizedTemplateFactory.createTemplate(Any::class.java)
 
-    fun sendSyncEntity(syncPage: SyncPage, syncEntry: SyncPageEntry): CompletableFuture<SendResult<String, Any>> =
+    companion object {
+        const val KEY_DELIMITER = "\u001F"
+    }
+
+    fun sendSyncEntity(
+        syncPage: SyncPage,
+        syncEntry: SyncPageEntry
+    ): CompletableFuture<SendResult<String, Any>> =
         syncPage.metadata.toTopic().let { topic ->
             producer.send(
                 ParameterizedProducerRecord.builder<Any>()
-                    .key(syncEntry.identifier)
+                    .key("${syncPage.getResourceName()}$KEY_DELIMITER${syncEntry.identifier}")
                     .topicNameParameters(topic)
                     .headers(attachSyncHeaders(syncPage))
                     .value(syncEntry.resource)
@@ -42,16 +49,16 @@ class EntityProducer(
 
     fun sendEventEntity(
         request: RequestFintEvent,
-        syncPageEntry: SyncPageEntry,
+        syncEntry: SyncPageEntry,
         lastUpdated: Long
     ): CompletableFuture<SendResult<String, Any>> =
         request.toTopic().let { topic ->
             producer.send(
                 ParameterizedProducerRecord.builder<Any>()
-                    .key(syncPageEntry.identifier)
+                    .key("${request.resourceName}$KEY_DELIMITER${syncEntry.identifier}")
                     .topicNameParameters(topic)
                     .headers(attachDefaultHeaders(request.resourceName, lastUpdated)) // not sync
-                    .value(syncPageEntry.resource)
+                    .value(syncEntry.resource)
                     .build()
             )
         }

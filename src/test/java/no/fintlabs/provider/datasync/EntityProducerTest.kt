@@ -9,6 +9,7 @@ import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
+import no.fintlabs.provider.datasync.EntityProducer.Companion.KEY_DELIMITER
 import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
 import no.fintlabs.provider.kafka.TopicNamesConstants.RESOURCE_NAME
 import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
@@ -97,7 +98,7 @@ class EntityProducerTest {
         assertEquals(expectedSyncCorrId, record.getHeaderValue(SYNC_CORRELATION_ID).toString(Charset.defaultCharset()))
         assertEquals(expectedResourceName, record.getHeaderValue(RESOURCE_NAME).toString(Charset.defaultCharset()))
         assertEquals(expectedSyncTotalSize, record.getHeaderValue(SYNC_TOTAL_SIZE).long())
-        assertEquals(entry.identifier, record.key)
+        assertEquals("${expectedResourceName}$KEY_DELIMITER${entry.identifier}", record.key)
         assertEquals(entry.resource, record.value)
     }
 
@@ -137,7 +138,7 @@ class EntityProducerTest {
         assertNull(record.getHeader(SYNC_TYPE))
         assertNull(record.getHeader(SYNC_CORRELATION_ID))
         assertNull(record.getHeader(SYNC_TOTAL_SIZE))
-        assertEquals(entry.identifier, record.key)
+        assertEquals("${expectedResourceName}$KEY_DELIMITER${entry.identifier}", record.key)
         assertEquals(entry.resource, record.value)
     }
 
