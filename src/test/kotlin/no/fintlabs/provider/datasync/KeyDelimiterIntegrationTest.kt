@@ -16,8 +16,10 @@ import org.springframework.kafka.test.utils.KafkaTestUtils
 import java.time.Duration
 import java.util.*
 
+private const val TOPIC = "fintlabs-no.fint-core.entity.utdanning-vurdering-elevfravar"
+
 @SpringBootTest
-@EmbeddedKafka(partitions = 1)
+@EmbeddedKafka(partitions = 1, topics = [TOPIC])
 class KeyDelimiterIntegrationTest {
 
     @Autowired
@@ -50,7 +52,7 @@ class KeyDelimiterIntegrationTest {
         consumerProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         consumerProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
         val consumer = DefaultKafkaConsumerFactory<String, String>(consumerProps).createConsumer()
-        consumer.subscribe(listOf("fintlabs-no.fint-core.entity.utdanning-vurdering-elevfravar"))
+        consumer.subscribe(listOf(TOPIC))
 
         val records = KafkaTestUtils.getRecords(consumer, Duration.ofSeconds(5))
         val record = records.first()
