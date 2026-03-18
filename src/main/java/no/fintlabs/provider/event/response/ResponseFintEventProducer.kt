@@ -10,6 +10,8 @@ import no.novari.kafka.topic.configuration.EventCleanupFrequency
 import no.novari.kafka.topic.configuration.EventTopicConfiguration
 import no.novari.kafka.topic.name.EventTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
+import no.novari.metamodel.MetamodelService
+import no.novari.metamodel.model.Component
 import org.springframework.stereotype.Service
 
 
@@ -17,22 +19,48 @@ import org.springframework.stereotype.Service
 class ResponseFintEventProducer(
     eventProducerFactory: ParameterizedTemplateFactory,
     private val eventTopicService: EventTopicService,
-    private val responseProducerProperties: ProducerProperties
+    private val responseProducerProperties: ProducerProperties,
+    private val metamodelService: MetamodelService
 ) {
+
+    init {
+        listOf(
+            "afk-no",
+            "agderfk-no",
+            "bfk-no",
+            "ffk-no",
+            "fintlabs-no",
+            "innlandetfylke-no",
+            "mrfylke-no",
+            "nfk-no",
+            "ofk-no",
+            "rogfk-no",
+            "telemarkfylke-no",
+            "tromsfylke-no",
+            "trondelagfylke-no",
+            "ude-oslo-kommune-no",
+            "vestfoldfylke-no",
+            "visma-com",
+            "vlfk-no"
+        ).forEach { orgId ->
+            metamodelService.getComponents().forEach { component ->
+                eventTopicService.createOrModifyTopic(
+                    component.toTopicNameParameters(orgId),
+                    EventTopicConfiguration.stepBuilder()
+                        .partitions(responseProducerProperties.partitions)
+                        .retentionTime(responseProducerProperties.retentionTime)
+                        .cleanupFrequency(EventCleanupFrequency.NORMAL)
+                        .build()
+                )
+            }
+
+        }
+    }
 
     private val eventProducer = eventProducerFactory.createTemplate(ResponseFintEvent::class.java)
 
     fun sendEvent(responseFintEvent: ResponseFintEvent, requestFintEvent: RequestFintEvent) {
         val topicNameParameters = requestFintEvent.toTopicNameParameters()
-
-        eventTopicService.createOrModifyTopic(
-            topicNameParameters,
-            EventTopicConfiguration.stepBuilder()
-                .partitions(responseProducerProperties.partitions)
-                .retentionTime(responseProducerProperties.retentionTime)
-                .cleanupFrequency(EventCleanupFrequency.NORMAL)
-                .build()
-        )
 
         eventProducer.send(
             ParameterizedProducerRecord.builder<ResponseFintEvent>()
@@ -52,9 +80,20 @@ class ResponseFintEventProducer(
                     .domainContextApplicationDefault()
                     .build()
             )
-            .eventName(toTopicEventName())
+            .eventName("${domainName}-${packageName}-response")
             .build()
 
-    private fun RequestFintEvent.toTopicEventName(): String = "${domainName}-${packageName}-response"
+    private fun Component.toTopicNameParameters(orgId: String) =
+        EventTopicNameParameters
+            .builder()
+            .topicNamePrefixParameters(
+                TopicNamePrefixParameters
+                    .stepBuilder()
+                    .orgId(orgId)
+                    .domainContextApplicationDefault()
+                    .build()
+            )
+            .eventName("${domainName}-${packageName}-response")
+            .build()
 
 }
