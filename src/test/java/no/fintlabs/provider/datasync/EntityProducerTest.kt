@@ -129,7 +129,7 @@ class EntityProducerTest {
                     .domainContextApplicationDefault()
                     .build()
             )
-            .resourceName("utdanning-vurdering-elevfravar")
+            .resourceName("utdanning-vurdering")
             .build()
 
         assertEquals(expected, record.topicNameParameters)
