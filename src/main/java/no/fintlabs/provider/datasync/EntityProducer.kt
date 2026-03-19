@@ -84,7 +84,7 @@ class EntityProducer(
                     .domainContextApplicationDefault()
                     .build()
             )
-            .resourceName("$domainName-$packageName-$resourceName")
+            .resourceName("$domainName-$packageName")
             .build()
 
     private fun String.toComponentPattern() =
