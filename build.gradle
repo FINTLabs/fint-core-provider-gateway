@@ -5,8 +5,8 @@ plugins {
     id 'groovy'
     id "com.github.ben-manes.versions" version "0.53.0"
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
-    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
-    id 'org.jetbrains.kotlin.plugin.spring' version '2.2.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.3.10'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.3.10'
 }
 
 group = 'no.fintlabs'
@@ -14,7 +14,7 @@ version = System.getenv("RELEASE_VERSION") ?: '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -101,5 +101,5 @@ tasks.register('benchmarkKafkaProducer', JavaExec) {
     }
 }
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
