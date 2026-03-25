@@ -37,6 +37,7 @@ dependencies {
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
     implementation 'no.fintlabs:fint-kafka:3.2.0-rc-1'
     implementation 'no.fintlabs:fint-core-resource-server-security:2.1.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
@@ -46,6 +47,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "io.mockk:mockk:1.14.6"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    runtimeOnly 'org.postgresql:postgresql'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
