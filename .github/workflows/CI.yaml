@@ -39,8 +39,15 @@ jobs:
         with:
           gradle-version: wrapper
 
+      - name: Start services from docker-compose
+        run: docker compose up -d --wait
+
       - name: Gradle build
         run: ./gradlew build
+
+      - name: Stop docker images
+        if: always() #Make sure docker gets shut down when tests are done even when they fail
+        run: docker compose down -v
 
       - name: Trigger CD
         if: github.ref == 'refs/heads/main'

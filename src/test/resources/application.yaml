@@ -27,6 +27,23 @@ novari:
       domain-context: fint-core
 
 spring:
+  jpa:
+    properties:
+      jdbc:
+        time_zone: UTC
+        lob:
+          non_contextual_creation: true
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      enable_lazy_load_no_trans: true
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    url: jdbc:postgresql://localhost:5436/contract
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: public
   kafka:
     # MAGIC HAPPENS HERE: This variable is automatically populated by the @EmbeddedKafka annotation
     bootstrap-servers: ${spring.embedded.kafka.brokers}
