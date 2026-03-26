@@ -25,6 +25,9 @@ novari:
       batch-size: 64KB
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   kafka:
     consumer:
       group-id: provider
