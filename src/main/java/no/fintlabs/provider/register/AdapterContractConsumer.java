@@ -27,6 +27,7 @@ public class AdapterContractConsumer {
     private final ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService;
     private final ErrorHandlerFactory errorHandlerFactory;
     private final KafkaConfig kafkaConfig;
+    private final ContractJpaRepository contractJpaRepository;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, AdapterContract> registerAdapterContractListener() {
@@ -63,6 +64,7 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
+        contractJpaRepository.save(new ContractEntity(consumerRecord.value()));
         adapterContractContext.add(consumerRecord.value());
     }
 
