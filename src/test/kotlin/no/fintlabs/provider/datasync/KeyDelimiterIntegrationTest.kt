@@ -16,7 +16,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils
 import java.time.Duration
 import java.util.*
 
-private const val TOPIC = "fintlabs-no.fint-core.entity.utdanning-vurdering-elevfravar"
+private const val TOPIC = "fintlabs-no.fint-core.entity.utdanning-vurdering"
 
 @SpringBootTest
 @EmbeddedKafka(partitions = 1, topics = [TOPIC])
