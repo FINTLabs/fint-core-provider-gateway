@@ -6,11 +6,13 @@ import no.novari.kafka.topic.configuration.EventCleanupFrequency
 import no.novari.kafka.topic.configuration.EventTopicConfiguration
 import no.novari.kafka.topic.name.EventTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "fint.provider", name = ["ensure-topics"], havingValue = "true")
 class EventTopicEnsurer(
     private val adapterKafkaProperties: AdapterKafkaProperties,
     private val eventTopicService: EventTopicService
