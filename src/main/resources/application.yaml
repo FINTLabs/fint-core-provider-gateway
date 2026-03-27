@@ -1,4 +1,24 @@
 fint:
+  provider:
+    ensure-topics: false
+    org-ids:
+      - afk-no
+      - agderfk-no
+      - bfk-no
+      - ffk-no
+      - fintlabs-no
+      - innlandetfylke-no
+      - mrfylke-no
+      - nfk-no
+      - ofk-no
+      - rogfk-no
+      - telemarkfylke-no
+      - tromsfylke-no
+      - trondelagfylke-no
+      - ude-oslo-kommune-no
+      - vestfoldfylke-no
+      - visma-com
+      - vlfk-no
   metamodel:
     base-url: http://fint-core-consumer-metamodel:8080
   security:
