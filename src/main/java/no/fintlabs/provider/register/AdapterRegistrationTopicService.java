@@ -19,15 +19,15 @@ public class AdapterRegistrationTopicService {
 
     public void ensureCapabilityTopics(AdapterContract adapterContract) {
         adapterContract.getCapabilities().forEach(capability -> {
-            long retentionTime = Duration.ofDays(7).toMillis();
+            long retensionTime = Duration.ofDays(capability.getFullSyncIntervalInDays()).toMillis();
             EntityTopicNameParameters topicNameParameters = createTopicNameParameters(adapterContract.getOrgId(), capability);
 
             if (providerTopicService.topicExists(topicNameParameters)) {
-                if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retentionTime)) {
-                    providerTopicService.ensureTopic(topicNameParameters, retentionTime);
+                if (providerTopicService.topicHasDifferentRetentionTime(topicNameParameters, retensionTime)) {
+                    providerTopicService.ensureTopic(topicNameParameters, retensionTime);
                 }
             } else {
-                providerTopicService.ensureTopic(topicNameParameters, retentionTime);
+                providerTopicService.ensureTopic(topicNameParameters, retensionTime);
             }
         });
     }

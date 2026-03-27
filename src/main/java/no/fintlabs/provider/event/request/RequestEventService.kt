@@ -1,87 +1,70 @@
-package no.fintlabs.provider.event.request;
+package no.fintlabs.provider.event.request
 
-import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.adapter.models.event.RequestFintEvent;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import no.fintlabs.adapter.models.event.RequestFintEvent
+import no.fintlabs.adapter.models.event.ResponseFintEvent
+import no.fintlabs.provider.event.response.ResponseEventTopicProducer
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import java.time.Duration
+import java.util.Optional
+import java.util.function.Consumer
 
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-@Slf4j
 @Service
-public class RequestEventService {
+class RequestEventService(
+    private val requestCache: RequestCache,
+    private val responseProducer: ResponseEventTopicProducer
+) {
 
-    private static final int DAYS_TO_KEEP_REMOVED_EVENTS = 2;
-    private static final int EXTRA_MINUTES_TO_KEEP_EVENTS = 20;
-    private static final int DEFAULT_MINUTES_TO_KEEP_EVENTS = 60;
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-    private final Map<String, RequestFintEvent> events = new LinkedHashMap<>();
-    private final Map<String, LocalDate> removedEvents = new HashMap<>();
+    init {
+        requestCache.onExpired = Consumer { event -> sendExpiredResponse(event) }
+    }
 
-    public void addEvent(RequestFintEvent event) {
-        ensureEventsTimeToLive(event);
+    fun getEvents(
+        assets: Set<String>,
+        domainName: String? = null,
+        packageName: String? = null,
+        resourceName: String? = null,
+        size: Int = 0
+    ): List<RequestFintEvent> {
+        val stream = requestCache.getAll()
+            .filter { assets.contains(it.orgId) }
+            .filter { domainName.isNullOrBlank() || it.domainName.equals(domainName, ignoreCase = true) }
+            .filter { packageName.isNullOrBlank() || it.packageName.equals(packageName, ignoreCase = true) }
+            .filter { resourceName.isNullOrBlank() || it.resourceName.equals(resourceName, ignoreCase = true) }
 
-        if (removedEvents.containsKey(event.getCorrId())) {
-            log.debug("Event with corrId: {} not added because in removed events", event.getCorrId());
-        } else {
-            events.put(event.getCorrId(), event);
-            log.debug("Event with corrId: {} added", event.getCorrId());
+        return if (size > 0) stream.take(size).toList() else stream.toList()
+    }
+
+    fun addEvent(event: RequestFintEvent) {
+        if (requestCache.add(event)) {
+            logger.debug("Event with corrId: {} added", event.corrId)
         }
     }
 
-    public void removeEvent(String corrId) {
-        removedEvents.put(corrId, LocalDate.now());
+    fun removeEvent(corrId: String) {
+        requestCache.remove(corrId)
+        logger.debug("Event with corrId: {} removed", corrId)
+    }
 
-        if (events.containsKey(corrId)) {
-            events.remove(corrId);
-            log.debug("Event with corrId: {} removed", corrId);
-        } else {
-            log.warn("Failed to remove event with corrId: {}", corrId);
+    fun getEvent(corrId: String): Optional<RequestFintEvent> = Optional.ofNullable(requestCache.get(corrId))
+
+    /**
+     * Caffeine triggers this automatically when an item expires.
+     */
+    private fun sendExpiredResponse(request: RequestFintEvent) {
+        logger.info("Event {} expired. Sending expired response.", request.corrId)
+        responseProducer.sendEvent(request.toResponse(), request)
+    }
+
+    private fun RequestFintEvent.toResponse(): ResponseFintEvent =
+        ResponseFintEvent().apply {
+            corrId = this@toResponse.corrId
+            orgId = this@toResponse.orgId
+            handledAt = System.currentTimeMillis()
+            isFailed = true
+            errorMessage = "Event expired after waiting ${Duration.ofMillis(timeToLive).toMinutes()} minutes."
         }
-    }
 
-    public List<RequestFintEvent> getEvents(Set<String> assets, String domainName, String packageName, String resourceName, int size) {
-        Stream<RequestFintEvent> stream = events.values().stream()
-                .filter(event -> assets.contains(event.getOrgId()))
-                .filter(event -> StringUtils.isBlank(domainName) || StringUtils.equalsIgnoreCase(event.getDomainName(), domainName))
-                .filter(event -> StringUtils.isBlank(packageName) || StringUtils.equalsIgnoreCase(event.getPackageName(), packageName))
-                .filter(event -> StringUtils.isBlank(resourceName) || StringUtils.equalsIgnoreCase(event.getResourceName(), resourceName));
-
-        if (size > 0) stream = stream.limit(size);
-        if (assets.isEmpty()) {
-            log.info("No assets present (this shouldn't happen)");
-        }
-
-        return stream.collect(Collectors.toList());
-    }
-
-    public Optional<RequestFintEvent> getEvent(String corrId) {
-        return Optional.ofNullable(events.get(corrId));
-    }
-
-    private void ensureEventsTimeToLive(RequestFintEvent event) {
-        if (event.getTimeToLive() == 0) {
-            long timeToLive = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(DEFAULT_MINUTES_TO_KEEP_EVENTS);
-            log.debug("Setting timeToLive for event with corrId: {} to: {}", event.getCorrId(), timeToLive);
-            event.setTimeToLive(timeToLive);
-        }
-    }
-
-    @Scheduled(cron = "0 0 10,15 * * ?")
-    protected void purgeExpiredRemovedEvents() {
-        LocalDate now = LocalDate.now();
-        removedEvents.entrySet().removeIf(entry -> entry.getValue().isBefore(now.minusDays(DAYS_TO_KEEP_REMOVED_EVENTS)));
-    }
-
-    @Scheduled(cron = "0 */15 * * * *")
-    protected void purgeExpiredEvents() {
-        long now = System.currentTimeMillis();
-        long buffer = TimeUnit.MINUTES.toMillis(EXTRA_MINUTES_TO_KEEP_EVENTS);
-        events.entrySet().removeIf(entry -> entry.getValue().getTimeToLive() + buffer < now);
-    }
 }
