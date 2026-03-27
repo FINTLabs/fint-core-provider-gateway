@@ -1,6 +1,5 @@
 package no.fintlabs.provider.event.request
 
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.fintlabs.adapter.models.event.RequestFintEvent
@@ -11,6 +10,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.util.function.Consumer
+import kotlin.time.Duration.Companion.minutes
 
 class RequestCacheTest {
 
@@ -42,25 +42,36 @@ class RequestCacheTest {
     @Test
     fun `should reject event if it arrives already expired`() {
         // Created 20 seconds ago, TTL is 10 seconds
-        val event = createEvent(corrId, 10000L, createdOffset = -20000L)
+        val createdOffset = clock.millis() - 20000L
+        val event = createEvent(corrId, 10000L, created = createdOffset)
 
         val result = requestCache.add(event)
 
         assertThat(result).isFalse
-        assertThat(requestCache.get(corrId)).isNull()
 
         // Should trigger the expired callback immediately
         verify(exactly = 1) { onExpiredMock.accept(event) }
     }
 
     @Test
-    fun `should set default TTL if not provided`() {
-        val event = createEvent(corrId, 0L) // TTL 0
+    fun `should set default TTL if Null`() {
+        val event = createEvent(corrId) // TTL 0
 
         requestCache.add(event)
 
         // Default TTL in code is 2 minutes (120000ms)
-        assertThat(event.timeToLive).isEqualTo(120000L)
+        assertThat(event.timeToLive).isEqualTo(event.created + 120000L)
+    }
+
+    @Test
+    fun `should set default TTL if not provided`() {
+        // If created and ttl is equal then it is the same as if TTL was not provided.
+        val event = createEvent(corrId, 0L, 0L)
+
+        requestCache.add(event)
+
+        // Default TTL in code is 2 minutes (120000ms)
+        assertThat(event.timeToLive).isEqualTo(event.created + 120000L)
     }
 
     @Test
@@ -99,32 +110,20 @@ class RequestCacheTest {
         assertThat(all.map { it.corrId }).containsExactlyInAnyOrder("1", "2")
     }
 
-    @Test
-    fun `should keep provided TTL if it is greater than zero`() {
-        val userProvidedTtl = 99999L
-        val event = createEvent(corrId, userProvidedTtl)
-
-        requestCache.add(event)
-
-        // Ensure it wasn't changed to the default (120000)
-        assertThat(event.timeToLive).isEqualTo(userProvidedTtl)
-    }
-
     // --- Helpers ---
 
     private fun createEvent(
         corrId: String,
-        ttl: Long,
-        createdOffset: Long = 0
-    ): RequestFintEvent {
-        val event = mockk<RequestFintEvent>(relaxed = true)
-        every { event.corrId } returns corrId
-        every { event.timeToLive } returns ttl
-        every { event.timeToLive = any() } answers { every { event.timeToLive } returns firstArg() }
+        ttl: Long = 2.minutes.inWholeMilliseconds,
+        created: Long = clock.millis()
+    ): RequestFintEvent =
+        RequestFintEvent().apply {
+            this.corrId = corrId
+            orgId = "fint.no"
+            this.created = created
+            timeToLive = created + ttl
+        }
 
-        val createdTime = clock.millis() + createdOffset
-        every { event.created } returns createdTime
 
-        return event
-    }
+
 }

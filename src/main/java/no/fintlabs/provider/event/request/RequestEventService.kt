@@ -2,17 +2,16 @@ package no.fintlabs.provider.event.request
 
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.event.ResponseFintEvent
-import no.fintlabs.provider.event.response.ResponseEventTopicProducer
+import no.fintlabs.provider.event.response.ResponseFintEventProducer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.Duration
-import java.util.Optional
+import java.util.*
 import java.util.function.Consumer
 
 @Service
 class RequestEventService(
     private val requestCache: RequestCache,
-    private val responseProducer: ResponseEventTopicProducer
+    private val responseProducer: ResponseFintEventProducer
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -64,7 +63,7 @@ class RequestEventService(
             orgId = this@toResponse.orgId
             handledAt = System.currentTimeMillis()
             isFailed = true
-            errorMessage = "Event expired after waiting ${Duration.ofMillis(timeToLive).toMinutes()} minutes."
+            errorMessage = "Event expired."
         }
 
 }

@@ -41,7 +41,9 @@ class RequestCache(
         }
 
         // Apply default if missing
-        if (event.timeToLive <= 0) event.timeToLive = defaultTtl
+        if (event.timeToLive <= 0) {
+            event.timeToLive = event.created + defaultTtl
+        }
 
         if (event.isExpired()) {
             logger.debug("Event ${event.corrId} rejected: Arrived expired.")
@@ -64,7 +66,7 @@ class RequestCache(
 
     private fun isTombstoned(corrId: String): Boolean = tombstoneCache.getIfPresent(corrId) != null
 
-    private fun RequestFintEvent.isExpired(): Boolean = (clock.millis() - created) >= timeToLive
+    private fun RequestFintEvent.isExpired(): Boolean = timeToLive - clock.millis() <= 0
 
     /**
      * Handles Caffeine eviction.
@@ -77,14 +79,9 @@ class RequestCache(
         }
     }
 
-    /**
-     * Calculates the exact nanoseconds remaining for a specific item
-     * based on its creation timestamp.
-     */
     private inner class RequestExpiryPolicy : Expiry<String, RequestFintEvent> {
         override fun expireAfterCreate(key: String, value: RequestFintEvent, now: Long): Long {
-            val expirationTime = value.created + value.timeToLive
-            val remainingMillis = expirationTime - clock.millis()
+            val remainingMillis = value.timeToLive - clock.millis()
 
             // Caffeine requires non-negative nanoseconds
             return TimeUnit.MILLISECONDS.toNanos(max(0, remainingMillis))

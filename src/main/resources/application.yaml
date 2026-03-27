@@ -12,19 +12,30 @@ fint:
       /ready,
       /offset
   kafka:
-    topic:
-      domain-context: fint-core
-    application-id: provider
     enable-ssl: true
 
+novari:
+  kafka:
+    topic:
+      org-id: fintlabs-no
+      domain-context: fint-core
+    application-id: provider
+    producer:
+      linger: 0ms
+      batch-size: 64KB
+
 spring:
+  threads:
+    virtual:
+      enabled: true
   kafka:
     consumer:
       group-id: provider
   webflux:
     base-path: /provider
-  codec:
-    max-in-memory-size: 200MB
+  http:
+    codecs:
+      max-in-memory-size: 200MB
 
 management:
   endpoints:

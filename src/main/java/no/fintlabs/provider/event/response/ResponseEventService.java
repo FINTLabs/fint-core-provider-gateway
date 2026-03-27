@@ -21,7 +21,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ResponseEventService {
 
-    private final ResponseEventTopicProducer responseEventTopicProducer;
+    private final ResponseFintEventProducer responseFintEventProducer;
     private final RequestEventService requestEventService;
     private final EntityProducer entityProducer;
 
@@ -31,7 +31,7 @@ public class ResponseEventService {
 
         validateEvent(requestEvent, responseFintEvent, corePrincipal);
 
-        responseEventTopicProducer.sendEvent(responseFintEvent, requestEvent);
+        responseFintEventProducer.sendEvent(responseFintEvent, requestEvent);
         requestEventService.removeEvent(responseFintEvent.getCorrId());
 
         if (!createRequestFailed(responseFintEvent) && eventIsNotValidate(responseFintEvent)) {
