@@ -21,7 +21,7 @@ public class RegistrationService {
         adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
         adapterContract.setTime(System.currentTimeMillis());
         adapterRegistrationTopicService.createCapabilityTopics(adapterContract);
-        adapterContractProducer.send(adapterContract);
+        //adapterContractProducer.send(adapterContract);
         adapterContractContext.add(adapterContract);
         log.info("New adapter has registered: {}", adapterContract.getAdapterId());
     }
