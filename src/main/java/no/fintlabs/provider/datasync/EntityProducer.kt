@@ -4,12 +4,15 @@ import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
-import no.fintlabs.kafka.common.topic.TopicNameParameters
-import no.fintlabs.kafka.entity.EntityProducerFactory
-import no.fintlabs.kafka.entity.EntityProducerRecord
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters
-import no.fintlabs.provider.kafka.ProviderTopicService
-import no.fintlabs.provider.kafka.TopicNamesConstants.*
+import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
+import no.fintlabs.provider.kafka.TopicNamesConstants.RESOURCE_NAME
+import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
+import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
+import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
+import no.novari.kafka.producing.ParameterizedProducerRecord
+import no.novari.kafka.producing.ParameterizedTemplateFactory
+import no.novari.kafka.topic.name.EntityTopicNameParameters
+import no.novari.kafka.topic.name.TopicNamePrefixParameters
 import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.kafka.support.SendResult
 import org.springframework.stereotype.Component
@@ -19,20 +22,26 @@ import java.util.concurrent.CompletableFuture
 
 @Component
 class EntityProducer(
-    entityProducerFactory: EntityProducerFactory,
-    private val topicService: ProviderTopicService,
+    parameterizedTemplateFactory: ParameterizedTemplateFactory,
     private val clock: Clock
 ) {
 
-    private val producer = entityProducerFactory.createProducer(Any::class.java)
+    private val producer = parameterizedTemplateFactory.createTemplate(Any::class.java)
 
-    fun sendSyncEntity(syncPage: SyncPage, syncEntry: SyncPageEntry): CompletableFuture<SendResult<String, Any>> =
+    companion object {
+        const val KEY_DELIMITER = "\u001F"
+    }
+
+    fun sendSyncEntity(
+        syncPage: SyncPage,
+        syncEntry: SyncPageEntry
+    ): CompletableFuture<SendResult<String, Any>> =
         syncPage.metadata.toTopic().let { topic ->
             producer.send(
-                EntityProducerRecord.builder<Any>()
-                    .key(syncEntry.identifier)
+                ParameterizedProducerRecord.builder<Any>()
+                    .key("${syncPage.getResourceName()}$KEY_DELIMITER${syncEntry.identifier}")
                     .topicNameParameters(topic)
-                    .headers(attachSyncHeaders(topic, syncPage))
+                    .headers(attachSyncHeaders(syncPage))
                     .value(syncEntry.resource)
                     .build()
             )
@@ -40,59 +49,65 @@ class EntityProducer(
 
     fun sendEventEntity(
         request: RequestFintEvent,
-        syncPageEntry: SyncPageEntry
+        syncEntry: SyncPageEntry,
+        lastUpdated: Long
     ): CompletableFuture<SendResult<String, Any>> =
         request.toTopic().let { topic ->
             producer.send(
-                EntityProducerRecord.builder<Any>()
-                    .key(syncPageEntry.identifier)
+                ParameterizedProducerRecord.builder<Any>()
+                    .key("${request.resourceName}$KEY_DELIMITER${syncEntry.identifier}")
                     .topicNameParameters(topic)
-                    .headers(attachDefaultHeaders(topic)) // not sync
-                    .value(syncPageEntry.resource)
+                    .headers(attachDefaultHeaders(request.resourceName, lastUpdated)) // not sync
+                    .value(syncEntry.resource)
                     .build()
             )
         }
 
     private fun SyncPageMetadata.toTopic() =
         EntityTopicNameParameters.builder()
-            .orgId(this.orgId.topicFormat())
-            .domainContext(FINT_CORE)
-            .resource(uriRef.toTopicResource())
+            .topicNamePrefixParameters(
+                TopicNamePrefixParameters
+                    .stepBuilder()
+                    .orgId(this.orgId.topicFormat())
+                    .domainContextApplicationDefault()
+                    .build()
+            )
+            .resourceName(uriRef.toComponentPattern())
             .build()
 
     private fun RequestFintEvent.toTopic(): EntityTopicNameParameters =
         EntityTopicNameParameters.builder()
-            .orgId(orgId.replace("-", "."))
-            .domainContext(FINT_CORE)
-            .resource("$domainName-$packageName-$resourceName")
+            .topicNamePrefixParameters(
+                TopicNamePrefixParameters
+                    .stepBuilder()
+                    .orgId(orgId.topicFormat())
+                    .domainContextApplicationDefault()
+                    .build()
+            )
+            .resourceName("$domainName-$packageName")
             .build()
 
-    private fun String.toTopicResource() =
+    private fun String.toComponentPattern() =
         this.split("/")
-            .take(3)
+            .take(2)
             .joinToString("-")
-
 
     private fun String.topicFormat() = this.replace(".", "-")
 
-    private fun attachDefaultHeaders(topic: TopicNameParameters) =
+    private fun attachDefaultHeaders(resourceName: String, lastUpdated: Long = clock.millis()) =
         RecordHeaders().apply {
-            add(LAST_MODIEFIED, clock.millis().toByteArray())
-            attachTopicRetentionIfValid(this, topic)
+            add(RESOURCE_NAME, resourceName.toByteArray())
+            add(LAST_UPDATED, lastUpdated.toByteArray())
         }
 
-    private fun attachSyncHeaders(topic: TopicNameParameters, syncPage: SyncPage) =
-        attachDefaultHeaders(topic).apply {
+    private fun attachSyncHeaders(syncPage: SyncPage) =
+        attachDefaultHeaders(syncPage.getResourceName()).apply {
             add(SYNC_TYPE, byteArrayOf(syncPage.syncType.ordinal.toByte()))
             add(SYNC_CORRELATION_ID, syncPage.metadata.corrId.toByteArray())
             add(SYNC_TOTAL_SIZE, syncPage.metadata.totalSize.toByteArray())
         }
 
-    private fun attachTopicRetentionIfValid(records: RecordHeaders, topic: TopicNameParameters) =
-        topicService.getRetensionTime(topic).takeIf { it.validRetentionTime() }
-            ?.let { records.add(TOPIC_RETENTION_TIME, it.toByteArray()) }
-
-    private fun Long.validRetentionTime() = this != 0L
+    private fun SyncPage.getResourceName() = metadata.uriRef.split("/").last()
 
     private fun Long.toByteArray(): ByteArray =
         ByteBuffer.allocate(Long.SIZE_BYTES)

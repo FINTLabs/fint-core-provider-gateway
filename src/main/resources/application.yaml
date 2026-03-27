@@ -1,4 +1,24 @@
 fint:
+  provider:
+    ensure-topics: false
+    org-ids:
+      - afk-no
+      - agderfk-no
+      - bfk-no
+      - ffk-no
+      - fintlabs-no
+      - innlandetfylke-no
+      - mrfylke-no
+      - nfk-no
+      - ofk-no
+      - rogfk-no
+      - telemarkfylke-no
+      - tromsfylke-no
+      - trondelagfylke-no
+      - ude-oslo-kommune-no
+      - vestfoldfylke-no
+      - visma-com
+      - vlfk-no
   metamodel:
     base-url: http://fint-core-consumer-metamodel:8080
   security:
@@ -12,19 +32,30 @@ fint:
       /ready,
       /offset
   kafka:
-    topic:
-      domain-context: fint-core
-    application-id: provider
     enable-ssl: true
 
+novari:
+  kafka:
+    topic:
+      org-id: fintlabs-no
+      domain-context: fint-core
+    application-id: provider
+    producer:
+      linger: 0ms
+      batch-size: 64KB
+
 spring:
+  threads:
+    virtual:
+      enabled: true
   kafka:
     consumer:
       group-id: provider
   webflux:
     base-path: /provider
-  codec:
-    max-in-memory-size: 200MB
+  http:
+    codecs:
+      max-in-memory-size: 200MB
 
 management:
   endpoints:

@@ -1,0 +1,48 @@
+server:
+  port: 0 # 0 tells Spring to pick a random available port to avoid port conflicts during CI/CD
+
+fint:
+  metamodel:
+    base-url: http://localhost:8082 # You can mock this using WireMock later if your service actually calls it
+  security:
+    enabled: true
+    component: false
+    org-id: false
+    role-type: adapter
+    open-paths: |
+      /api-docs/**,
+      /swagger/**,
+      /actuator/health,
+      /ready,
+      /offset,
+  kafka:
+    enable-ssl: false
+
+novari:
+  kafka:
+    application-id: provider-test
+    default-replicas: 1
+    topic:
+      org-id: fintlabs-no
+      domain-context: fint-core
+
+spring:
+  kafka:
+    # MAGIC HAPPENS HERE: This variable is automatically populated by the @EmbeddedKafka annotation
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    consumer:
+      group-id: provider-test-group
+      auto-offset-reset: earliest
+    producer:
+      # Ensure Kafka producer doesn't block forever if embedded Kafka acts up
+      properties:
+        max.block.ms: 5000
+  webflux:
+    base-path: /provider
+  codec:
+    max-in-memory-size: 200MB
+
+logging:
+  level:
+    root: INFO
+    no.fintlabs: DEBUG # Helpful to see your datasync logs during testing
