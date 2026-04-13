@@ -7,19 +7,6 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
-  test-database:
-    image: postgres:14.1-alpine
-    restart: always
-    networks:
-      - broker-kafka
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=contract
-    ports:
-      - '5433:5432'
-
-
   kafka:
     image: confluentinc/cp-kafka:7.6.8
     networks:

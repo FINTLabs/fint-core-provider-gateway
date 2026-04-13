@@ -17,8 +17,8 @@ public class CapabilityEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "adapter_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "adapter_id", nullable = false)
     private ContractEntity contractEntity;
 
     private String domainName;
@@ -26,7 +26,6 @@ public class CapabilityEntity {
     private String resourceName;
     private int fullSyncIntervalInDays;
     private String deltaSyncInterval;
-
 
     public CapabilityEntity(AdapterCapability capability) {
         this.domainName = capability.getDomainName();
@@ -39,6 +38,5 @@ public class CapabilityEntity {
     }
 
     public CapabilityEntity() {
-
     }
 }

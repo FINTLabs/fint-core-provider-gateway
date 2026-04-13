@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
 import no.fintlabs.provider.exception.*;
+import no.fintlabs.provider.register.ContractJpaRepository;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class AdapterRequestValidator {
 
     private final AdapterContractContext adapterContractContext;
+    private final ContractJpaRepository contractJpaRepository;
 
     public void validateAdapterId(CorePrincipal corePrincipal, String adapterId) {
         if (!adapterContractContext.userCanAccessAdapter(corePrincipal.getUsername(), adapterId)) {
@@ -31,6 +33,15 @@ public class AdapterRequestValidator {
         if (corePrincipal.doesNotContainAsset(requestedOrgId.replace("-", ".").replace("_", "."))) {
             log.warn("Validation failed: JWT for user '{}' does not have access to organization '{}'. Available assets: {}", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getAssets());
             throw new InvalidOrgId("Adapter assets does not contain the organization for the request");
+        }
+    }
+
+    public void isRegisterd(CorePrincipal corePrincipal, String adapterId) {
+        log.info("Validating if user {} is registered", adapterId);
+        log.info("Checking if user {} exists in repository", corePrincipal.getUsername());
+        if (!contractJpaRepository.existsById(adapterId)) {
+            log.warn("Validation failed: Adapter with id '{}' is not registered", adapterId);
+            throw new InvalidOrgId("Adapter is not registered with any contract");
         }
     }
 

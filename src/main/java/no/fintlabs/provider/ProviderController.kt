@@ -47,6 +47,7 @@ class ProviderController(
     ): ResponseEntity<String> {
         requestValidator.validateOrgId(corePrincipal, adapterHeartbeat.orgId)
         //        requestValidator.validateAdapterId(corePrincipal, adapterHeartbeat.getAdapterId());
+        requestValidator.isRegisterd(corePrincipal, adapterHeartbeat.adapterId)
         heartbeatService.beat(adapterHeartbeat)
         return ResponseEntity.ok("💗")
     }

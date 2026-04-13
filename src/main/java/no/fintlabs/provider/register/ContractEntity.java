@@ -20,8 +20,7 @@ public class ContractEntity {
     private String username;
     private int HeartbeatIntervalInMinutes;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "adapter_id", referencedColumnName = "adapterId")
+    @OneToMany(mappedBy = "contractEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<CapabilityEntity> capabilityEntityset;
 
     public ContractEntity(AdapterContract adapterContract) {
@@ -29,7 +28,11 @@ public class ContractEntity {
         this.adapterId = adapterContract.getAdapterId();
         this.username = adapterContract.getUsername();
         this.HeartbeatIntervalInMinutes = adapterContract.getHeartbeatIntervalInMinutes();
-        this.capabilityEntityset = adapterContract.getCapabilities().stream().map(capability -> new CapabilityEntity(capability)).collect(Collectors.toSet());
+        this.capabilityEntityset = adapterContract.getCapabilities().stream().map(capability -> {
+            CapabilityEntity entity = new CapabilityEntity(capability);
+            entity.setContractEntity(this);
+            return entity;
+        }).collect(Collectors.toSet());
     }
 
     public ContractEntity() {
