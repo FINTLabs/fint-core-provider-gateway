@@ -64,7 +64,6 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
-        contractJpaRepository.save(new ContractEntity(consumerRecord.value()));
         adapterContractContext.saveOrUpdateContract(consumerRecord.value());
     }
 
