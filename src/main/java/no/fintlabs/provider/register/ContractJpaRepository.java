@@ -14,7 +14,7 @@ public interface ContractJpaRepository extends JpaRepository<ContractEntity, Str
     @Query("SELECT DISTINCT adapterId FROM ContractEntity")
     Set<String> getAdapterIds();
 
-    @Query("SELECT DISTINCT username FROM ContractEntity")
+    @Query("SELECT DISTINCT userName FROM ContractEntity")
     boolean existsByUsername(String username);
 
     @Query("""

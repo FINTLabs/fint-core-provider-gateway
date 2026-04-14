@@ -17,8 +17,8 @@ public class ContractEntity {
     @Id
     private String adapterId;
     private String orgId;
-    private String username;
-    private int HeartbeatIntervalInMinutes;
+    private String userName;
+    private int heartbeatIntervalInMinutes;
 
     @OneToMany(mappedBy = "contractEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<CapabilityEntity> capabilityEntityset;
@@ -26,8 +26,8 @@ public class ContractEntity {
     public ContractEntity(AdapterContract adapterContract) {
         this.orgId = adapterContract.getOrgId();
         this.adapterId = adapterContract.getAdapterId();
-        this.username = adapterContract.getUsername();
-        this.HeartbeatIntervalInMinutes = adapterContract.getHeartbeatIntervalInMinutes();
+        this.userName = adapterContract.getUsername();
+        this.heartbeatIntervalInMinutes = adapterContract.getHeartbeatIntervalInMinutes();
         this.capabilityEntityset = adapterContract.getCapabilities().stream().map(capability -> {
             CapabilityEntity entity = new CapabilityEntity(capability);
             entity.setContractEntity(this);
