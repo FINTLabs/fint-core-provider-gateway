@@ -16,12 +16,11 @@ public class RegistrationService {
     private final AdapterContractContext adapterContractContext;
     private final AdapterRegistrationValidator adapterRegistrationValidator;
     private final AdapterRegistrationTopicService adapterRegistrationTopicService;
-    private final ContractJpaRepository contractJpaRepository;
 
     public void register(AdapterContract adapterContract) {
         adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
-        //adapterRegistrationTopicService.createCapabilityTopics(adapterContract);
-        //adapterContractProducer.send(adapterContract);
+        adapterRegistrationTopicService.createCapabilityTopics(adapterContract);
+        adapterContractProducer.send(adapterContract);
         adapterContractContext.saveOrUpdateContract(adapterContract);
     }
 
