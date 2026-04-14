@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.AdapterContract;
 import no.fintlabs.provider.config.KafkaConfig;
-import no.fintlabs.provider.security.AdapterContractContext;
 import no.novari.kafka.consuming.ErrorHandlerConfiguration;
 import no.novari.kafka.consuming.ErrorHandlerFactory;
 import no.novari.kafka.consuming.ListenerConfiguration;
@@ -23,11 +22,10 @@ import static no.fintlabs.provider.kafka.TopicNamesConstants.ADAPTER_REGISTER_EV
 @RequiredArgsConstructor
 public class AdapterContractConsumer {
 
-    private final AdapterContractContext adapterContractContext;
+    private final ContractService contractService;
     private final ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService;
     private final ErrorHandlerFactory errorHandlerFactory;
     private final KafkaConfig kafkaConfig;
-    private final ContractJpaRepository contractJpaRepository;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, AdapterContract> registerAdapterContractListener() {
@@ -64,7 +62,7 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
-        adapterContractContext.saveOrUpdateContract(consumerRecord.value());
+        contractService.saveContract(consumerRecord.value());
     }
 
 }
