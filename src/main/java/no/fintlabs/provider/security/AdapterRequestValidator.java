@@ -36,7 +36,7 @@ public class AdapterRequestValidator {
         }
     }
 
-    public void isRegisterd(CorePrincipal corePrincipal, String adapterId) {
+    public void isRegistered(CorePrincipal corePrincipal, String adapterId) {
         if (!contractJpaRepository.existsById(adapterId)) {
             log.warn("Validation failed: Adapter with id '{}' is not registered", adapterId);
             throw new InvalidOrgId("Adapter is not registered with any contract");
