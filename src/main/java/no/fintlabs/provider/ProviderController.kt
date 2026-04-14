@@ -103,6 +103,7 @@ class ProviderController(
         requestValidator.validateRole(corePrincipal, domain, packageName)
         // TODO: Enable validationg of AdapterId once we persist AdapterContracts
         //        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
+        requestValidator.isRegisterd(corePrincipal, syncPage.metadata.adapterId)
         requestValidator.validateAdapterCapabilityPermission(
             syncPage.metadata.adapterId,
             domain,

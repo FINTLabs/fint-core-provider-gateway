@@ -20,11 +20,9 @@ public class RegistrationService {
 
     public void register(AdapterContract adapterContract) {
         adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
-        adapterContract.setTime(System.currentTimeMillis());
         //adapterRegistrationTopicService.createCapabilityTopics(adapterContract);
         //adapterContractProducer.send(adapterContract);
-        adapterContractContext.add(adapterContract);
-        log.info("New adapter has registered: {}", adapterContract.getAdapterId());
+        adapterContractContext.saveOrUpdateContract(adapterContract);
     }
 
 }
