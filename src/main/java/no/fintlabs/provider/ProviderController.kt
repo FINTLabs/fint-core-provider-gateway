@@ -46,6 +46,7 @@ class ProviderController(
         @RequestBody adapterHeartbeat: AdapterHeartbeat,
     ): ResponseEntity<String> {
         requestValidator.validateOrgId(corePrincipal, adapterHeartbeat.orgId)
+        requestValidator.isRegistered(corePrincipal, adapterHeartbeat.username)
         heartbeatService.beat(adapterHeartbeat)
         return ResponseEntity.ok("💗")
     }
@@ -101,7 +102,7 @@ class ProviderController(
         requestValidator.validateRole(corePrincipal, domain, packageName)
         // TODO: Verify user got a contract registered once we persist AdapterContracts
         requestValidator.validateAdapterCapabilityPermission(
-            syncPage.metadata.adapterId,
+            corePrincipal.username,
             domain,
             packageName,
             entity,

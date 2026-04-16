@@ -18,7 +18,7 @@ public class CapabilityEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "adapter_id", nullable = false)
+    @JoinColumn(name = "user_name", nullable = false)
     private ContractEntity contractEntity;
 
     private String domainName;

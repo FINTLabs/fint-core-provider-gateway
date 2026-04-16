@@ -62,7 +62,7 @@ public class AdapterContractConsumer {
     }
 
     private void processEvent(ConsumerRecord<String, AdapterContract> consumerRecord) {
-        contractService.saveContract(consumerRecord.value());
+        //contractService.saveContract(consumerRecord.value());
     }
 
 }

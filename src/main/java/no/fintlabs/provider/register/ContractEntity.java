@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 public class ContractEntity {
 
     @Id
+    private String userName;
     private String adapterId;
     private String orgId;
-    private String userName;
     private int heartbeatIntervalInMinutes;
 
     @OneToMany(mappedBy = "contractEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

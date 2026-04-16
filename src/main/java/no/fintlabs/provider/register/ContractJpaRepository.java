@@ -21,8 +21,8 @@ public interface ContractJpaRepository extends JpaRepository<ContractEntity, Str
         select distinct c
         from ContractEntity c
         left join fetch c.capabilityEntityset
-        where c.adapterId = :adapterId
+        where c.userName = :userName
     """)
-    Optional<ContractEntity> findByAdapterIdWithCapabilities(@Param("adapterId") String adapterId);
+    Optional<ContractEntity> findByUserNameWithCapabilities(@Param("userName") String userName);
 
 }

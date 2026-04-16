@@ -14,28 +14,28 @@ class ContractService(
 
     fun saveContract(adapterContract: AdapterContract) {
         contractJpaRepository.save(ContractEntity(adapterContract))
-        log.info("AdapterContract saved: {}", adapterContract.adapterId)
+        log.info("AdapterContract saved: {}", adapterContract.username)
     }
 
     /**
      * @return `true` if capability matches, `false` if not, `null` if contract not found.
      */
     fun adapterCanPerformCapability(
-        adapterId: String,
+        username: String,
         domainName: String,
         packageName: String,
         entityName: String
     ): Boolean? =
-        contractJpaRepository.findByAdapterIdWithCapabilities(adapterId)
+        contractJpaRepository.findByUserNameWithCapabilities(username)
             .map { contract -> contract.capabilityEntityset.any { it.matches(domainName, packageName, entityName) } }
             .orElse(null)
 
     /**
      * @return `true` if username matches, `false` if not, `null` if contract not found.
      */
-    fun userCanAccessAdapter(username: String, adapterId: String): Boolean? =
-        contractJpaRepository.findById(adapterId)
-            .map { it.username == username }
+    fun userCanAccessAdapter(username: String): Boolean? =
+        contractJpaRepository.findById(username)
+            .map { it.userName == username }
             .orElse(null)
 
     private fun CapabilityEntity.matches(domainName: String, packageName: String, resourceName: String): Boolean =

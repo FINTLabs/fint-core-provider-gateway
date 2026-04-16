@@ -21,14 +21,14 @@ public class AdapterRequestValidator {
     private final ContractJpaRepository contractJpaRepository;
 
     public void validateAdapterId(CorePrincipal corePrincipal, String adapterId) {
-        if (!Boolean.TRUE.equals(contractService.userCanAccessAdapter(corePrincipal.getUsername(), adapterId))) {
+        if (!Boolean.TRUE.equals(contractService.userCanAccessAdapter(corePrincipal.getUsername()))) {
             throw new UnauthorizedAdapterAccessException("Adapter is not registered with any contract");
         }
     }
 
-    public void validateAdapterCapabilityPermission(String adapterId, String domainName, String packageName, String entityName) {
-        if (!Boolean.TRUE.equals(contractService.adapterCanPerformCapability(adapterId, domainName, packageName, entityName))) {
-            log.warn("Validation failed: Adapter '{}' lacks capability to perform action on '{}-{}-{}'.", adapterId, domainName, packageName, entityName);
+    public void validateAdapterCapabilityPermission(String username, String domainName, String packageName, String entityName) {
+        if (!Boolean.TRUE.equals(contractService.adapterCanPerformCapability(username, domainName, packageName, entityName))) {
+            log.warn("Validation failed: Adapter '{}' lacks capability to perform action on '{}-{}-{}'.", username, domainName, packageName, entityName);
             throw new CapabilityNotSupportedException("Adapter lacks the necessary capabilities to perform this action");
         }
     }
@@ -40,10 +40,12 @@ public class AdapterRequestValidator {
         }
     }
 
-    public void isRegistered(CorePrincipal corePrincipal, String adapterId) {
-        if (!contractJpaRepository.existsById(adapterId)) {
-            log.warn("Validation failed: Adapter with id '{}' is not registered", adapterId);
-            throw new InvalidOrgId("Adapter is not registered with any contract");
+    public void isRegistered(CorePrincipal corePrincipal, String usernName) {
+        if (corePrincipal.getUsername().equals(usernName)) {
+            if (!contractJpaRepository.existsById(usernName)) {
+                log.warn("Validation failed: Adapter with id '{}' is not registered", usernName);
+                throw new InvalidOrgId("Adapter is not registered with any contract");
+            }
         }
     }
 
