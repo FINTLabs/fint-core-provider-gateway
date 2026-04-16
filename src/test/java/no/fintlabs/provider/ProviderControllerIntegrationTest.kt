@@ -11,6 +11,7 @@ import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
 import no.fintlabs.provider.register.ContractJpaRepository
 import no.fintlabs.provider.register.ContractService
+import org.apache.kafka.common.utils.Time
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -299,10 +300,46 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
 
         val adapterIds = contractService.getAdapterIds()
 
-
         assert(adapterIds.contains("https://test.com/test.org.no/utdanning/elev"))
 
     }
+
+    @Test
+    fun `should reject heartbeat when adapter is not registered`() {
+        val heartbeat = AdapterHeartbeat().apply {
+            this.adapterId = this@ProviderControllerIntegrationTest.adapterId
+            this.username = this@ProviderControllerIntegrationTest.username
+            this.orgId = this@ProviderControllerIntegrationTest.orgId
+            this.time = Time.SYSTEM.milliseconds()
+        }
+        client.mutateWith(mockAuthentication(mockPrincipal))
+            .post()
+            .uri("/heartbeat")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(heartbeat)
+            .exchange()
+            .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should accept heartbeat when adapter is registered`() {
+        registerAdapter()
+        val heartbeat = AdapterHeartbeat().apply {
+            this.adapterId = this@ProviderControllerIntegrationTest.adapterId
+            this.username = this@ProviderControllerIntegrationTest.username
+            this.orgId = this@ProviderControllerIntegrationTest.orgId
+            this.time = Time.SYSTEM.milliseconds()
+        }
+        client.mutateWith(mockAuthentication(mockPrincipal))
+            .post()
+            .uri("/heartbeat")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(heartbeat)
+            .exchange()
+            .expectStatus().isOk
+    }
+
+
 
     private fun registerAdapter() {
         val capability = AdapterCapability().apply {
