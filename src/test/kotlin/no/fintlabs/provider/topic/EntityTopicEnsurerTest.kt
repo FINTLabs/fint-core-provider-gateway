@@ -1,53 +1,57 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.topic
 
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import no.fintlabs.provider.config.ComponentConfig
 import no.fintlabs.provider.config.EntityKafkaProperties
 import no.fintlabs.provider.config.ProviderProperties
+import no.fintlabs.provider.kafka.topic.EntityTopicEnsurer
 import no.novari.kafka.topic.EntityTopicService
 import no.novari.kafka.topic.name.EntityTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
-import no.novari.metamodel.MetamodelService
-import no.novari.metamodel.model.Component
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class EntityTopicEnsurerTest {
 
     private lateinit var entityTopicService: EntityTopicService
-    private lateinit var metamodelService: MetamodelService
     private val entityKafkaProperties = EntityKafkaProperties()
 
     @BeforeEach
     fun setup() {
         entityTopicService = mockk()
-        metamodelService = mockk()
         every { entityTopicService.createOrModifyTopic(any(), any()) } just Runs
     }
 
-    private fun sut(orgIds: List<String> = listOf("fintlabs-no", "rogfk-no")) =
-        EntityTopicEnsurer(entityTopicService, entityKafkaProperties, metamodelService, ProviderProperties(orgIds = orgIds))
+    private fun sut(components: List<ComponentConfig> = emptyList()) =
+        EntityTopicEnsurer(
+            entityTopicService,
+            entityKafkaProperties,
+            ProviderProperties(components = components)
+        )
 
     @Test
     fun `ensureEntityTopics creates a topic for each org-id and component combination`() {
-        every { metamodelService.getComponents() } returns listOf(
-            Component("utdanning", "elev"),
-            Component("utdanning", "vurdering")
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no", "rogfk-no")),
+            ComponentConfig(domainName = "utdanning", "vurdering", listOf("fintlabs-no"))
         )
 
-        sut().ensureEntityTopics()
+        sut(components).ensureEntityTopics()
 
-        verify(exactly = 4) { entityTopicService.createOrModifyTopic(any(), any()) }
+        verify(exactly = 3) { entityTopicService.createOrModifyTopic(any(), any()) }
     }
 
     @Test
-    fun `ensureEntityTopics uses resourceName combining domainName and packageName`() {
-        every { metamodelService.getComponents() } returns listOf(Component("utdanning", "elev"))
+    fun `ensureEntityTopics uses resourceName combining domain and packageName`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no"))
+        )
 
-        sut(orgIds = listOf("fintlabs-no")).ensureEntityTopics()
+        sut(components).ensureEntityTopics()
 
         val expected = EntityTopicNameParameters.builder()
             .topicNamePrefixParameters(
@@ -63,10 +67,19 @@ class EntityTopicEnsurerTest {
     }
 
     @Test
-    fun `ensureEntityTopics does nothing when org-ids list is empty`() {
-        every { metamodelService.getComponents() } returns listOf(Component("utdanning", "elev"))
+    fun `ensureEntityTopics does nothing when components list is empty`() {
+        sut(emptyList()).ensureEntityTopics()
 
-        sut(orgIds = emptyList()).ensureEntityTopics()
+        verify(exactly = 0) { entityTopicService.createOrModifyTopic(any(), any()) }
+    }
+
+    @Test
+    fun `ensureEntityTopics does nothing when component has no org-ids`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", emptyList())
+        )
+
+        sut(components).ensureEntityTopics()
 
         verify(exactly = 0) { entityTopicService.createOrModifyTopic(any(), any()) }
     }

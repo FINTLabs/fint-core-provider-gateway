@@ -1,4 +1,4 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.topic
 
 import io.mockk.Runs
 import io.mockk.every
@@ -6,6 +6,8 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import no.fintlabs.provider.config.AdapterKafkaProperties
+import no.fintlabs.provider.kafka.topic.EventTopicEnsurer
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants
 import no.novari.kafka.topic.EventTopicService
 import no.novari.kafka.topic.name.EventTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters

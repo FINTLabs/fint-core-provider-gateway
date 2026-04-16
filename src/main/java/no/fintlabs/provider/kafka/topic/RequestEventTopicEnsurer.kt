@@ -1,4 +1,4 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.kafka.topic
 
 import no.fintlabs.provider.config.ProducerProperties
 import no.fintlabs.provider.config.ProviderProperties
@@ -7,25 +7,23 @@ import no.novari.kafka.topic.configuration.EventCleanupFrequency
 import no.novari.kafka.topic.configuration.EventTopicConfiguration
 import no.novari.kafka.topic.name.EventTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
-import no.novari.metamodel.MetamodelService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(prefix = "fint.provider", name = ["ensure-topics"], havingValue = "true")
-class ResponseEventTopicEnsurer(
+@ConditionalOnProperty(prefix = "fint.provider", name = ["ensure-topics"], havingValue = "true", matchIfMissing = true)
+class RequestEventTopicEnsurer(
     private val eventTopicService: EventTopicService,
-    private val responseProducerProperties: ProducerProperties,
-    private val metamodelService: MetamodelService,
+    private val requestProducerProperties: ProducerProperties,
     private val providerProperties: ProviderProperties
 ) {
 
     @EventListener(ApplicationReadyEvent::class)
-    fun ensureResponseEventTopics() {
-        providerProperties.orgIds.forEach { orgId ->
-            metamodelService.getComponents().forEach { component ->
+    fun ensureRequestEventTopics() {
+        providerProperties.components.forEach { component ->
+            component.orgIds.forEach { orgId ->
                 eventTopicService.createOrModifyTopic(
                     EventTopicNameParameters.builder()
                         .topicNamePrefixParameters(
@@ -34,11 +32,11 @@ class ResponseEventTopicEnsurer(
                                 .domainContextApplicationDefault()
                                 .build()
                         )
-                        .eventName("${component.domainName}-${component.packageName}-response")
+                        .eventName("${component.domainName}-${component.packageName}-request")
                         .build(),
                     EventTopicConfiguration.stepBuilder()
-                        .partitions(responseProducerProperties.partitions)
-                        .retentionTime(responseProducerProperties.retentionTime)
+                        .partitions(requestProducerProperties.partitions)
+                        .retentionTime(requestProducerProperties.retentionTime)
                         .cleanupFrequency(EventCleanupFrequency.NORMAL)
                         .build()
                 )

@@ -1,8 +1,9 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.kafka.topic
 
 object TopicNamesConstants {
     const val FINTLABS_NO = "fintlabs-no"
     const val FINT_CORE = "fint-core"
+
     const val LAST_UPDATED = "entity-retention-time" // TODO: Change this to last-modified
     const val RESOURCE_NAME = "resource-name"
     const val SYNC_CORRELATION_ID = "sync-correlation-id"
