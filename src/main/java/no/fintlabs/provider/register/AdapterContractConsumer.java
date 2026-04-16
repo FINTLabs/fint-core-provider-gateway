@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME;
+import static no.fintlabs.provider.kafka.topic.TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME;
 
 @Slf4j
 @Service

@@ -1,4 +1,4 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.kafka.topic
 
 import no.fintlabs.provider.config.ProducerProperties
 import no.fintlabs.provider.config.ProviderProperties
@@ -15,15 +15,15 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(prefix = "fint.provider", name = ["ensure-topics"], havingValue = "true")
-class ResponseEventTopicEnsurer(
+class RequestEventTopicEnsurer(
     private val eventTopicService: EventTopicService,
-    private val responseProducerProperties: ProducerProperties,
+    private val requestProducerProperties: ProducerProperties,
     private val metamodelService: MetamodelService,
     private val providerProperties: ProviderProperties
 ) {
 
     @EventListener(ApplicationReadyEvent::class)
-    fun ensureResponseEventTopics() {
+    fun ensureRequestEventTopics() {
         providerProperties.orgIds.forEach { orgId ->
             metamodelService.getComponents().forEach { component ->
                 eventTopicService.createOrModifyTopic(
@@ -34,11 +34,11 @@ class ResponseEventTopicEnsurer(
                                 .domainContextApplicationDefault()
                                 .build()
                         )
-                        .eventName("${component.domainName}-${component.packageName}-response")
+                        .eventName("${component.domainName}-${component.packageName}-request")
                         .build(),
                     EventTopicConfiguration.stepBuilder()
-                        .partitions(responseProducerProperties.partitions)
-                        .retentionTime(responseProducerProperties.retentionTime)
+                        .partitions(requestProducerProperties.partitions)
+                        .retentionTime(requestProducerProperties.retentionTime)
                         .cleanupFrequency(EventCleanupFrequency.NORMAL)
                         .build()
                 )

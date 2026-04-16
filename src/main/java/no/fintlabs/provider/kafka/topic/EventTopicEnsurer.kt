@@ -1,4 +1,4 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.kafka.topic
 
 import no.fintlabs.provider.config.AdapterKafkaProperties
 import no.novari.kafka.topic.EventTopicService

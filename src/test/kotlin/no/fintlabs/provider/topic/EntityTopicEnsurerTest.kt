@@ -1,4 +1,4 @@
-package no.fintlabs.provider.kafka
+package no.fintlabs.provider.topic
 
 import io.mockk.Runs
 import io.mockk.every
@@ -7,6 +7,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.fintlabs.provider.config.EntityKafkaProperties
 import no.fintlabs.provider.config.ProviderProperties
+import no.fintlabs.provider.kafka.topic.EntityTopicEnsurer
 import no.novari.kafka.topic.EntityTopicService
 import no.novari.kafka.topic.name.EntityTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
@@ -29,7 +30,12 @@ class EntityTopicEnsurerTest {
     }
 
     private fun sut(orgIds: List<String> = listOf("fintlabs-no", "rogfk-no")) =
-        EntityTopicEnsurer(entityTopicService, entityKafkaProperties, metamodelService, ProviderProperties(orgIds = orgIds))
+        EntityTopicEnsurer(
+            entityTopicService,
+            entityKafkaProperties,
+            metamodelService,
+            ProviderProperties(orgIds = orgIds)
+        )
 
     @Test
     fun `ensureEntityTopics creates a topic for each org-id and component combination`() {
