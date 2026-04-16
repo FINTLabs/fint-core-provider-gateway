@@ -3,17 +3,13 @@ package no.fintlabs.provider
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.AdapterHeartbeat
-import no.fintlabs.adapter.models.sync.DeleteSyncPage
-import no.fintlabs.adapter.models.sync.DeltaSyncPage
-import no.fintlabs.adapter.models.sync.FullSyncPage
-import no.fintlabs.adapter.models.sync.SyncPageEntry
-import no.fintlabs.adapter.models.sync.SyncPageMetadata
+import no.fintlabs.adapter.models.sync.*
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
 import no.fintlabs.provider.register.ContractJpaRepository
 import no.fintlabs.provider.register.ContractService
 import org.apache.kafka.common.utils.Time
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -27,7 +23,7 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(partitions = 1)
@@ -82,13 +78,11 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
     }
 
     @Test
-    @Disabled
-    // TODO: This is a bug, get the test to work
     fun `Should reject sync request if adapter is not registered`() {
         val syncPage = FullSyncPage().apply {
             this.metadata = SyncPageMetadata.builder()
-                .adapterId(this@ProviderControllerIntegrationTest.adapterId)
-                .orgId(this@ProviderControllerIntegrationTest.orgId)
+                .adapterId("random-adapter-id")
+                .orgId("random-org-id")
                 .corrId(UUID.randomUUID().toString())
                 .totalSize(0)
                 .page(0)
@@ -290,9 +284,9 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
     @Test
     fun `should reject heartbeat when adapter is not registered`() {
         val heartbeat = AdapterHeartbeat().apply {
-            this.adapterId = this@ProviderControllerIntegrationTest.adapterId
-            this.username = this@ProviderControllerIntegrationTest.username
-            this.orgId = this@ProviderControllerIntegrationTest.orgId
+            this.adapterId = "random-adapter-id"
+            this.username = "random-username"
+            this.orgId = "whatEverOrgId"
             this.time = Time.SYSTEM.milliseconds()
         }
         client.mutateWith(mockAuthentication(mockPrincipal))
@@ -321,7 +315,6 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             .exchange()
             .expectStatus().isOk
     }
-
 
 
     private fun registerAdapter() {
