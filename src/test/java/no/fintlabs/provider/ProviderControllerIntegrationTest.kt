@@ -300,8 +300,7 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
         val adapterIds = contractService.getAdapterIds()
 
 
-        println("Asfsfdf: {}" + adapterIds)
-        assert(adapterIds.contains("https://test.com/test.org.no/elev/elev/elev"))
+        assert(adapterIds.contains("https://test.com/test.org.no/utdanning/elev"))
 
     }
 
