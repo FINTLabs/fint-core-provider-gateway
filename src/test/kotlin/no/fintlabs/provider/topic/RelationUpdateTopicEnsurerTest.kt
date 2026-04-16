@@ -5,55 +5,57 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
+import no.fintlabs.provider.config.ComponentConfig
 import no.fintlabs.provider.config.ProviderProperties
 import no.fintlabs.provider.config.RelationUpdateKafkaProperties
 import no.fintlabs.provider.kafka.topic.RelationUpdateTopicEnsurer
 import no.novari.kafka.topic.EntityTopicService
 import no.novari.kafka.topic.name.EntityTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
-import no.novari.metamodel.MetamodelService
-import no.novari.metamodel.model.Component
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class RelationUpdateTopicEnsurerTest {
 
     private lateinit var entityTopicService: EntityTopicService
-    private lateinit var metamodelService: MetamodelService
     private val relationUpdateKafkaProperties = RelationUpdateKafkaProperties()
 
     @BeforeEach
     fun setup() {
         entityTopicService = mockk()
-        metamodelService = mockk()
         every { entityTopicService.createOrModifyTopic(any(), any()) } just Runs
     }
 
-    private fun sut(orgIds: List<String> = listOf("fintlabs-no", "rogfk-no")) =
+    private fun sut(components: List<ComponentConfig> = emptyList()) =
         RelationUpdateTopicEnsurer(
             entityTopicService,
             relationUpdateKafkaProperties,
-            metamodelService,
-            ProviderProperties(orgIds = orgIds)
+            ProviderProperties(components = components)
         )
 
     @Test
-    fun `ensureRelationUpdateTopics creates a topic for each org-id and component combination`() {
-        every { metamodelService.getComponents() } returns listOf(
-            Component("utdanning", "elev"),
-            Component("utdanning", "vurdering")
+    fun `ensureRelationUpdateTopics creates topics only for components with relationUpdate enabled`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no", "rogfk-no"), relationUpdate = true),
+            ComponentConfig(domainName = "utdanning", "vurdering", listOf("fintlabs-no"), relationUpdate = true),
+            ComponentConfig(domainName = "utdanning", "ot", listOf("fintlabs-no"), relationUpdate = false),
+            ComponentConfig(domainName = "utdanning", "larling", listOf("fintlabs-no"), relationUpdate = false),
+            ComponentConfig(domainName = "administrasjon", "personal", listOf("fintlabs-no"), relationUpdate = false)
         )
 
-        sut().ensureRelationUpdateTopics()
+        sut(components).ensureRelationUpdateTopics()
 
-        verify(exactly = 4) { entityTopicService.createOrModifyTopic(any(), any()) }
+        verify(exactly = 3) { entityTopicService.createOrModifyTopic(any(), any()) }
     }
 
     @Test
     fun `ensureRelationUpdateTopics uses resourceName with relation-update suffix`() {
-        every { metamodelService.getComponents() } returns listOf(Component("utdanning", "elev"))
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no"), relationUpdate = true)
+        )
 
-        sut(orgIds = listOf("fintlabs-no")).ensureRelationUpdateTopics()
+        sut(components).ensureRelationUpdateTopics()
 
         val expected = EntityTopicNameParameters.builder()
             .topicNamePrefixParameters(
@@ -69,16 +71,26 @@ class RelationUpdateTopicEnsurerTest {
     }
 
     @Test
-    fun `ensureRelationUpdateTopics does nothing when org-ids list is empty`() {
-        every { metamodelService.getComponents() } returns listOf(Component("utdanning", "elev"))
+    fun `ensureRelationUpdateTopics skips components with relationUpdate disabled`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "ot", listOf("fintlabs-no"), relationUpdate = false),
+            ComponentConfig(domainName = "administrasjon", "personal", listOf("fintlabs-no"), relationUpdate = false)
+        )
 
-        sut(orgIds = emptyList()).ensureRelationUpdateTopics()
+        sut(components).ensureRelationUpdateTopics()
+
+        verify(exactly = 0) { entityTopicService.createOrModifyTopic(any(), any()) }
+    }
+
+    @Test
+    fun `ensureRelationUpdateTopics does nothing when components list is empty`() {
+        sut(emptyList()).ensureRelationUpdateTopics()
 
         verify(exactly = 0) { entityTopicService.createOrModifyTopic(any(), any()) }
     }
 
     @Test
     fun `ensureRelationUpdateTopics defaults to 6 partitions`() {
-        org.junit.jupiter.api.Assertions.assertEquals(6, relationUpdateKafkaProperties.partitions)
+        assertEquals(6, relationUpdateKafkaProperties.partitions)
     }
 }

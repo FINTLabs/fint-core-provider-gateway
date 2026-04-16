@@ -12,7 +12,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(prefix = "fint.provider", name = ["ensure-topics"], havingValue = "true")
+@ConditionalOnProperty(prefix = "fint.provider", name = ["ensure-topics"], havingValue = "true", matchIfMissing = true)
 class EventTopicEnsurer(
     private val adapterKafkaProperties: AdapterKafkaProperties,
     private val eventTopicService: EventTopicService
