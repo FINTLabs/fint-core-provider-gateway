@@ -42,7 +42,7 @@ class ContractServiceTest {
 
         @Test
         fun `should return true when capability matches`() {
-            every { contractJpaRepository.findByAdapterIdWithCapabilities(adapterId) } returns
+            every { contractJpaRepository.findByUserNameWithCapabilities(adapterId) } returns
                     Optional.of(createContractEntity())
 
             val result = contractService.adapterCanPerformCapability(adapterId, "utdanning", "elev", "elev")
@@ -52,7 +52,7 @@ class ContractServiceTest {
 
         @Test
         fun `should return false when capability does not match`() {
-            every { contractJpaRepository.findByAdapterIdWithCapabilities(adapterId) } returns
+            every { contractJpaRepository.findByUserNameWithCapabilities(adapterId) } returns
                     Optional.of(createContractEntity())
 
             val result = contractService.adapterCanPerformCapability(adapterId, "utdanning", "elev", "skoleressurs")
@@ -62,7 +62,7 @@ class ContractServiceTest {
 
         @Test
         fun `should return null when contract not found`() {
-            every { contractJpaRepository.findByAdapterIdWithCapabilities(adapterId) } returns Optional.empty()
+            every { contractJpaRepository.findByUserNameWithCapabilities(adapterId) } returns Optional.empty()
 
             val result = contractService.adapterCanPerformCapability(adapterId, "utdanning", "elev", "elev")
 
@@ -75,7 +75,7 @@ class ContractServiceTest {
 
         @Test
         fun `should return true when username matches`() {
-            every { contractJpaRepository.findById(adapterId) } returns Optional.of(createContractEntity())
+            every { contractJpaRepository.findById(username) } returns Optional.of(createContractEntity())
 
             val result = contractService.userCanAccessAdapter(username, adapterId)
 
@@ -84,7 +84,11 @@ class ContractServiceTest {
 
         @Test
         fun `should return false when username does not match`() {
-            every { contractJpaRepository.findById(adapterId) } returns Optional.of(createContractEntity())
+            every { contractJpaRepository.findById("wrong@user.no") } returns Optional.of(
+                createContractEntity().apply {
+                    adapterId = "something-else"
+                }
+            )
 
             val result = contractService.userCanAccessAdapter("wrong@user.no", adapterId)
 
@@ -93,7 +97,7 @@ class ContractServiceTest {
 
         @Test
         fun `should return null when contract not found`() {
-            every { contractJpaRepository.findById(adapterId) } returns Optional.empty()
+            every { contractJpaRepository.findById(username) } returns Optional.empty()
 
             val result = contractService.userCanAccessAdapter(username, adapterId)
 

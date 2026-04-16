@@ -21,7 +21,7 @@ public class AdapterRequestValidator {
     private final ContractJpaRepository contractJpaRepository;
 
     public void validateAdapterId(CorePrincipal corePrincipal, String adapterId) {
-        if (!Boolean.TRUE.equals(contractService.userCanAccessAdapter(corePrincipal.getUsername()))) {
+        if (!Boolean.TRUE.equals(contractService.userCanAccessAdapter(corePrincipal.getUsername(), adapterId))) {
             throw new UnauthorizedAdapterAccessException("Adapter is not registered with any contract");
         }
     }

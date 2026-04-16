@@ -33,9 +33,9 @@ class ContractService(
     /**
      * @return `true` if username matches, `false` if not, `null` if contract not found.
      */
-    fun userCanAccessAdapter(username: String): Boolean? =
+    fun userCanAccessAdapter(username: String, adapterId: String): Boolean? =
         contractJpaRepository.findById(username)
-            .map { it.userName == username }
+            .map { it.adapterId == adapterId }
             .orElse(null)
 
     private fun CapabilityEntity.matches(domainName: String, packageName: String, resourceName: String): Boolean =

@@ -19,7 +19,7 @@ class ContractEntityTest {
 
             assertThat(entity.adapterId).isEqualTo("adapter-1")
             assertThat(entity.orgId).isEqualTo("test.org.no")
-            assertThat(entity.username).isEqualTo("test@adapter.test.org.no")
+            assertThat(entity.userName).isEqualTo("test@adapter.test.org.no")
             assertThat(entity.heartbeatIntervalInMinutes).isEqualTo(5)
         }
 
@@ -108,8 +108,8 @@ class ContractEntityTest {
             val originalEntity = ContractEntity(original)
             val updatedEntity = ContractEntity(updated)
 
-            assertThat(originalEntity.username).isEqualTo("old@adapter.test.org.no")
-            assertThat(updatedEntity.username).isEqualTo("new@adapter.test.org.no")
+            assertThat(originalEntity.userName).isEqualTo("old@adapter.test.org.no")
+            assertThat(updatedEntity.userName).isEqualTo("new@adapter.test.org.no")
             assertThat(updatedEntity.adapterId).isEqualTo(originalEntity.adapterId)
         }
     }
