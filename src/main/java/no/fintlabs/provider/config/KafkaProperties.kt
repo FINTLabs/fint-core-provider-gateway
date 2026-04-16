@@ -7,7 +7,8 @@ import java.time.Duration
 data class KafkaProperties(
     val entity: EntityKafkaProperties = EntityKafkaProperties(),
     val adapter: AdapterKafkaProperties = AdapterKafkaProperties(),
-    val event: EventKafkaProperties = EventKafkaProperties()
+    val event: EventKafkaProperties = EventKafkaProperties(),
+    val relationUpdate: RelationUpdateKafkaProperties = RelationUpdateKafkaProperties()
 )
 
 data class EventKafkaProperties(
@@ -27,14 +28,19 @@ data class ConsumerProperties(
 )
 
 data class EntityKafkaProperties(
-    val partitions: Int = 1,
-    val retentionTime: Duration = Duration.ofDays(7)
+    val partitions: Int = 6,
+    val retentionTime: Duration = Duration.ofDays(30)
+)
+
+data class RelationUpdateKafkaProperties(
+    val partitions: Int = 6,
+    val retentionTime: Duration = Duration.ofDays(30)
 )
 
 data class AdapterKafkaProperties(
     val partitions: Int = 1,
     val heartbeatRetentionTime: Duration = Duration.ofDays(1),
-    val registerRetentionTime: Duration = Duration.ofMillis(Long.MAX_VALUE),
+    val registerRetentionTime: Duration = Duration.ofDays(1),
     val fullSyncRetentionTime: Duration = Duration.ofDays(1),
     val deltaSyncRetentionTime: Duration = Duration.ofDays(1),
     val deleteSyncRetentionTime: Duration = Duration.ofDays(1)
