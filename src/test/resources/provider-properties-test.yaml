@@ -1,0 +1,21 @@
+fint:
+  provider:
+    components:
+      - domain-name: utdanning
+        package-name: vurdering
+        relation-update: true
+        org-ids: &test-orgs
+          - fintlabs-no
+          - rogfk-no
+          - afk-no
+      - domain-name: utdanning
+        package-name: elev
+        relation-update: true
+        org-ids: *test-orgs
+      - domain-name: utdanning
+        package-name: ot
+        relation-update: false
+        org-ids: *test-orgs
+      - domain-name: administrasjon
+        package-name: personal
+        org-ids: *test-orgs

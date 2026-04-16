@@ -5,7 +5,7 @@ import no.novari.kafka.producing.ParameterizedTemplateFactory;
 import no.fintlabs.provider.kafka.EventProducerKafka;
 import org.springframework.stereotype.Service;
 
-import static no.fintlabs.provider.kafka.TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME;
+import static no.fintlabs.provider.kafka.topic.TopicNamesConstants.ADAPTER_REGISTER_EVENT_NAME;
 
 @Service
 public class AdapterContractProducer extends EventProducerKafka<AdapterContract> {
