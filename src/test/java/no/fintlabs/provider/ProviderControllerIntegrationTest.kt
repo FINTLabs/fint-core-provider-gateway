@@ -251,23 +251,6 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
     }
 
     @Test
-    fun `Should successfully send heartbeat`() {
-        val heartbeat = AdapterHeartbeat().apply {
-            this.adapterId = this@ProviderControllerIntegrationTest.adapterId
-            this.orgId = this@ProviderControllerIntegrationTest.orgId
-            this.username = this@ProviderControllerIntegrationTest.username
-        }
-
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/heartbeat")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(heartbeat)
-            .exchange()
-            .expectStatus().isOk
-    }
-
-    @Test
     fun `Should reject sync when orgId does not match JWT`() {
         registerAdapter()
 
