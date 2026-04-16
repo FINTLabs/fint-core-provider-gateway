@@ -9,6 +9,8 @@ import no.fintlabs.adapter.models.sync.FullSyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
+import no.fintlabs.provider.register.ContractJpaRepository
+import no.fintlabs.provider.register.ContractService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -28,7 +30,9 @@ import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(partitions = 1)
-class ProviderControllerIntegrationTest {
+class ProviderControllerIntegrationTest @Autowired constructor(contractJpaRepository: ContractJpaRepository) {
+
+    private val contractService: ContractService = ContractService(contractJpaRepository)
 
     @Autowired
     private lateinit var context: ApplicationContext
@@ -287,6 +291,18 @@ class ProviderControllerIntegrationTest {
             .bodyValue(syncPage)
             .exchange()
             .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `verify contracts get saved to database when registering adapter`() {
+        registerAdapter()
+
+        val adapterIds = contractService.getAdapterIds()
+
+
+        println("Asfsfdf: {}" + adapterIds)
+        assert(adapterIds.contains("https://test.com/test.org.no/elev/elev/elev"))
+
     }
 
     private fun registerAdapter() {
