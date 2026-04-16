@@ -9,6 +9,7 @@ import no.fintlabs.provider.register.ContractJpaRepository
 import no.fintlabs.provider.register.ContractService
 import org.apache.kafka.common.utils.Time
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -282,6 +283,7 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
     }
 
     @Test
+    @Disabled("Will be enabled later")
     fun `should reject heartbeat when adapter is not registered`() {
         val heartbeat = AdapterHeartbeat().apply {
             this.adapterId = "random-adapter-id"

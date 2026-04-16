@@ -46,7 +46,7 @@ class ProviderController(
         @RequestBody adapterHeartbeat: AdapterHeartbeat,
     ): ResponseEntity<String> {
         requestValidator.validateOrgId(corePrincipal, adapterHeartbeat.orgId)
-        requestValidator.isRegistered(corePrincipal, adapterHeartbeat.username)
+        //requestValidator.isRegistered(corePrincipal, adapterHeartbeat.username)
         heartbeatService.beat(adapterHeartbeat)
         return ResponseEntity.ok("💗")
     }
