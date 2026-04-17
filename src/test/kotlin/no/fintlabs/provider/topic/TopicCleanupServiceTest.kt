@@ -118,6 +118,7 @@ class TopicCleanupServiceTest {
             "$defaultOrgId.$defaultDomainContext.event.adapter-delta-sync",
             "$defaultOrgId.$defaultDomainContext.event.adapter-delete-sync",
             "$defaultOrgId.$defaultDomainContext.event.consumer-error",
+            "$defaultOrgId.$defaultDomainContext.event.provider-error",
             "$defaultOrgId.$defaultDomainContext.event.sync-status",
         )
     }
