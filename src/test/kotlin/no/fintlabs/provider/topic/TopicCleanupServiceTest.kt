@@ -3,6 +3,7 @@ package no.fintlabs.provider.topic
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import no.fintlabs.provider.config.CleanupTopicsProperties
 import no.fintlabs.provider.config.ComponentConfig
 import no.fintlabs.provider.config.ProviderProperties
@@ -151,7 +152,7 @@ class TopicCleanupServiceTest {
 
     @Test
     fun `cleanup does nothing and skips listing when components are empty`() {
-        val deleted = topicCleanupService().cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService().cleanup(adminClient) }
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.listTopics() }
@@ -173,7 +174,7 @@ class TopicCleanupServiceTest {
         )
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).containsExactly(afkOrphan)
         verify { adminClient.deleteTopics(match<Collection<String>> { it.toSet() == setOf(afkOrphan) }) }
@@ -188,7 +189,7 @@ class TopicCleanupServiceTest {
         stubListTopics(setOf(orphan, neighbor, "afk-no.fint-core.entity.utdanning-elev"))
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).containsExactly(orphan)
         assertThat(deleted).doesNotContain(neighbor)
@@ -202,7 +203,7 @@ class TopicCleanupServiceTest {
 
         stubListTopics(setOf(foreign, system, "afk-no.fint-core.entity.utdanning-elev"))
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -221,7 +222,7 @@ class TopicCleanupServiceTest {
             )
         )
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -241,7 +242,7 @@ class TopicCleanupServiceTest {
         stubListTopics(setOf(afkOrphan, bfkOrphan, nonFintCore, keptAfk, keptBfk))
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).containsExactlyInAnyOrder(afkOrphan, bfkOrphan)
         verify {
@@ -256,7 +257,7 @@ class TopicCleanupServiceTest {
         val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         stubListTopics(emptySet())
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -273,7 +274,7 @@ class TopicCleanupServiceTest {
         stubListTopics(setOf(keptEntity, staleRelationUpdate))
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components).cleanup(adminClient) }
 
         assertThat(deleted).containsExactly(staleRelationUpdate)
     }
@@ -285,7 +286,7 @@ class TopicCleanupServiceTest {
         stubListTopics(orphans)
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components, batchSize = 3).cleanup(adminClient)
+        val deleted = runBlocking { topicCleanupService(components, batchSize = 3).cleanup(adminClient) }
 
         assertThat(deleted).containsExactlyInAnyOrderElementsOf(orphans)
         verify(exactly = 3) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -301,7 +302,7 @@ class TopicCleanupServiceTest {
         every { adminClient.deleteTopics(capture(seenBatches)) } returns deleteResult
         every { deleteResult.all() } returns KafkaFuture.completedFuture(null)
 
-        topicCleanupService(components, batchSize = 2).cleanup(adminClient)
+        runBlocking { topicCleanupService(components, batchSize = 2).cleanup(adminClient) }
 
         assertThat(seenBatches).hasSize(3)
         assertThat(seenBatches.map { it.size }).containsExactly(2, 2, 1)
@@ -318,7 +319,7 @@ class TopicCleanupServiceTest {
         stubListTopics(orphans + "afk-no.fint-core.entity.utdanning-elev")
         stubDeleteTopics()
 
-        topicCleanupService(components, batchSize = 10).cleanup(adminClient)
+        runBlocking { topicCleanupService(components, batchSize = 10).cleanup(adminClient) }
 
         verify(exactly = 1) { adminClient.deleteTopics(any<Collection<String>>()) }
     }

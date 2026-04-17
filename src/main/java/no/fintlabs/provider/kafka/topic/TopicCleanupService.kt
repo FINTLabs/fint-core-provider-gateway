@@ -1,5 +1,14 @@
 package no.fintlabs.provider.kafka.topic
 
+import jakarta.annotation.PreDestroy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import no.fintlabs.provider.config.CleanupTopicsProperties
 import no.fintlabs.provider.config.ProviderProperties
 import no.fintlabs.provider.kafka.topic.TopicNamesConstants.ADAPTER_DELETE_SYNC_EVENT_NAME
@@ -34,13 +43,30 @@ class TopicCleanupService(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     /**
-     * Startup hook: opens an [AdminClient] against the configured Kafka cluster and runs
-     * a single cleanup pass, closing the client when the pass finishes.
+     * Startup hook: launches the cleanup pass in a coroutine on the IO dispatcher so it
+     * does not hold up Spring's event-publishing thread. The coroutine is tied to [scope],
+     * which is cancelled in [shutdown] on pod shutdown — this cancels any in-flight
+     * inter-batch `delay` and stops the loop cleanly. Because the pass is idempotent
+     * (it relists topics and recomputes orphans on every start), a cancelled run is
+     * simply resumed by the next pod startup.
      */
     @EventListener(ApplicationReadyEvent::class)
     fun cleanupOnStartup() {
-        AdminClient.create(kafkaAdmin.configurationProperties).use { cleanup(it) }
+        scope.launch {
+            try {
+                AdminClient.create(kafkaAdmin.configurationProperties).use { cleanup(it) }
+            } catch (e: Exception) {
+                logger.warn("Topic cleanup aborted: {}", e.message, e)
+            }
+        }
+    }
+
+    @PreDestroy
+    fun shutdown() {
+        scope.cancel("Application shutting down — topic cleanup will resume on next startup")
     }
 
     /**
@@ -54,7 +80,7 @@ class TopicCleanupService(
      *
      * @return the set of topics that were actually deleted (empty if there was nothing to do).
      */
-    fun cleanup(adminClient: AdminClient): Set<String> {
+    suspend fun cleanup(adminClient: AdminClient): Set<String> {
         val scopedOrgIds = providerProperties.components.flatMap { it.orgIds }.toSet()
         if (scopedOrgIds.isEmpty()) {
             logger.info("No orgIds derived from components.yaml — nothing to do")
@@ -111,14 +137,17 @@ class TopicCleanupService(
     /**
      * Splits [toDelete] into chunks of `batchSize` and issues one `deleteTopics` call per
      * chunk, pausing [CleanupTopicsProperties.batchDelay] between chunks so the broker is
-     * never overwhelmed. No pause follows the final batch.
+     * never overwhelmed. No pause follows the final batch. Checks for coroutine
+     * cancellation before each batch — if the scope is cancelled (e.g. on pod shutdown),
+     * a [CancellationException] propagates up and the loop exits cleanly.
      */
-    private fun deleteInBatches(adminClient: AdminClient, toDelete: Set<String>) {
+    private suspend fun deleteInBatches(adminClient: AdminClient, toDelete: Set<String>) {
         val batchSize = cleanupTopicsProperties.batchSize.coerceAtLeast(1)
         val batches = toDelete.chunked(batchSize)
         val total = toDelete.size
         var deleted = 0
         batches.forEachIndexed { index, batch ->
+            currentCoroutineContext().ensureActive()
             adminClient.deleteTopics(batch).all().get()
             deleted += batch.size
             logger.info(
@@ -129,9 +158,9 @@ class TopicCleanupService(
         }
     }
 
-    private fun pauseBetweenBatches() {
-        val delay = cleanupTopicsProperties.batchDelay
-        if (delay > Duration.ZERO) Thread.sleep(delay.toMillis())
+    private suspend fun pauseBetweenBatches() {
+        val batchDelay = cleanupTopicsProperties.batchDelay
+        if (batchDelay > Duration.ZERO) delay(batchDelay.toMillis())
     }
 
     /**
