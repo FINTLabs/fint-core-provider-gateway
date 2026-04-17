@@ -15,4 +15,7 @@ object TopicNamesConstants {
     const val ADAPTER_FULL_SYNC_EVENT_NAME = "adapter-full-sync"
     const val ADAPTER_DELTA_SYNC_EVENT_NAME = "adapter-delta-sync"
     const val ADAPTER_DELETE_SYNC_EVENT_NAME = "adapter-delete-sync"
+
+    const val CONSUMER_ERROR_EVENT_NAME = "consumer-error"
+    const val SYNC_STATUS_EVENT_NAME = "sync-status"
 }
