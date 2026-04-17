@@ -1,0 +1,7 @@
+fint:
+  provider:
+    cleanup-topics:
+      enabled: false
+      batch-size: 10
+      batch-delay: 30s
+      org-ids: []
