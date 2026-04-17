@@ -102,12 +102,14 @@ class ProviderController(
         requestValidator.validateRole(corePrincipal, domain, packageName)
         // TODO: Enable validationg of AdapterId once we persist AdapterContracts
         //        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
-        requestValidator.validateAdapterCapabilityPermission(
-            syncPage.metadata.adapterId,
-            domain,
-            packageName,
-            entity,
-        )
+
+        // TODO: Disabled until contracts are in database
+//        requestValidator.validateAdapterCapabilityPermission(
+//            syncPage.metadata.adapterId,
+//            domain,
+//            packageName,
+//            entity,
+//        )
 
         syncPageService.doSync(syncPage, domain, packageName, entity)
         return ResponseEntity.status(status).build()

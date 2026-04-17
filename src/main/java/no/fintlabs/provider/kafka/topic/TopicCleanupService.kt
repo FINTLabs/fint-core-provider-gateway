@@ -18,6 +18,7 @@ import no.fintlabs.provider.kafka.topic.TopicNamesConstants.ADAPTER_REGISTER_EVE
 import no.fintlabs.provider.kafka.topic.TopicNamesConstants.CONSUMER_ERROR_EVENT_NAME
 import no.fintlabs.provider.kafka.topic.TopicNamesConstants.FINT_CORE
 import no.fintlabs.provider.kafka.topic.TopicNamesConstants.HEARTBEAT_EVENT_NAME
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants.PROVIDER_ERROR_EVENT_NAME
 import no.fintlabs.provider.kafka.topic.TopicNamesConstants.SYNC_STATUS_EVENT_NAME
 import no.novari.kafka.topic.name.EntityTopicNameParameters
 import no.novari.kafka.topic.name.EventTopicNameParameters
@@ -173,9 +174,9 @@ class TopicCleanupService(
      *  - the response event topic (`<orgId>.fint-core.event.<domain>-<package>-response`)
      *  - the relation-update topic — only when the component has `relation-update: true`
      *
-     * It also contains the seven global event topics under the application-default orgId:
+     * It also contains the eight global event topics under the application-default orgId:
      * `adapter-health`, `adapter-register`, `adapter-full-sync`, `adapter-delta-sync`,
-     * `adapter-delete-sync`, `consumer-error`, `sync-status`.
+     * `adapter-delete-sync`, `consumer-error`, `provider-error`, `sync-status`.
      */
     fun computeExpectedTopicNames(): Set<String> {
         val expected = mutableSetOf<String>()
@@ -199,6 +200,7 @@ class TopicCleanupService(
             ADAPTER_DELTA_SYNC_EVENT_NAME,
             ADAPTER_DELETE_SYNC_EVENT_NAME,
             CONSUMER_ERROR_EVENT_NAME,
+            PROVIDER_ERROR_EVENT_NAME,
             SYNC_STATUS_EVENT_NAME,
         ).forEach { eventName ->
             expected += topicNameService.validateAndMapToTopicName(
