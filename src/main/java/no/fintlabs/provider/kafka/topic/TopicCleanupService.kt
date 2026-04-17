@@ -45,24 +45,26 @@ class TopicCleanupService(
 
     /**
      * Runs one cleanup pass against [adminClient]:
-     *  1. Returns early when no org-ids are configured — cleanup is opt-in per org.
+     *  1. Derives the orgs to scan from the distinct orgIds in `components.yaml` — returns
+     *     early when no components are configured.
      *  2. Builds the "keep" set via [computeExpectedTopicNames].
      *  3. Lists every topic currently on the broker.
-     *  4. Collects orphan topics per configured org via [collectOrphansToDelete].
+     *  4. Collects orphan topics per derived org via [collectOrphansToDelete].
      *  5. If any orphans are found, deletes them in paced batches.
      *
      * @return the set of topics that were actually deleted (empty if there was nothing to do).
      */
     fun cleanup(adminClient: AdminClient): Set<String> {
-        if (cleanupTopicsProperties.orgIds.isEmpty()) {
-            logger.info("No org-ids configured under 'fint.provider.cleanup-topics' — nothing to do")
+        val scopedOrgIds = providerProperties.components.flatMap { it.orgIds }.toSet()
+        if (scopedOrgIds.isEmpty()) {
+            logger.info("No orgIds derived from components.yaml — nothing to do")
             return emptySet()
         }
 
         val expected = computeExpectedTopicNames()
         val existing = adminClient.listTopics().names().get()
 
-        val toDelete = collectOrphansToDelete(existing, expected)
+        val toDelete = collectOrphansToDelete(existing, expected, scopedOrgIds)
         if (toDelete.isEmpty()) return emptySet()
 
         deleteInBatches(adminClient, toDelete)
@@ -70,14 +72,18 @@ class TopicCleanupService(
     }
 
     /**
-     * Walks each configured org and gathers the topics that should be removed. A topic is
-     * considered an orphan when it starts with `<orgId>.`, contains `fint-core`, and is
-     * absent from [expected]. Non-fint-core topics and topics belonging to orgs that are
-     * not in the cleanup config are never included.
+     * Walks each org derived from `components.yaml` and gathers the topics that should be
+     * removed. A topic is considered an orphan when it starts with `<orgId>.`, contains
+     * `fint-core`, and is absent from [expected]. Non-fint-core topics and topics belonging
+     * to orgs that are not in [scopedOrgIds] are never included.
      */
-    private fun collectOrphansToDelete(existing: Set<String>, expected: Set<String>): Set<String> {
+    private fun collectOrphansToDelete(
+        existing: Set<String>,
+        expected: Set<String>,
+        scopedOrgIds: Set<String>,
+    ): Set<String> {
         val toDelete = mutableSetOf<String>()
-        cleanupTopicsProperties.orgIds.forEach { orgId ->
+        scopedOrgIds.forEach { orgId ->
             val orphansForOrg = findOrphans(existing, orgId, expected)
             if (orphansForOrg.isEmpty()) {
                 logger.info("No obsolete '{}' topics for org '{}'", FINT_CORE, orgId)

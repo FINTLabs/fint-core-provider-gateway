@@ -49,14 +49,12 @@ class TopicCleanupServiceTest {
 
     private fun topicCleanupService(
         components: List<ComponentConfig> = emptyList(),
-        cleanupOrgIds: List<String> = emptyList(),
         batchSize: Int = 10,
         batchDelay: Duration = Duration.ZERO,
     ) = TopicCleanupService(
         ProviderProperties(components = components),
         CleanupTopicsProperties(
             enabled = true,
-            orgIds = cleanupOrgIds,
             batchSize = batchSize,
             batchDelay = batchDelay,
         ),
@@ -152,8 +150,8 @@ class TopicCleanupServiceTest {
     }
 
     @Test
-    fun `cleanup does nothing and skips listing when cleanup org-ids is empty`() {
-        val deleted = topicCleanupService(cleanupOrgIds = emptyList()).cleanup(adminClient)
+    fun `cleanup does nothing and skips listing when components are empty`() {
+        val deleted = topicCleanupService().cleanup(adminClient)
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.listTopics() }
@@ -161,8 +159,8 @@ class TopicCleanupServiceTest {
     }
 
     @Test
-    fun `cleanup only deletes topics belonging to orgs listed in cleanup config`() {
-        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no", "bfk-no")))
+    fun `cleanup only deletes topics belonging to orgs derived from components`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         val afkOrphan = "afk-no.fint-core.entity.utdanning-obsolete"
         val bfkOrphan = "bfk-no.fint-core.entity.utdanning-obsolete"
 
@@ -171,12 +169,11 @@ class TopicCleanupServiceTest {
                 afkOrphan,
                 bfkOrphan,
                 "afk-no.fint-core.entity.utdanning-elev",
-                "bfk-no.fint-core.entity.utdanning-elev",
             )
         )
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components, cleanupOrgIds = listOf("afk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).containsExactly(afkOrphan)
         verify { adminClient.deleteTopics(match<Collection<String>> { it.toSet() == setOf(afkOrphan) }) }
@@ -184,13 +181,14 @@ class TopicCleanupServiceTest {
 
     @Test
     fun `cleanup requires the orgId prefix to match exactly so similar names are not swept up`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         val orphan = "afk-no.fint-core.entity.something-old"
         val neighbor = "afk-nord-no.fint-core.entity.something-old"
 
-        stubListTopics(setOf(orphan, neighbor))
+        stubListTopics(setOf(orphan, neighbor, "afk-no.fint-core.entity.utdanning-elev"))
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(cleanupOrgIds = listOf("afk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).containsExactly(orphan)
         assertThat(deleted).doesNotContain(neighbor)
@@ -198,12 +196,13 @@ class TopicCleanupServiceTest {
 
     @Test
     fun `cleanup ignores topics that do not contain fint-core even within the org scope`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         val foreign = "afk-no.fint-example.entity.some-topic"
         val system = "__consumer_offsets"
 
-        stubListTopics(setOf(foreign, system))
+        stubListTopics(setOf(foreign, system, "afk-no.fint-core.entity.utdanning-elev"))
 
-        val deleted = topicCleanupService(cleanupOrgIds = listOf("afk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -222,7 +221,7 @@ class TopicCleanupServiceTest {
             )
         )
 
-        val deleted = topicCleanupService(components, cleanupOrgIds = listOf("afk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -242,7 +241,7 @@ class TopicCleanupServiceTest {
         stubListTopics(setOf(afkOrphan, bfkOrphan, nonFintCore, keptAfk, keptBfk))
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components, cleanupOrgIds = listOf("afk-no", "bfk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).containsExactlyInAnyOrder(afkOrphan, bfkOrphan)
         verify {
@@ -253,10 +252,11 @@ class TopicCleanupServiceTest {
     }
 
     @Test
-    fun `cleanup returns empty when Kafka reports no topics for configured orgs`() {
+    fun `cleanup returns empty when Kafka reports no topics for derived orgs`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         stubListTopics(emptySet())
 
-        val deleted = topicCleanupService(cleanupOrgIds = listOf("afk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).isEmpty()
         verify(exactly = 0) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -273,21 +273,19 @@ class TopicCleanupServiceTest {
         stubListTopics(setOf(keptEntity, staleRelationUpdate))
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(components, cleanupOrgIds = listOf("afk-no")).cleanup(adminClient)
+        val deleted = topicCleanupService(components).cleanup(adminClient)
 
         assertThat(deleted).containsExactly(staleRelationUpdate)
     }
 
     @Test
     fun `cleanup splits deletes into batches when orphans exceed batch size`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         val orphans = (1..7).map { "afk-no.fint-core.entity.utdanning-old-$it" }.toSet()
         stubListTopics(orphans)
         stubDeleteTopics()
 
-        val deleted = topicCleanupService(
-            cleanupOrgIds = listOf("afk-no"),
-            batchSize = 3,
-        ).cleanup(adminClient)
+        val deleted = topicCleanupService(components, batchSize = 3).cleanup(adminClient)
 
         assertThat(deleted).containsExactlyInAnyOrderElementsOf(orphans)
         verify(exactly = 3) { adminClient.deleteTopics(any<Collection<String>>()) }
@@ -295,6 +293,7 @@ class TopicCleanupServiceTest {
 
     @Test
     fun `cleanup partitions orphans across batches so every orphan is deleted exactly once`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         val orphans = (1..5).map { "afk-no.fint-core.entity.utdanning-old-$it" }.toSet()
         stubListTopics(orphans)
         val seenBatches = mutableListOf<Collection<String>>()
@@ -302,10 +301,7 @@ class TopicCleanupServiceTest {
         every { adminClient.deleteTopics(capture(seenBatches)) } returns deleteResult
         every { deleteResult.all() } returns KafkaFuture.completedFuture(null)
 
-        topicCleanupService(
-            cleanupOrgIds = listOf("afk-no"),
-            batchSize = 2,
-        ).cleanup(adminClient)
+        topicCleanupService(components, batchSize = 2).cleanup(adminClient)
 
         assertThat(seenBatches).hasSize(3)
         assertThat(seenBatches.map { it.size }).containsExactly(2, 2, 1)
@@ -314,17 +310,15 @@ class TopicCleanupServiceTest {
 
     @Test
     fun `cleanup makes a single delete call when orphans fit within one batch`() {
+        val components = listOf(ComponentConfig("utdanning", "elev", listOf("afk-no")))
         val orphans = setOf(
             "afk-no.fint-core.entity.utdanning-old-1",
             "afk-no.fint-core.entity.utdanning-old-2",
         )
-        stubListTopics(orphans)
+        stubListTopics(orphans + "afk-no.fint-core.entity.utdanning-elev")
         stubDeleteTopics()
 
-        topicCleanupService(
-            cleanupOrgIds = listOf("afk-no"),
-            batchSize = 10,
-        ).cleanup(adminClient)
+        topicCleanupService(components, batchSize = 10).cleanup(adminClient)
 
         verify(exactly = 1) { adminClient.deleteTopics(any<Collection<String>>()) }
     }
