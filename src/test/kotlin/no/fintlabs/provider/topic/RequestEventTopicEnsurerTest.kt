@@ -4,14 +4,17 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import no.fintlabs.provider.config.ComponentConfig
 import no.fintlabs.provider.config.ProducerProperties
 import no.fintlabs.provider.config.ProviderProperties
 import no.fintlabs.provider.kafka.topic.RequestEventTopicEnsurer
 import no.novari.kafka.topic.EventTopicService
+import no.novari.kafka.topic.configuration.EventTopicConfiguration
 import no.novari.kafka.topic.name.EventTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -71,5 +74,31 @@ class RequestEventTopicEnsurerTest {
         sut(emptyList()).ensureRequestEventTopics()
 
         verify(exactly = 0) { eventTopicService.createOrModifyTopic(any(), any()) }
+    }
+
+    @Test
+    fun `ensureRequestEventTopics uses component requestPartitions override when set`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no"), requestPartitions = 5)
+        )
+        val configSlot = slot<EventTopicConfiguration>()
+        every { eventTopicService.createOrModifyTopic(any(), capture(configSlot)) } just Runs
+
+        sut(components).ensureRequestEventTopics()
+
+        assertEquals(5, configSlot.captured.partitions)
+    }
+
+    @Test
+    fun `ensureRequestEventTopics falls back to global default when requestPartitions is unset`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no"))
+        )
+        val configSlot = slot<EventTopicConfiguration>()
+        every { eventTopicService.createOrModifyTopic(any(), capture(configSlot)) } just Runs
+
+        sut(components).ensureRequestEventTopics()
+
+        assertEquals(requestProducerProperties.partitions, configSlot.captured.partitions)
     }
 }
