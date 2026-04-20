@@ -34,7 +34,7 @@ spring:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       enable_lazy_load_no_trans: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
   datasource:
     url: ${fint.database.url}
     username: ${fint.database.username}
