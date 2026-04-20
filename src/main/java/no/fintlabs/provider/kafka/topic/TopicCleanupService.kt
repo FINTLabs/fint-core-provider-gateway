@@ -33,8 +33,13 @@ import org.springframework.kafka.core.KafkaAdmin
 import org.springframework.stereotype.Component
 import java.time.Duration
 
-@Component
-@ConditionalOnProperty(prefix = "fint.provider.cleanup-topics", name = ["enabled"], havingValue = "true")
+// Intentionally disabled: @Component and @ConditionalOnProperty are commented out so this
+// service is never registered as a bean, regardless of `fint.provider.cleanup-topics.enabled`.
+// Topic deletion is destructive and we don't want a stray env var toggling it on by accident.
+// To re-enable: uncomment the two annotations below, redeploy, and set
+// `fint.provider.cleanup-topics.enabled=true`.
+// @Component
+// @ConditionalOnProperty(prefix = "fint.provider.cleanup-topics", name = ["enabled"], havingValue = "true")
 class TopicCleanupService(
     private val providerProperties: ProviderProperties,
     private val cleanupTopicsProperties: CleanupTopicsProperties,
