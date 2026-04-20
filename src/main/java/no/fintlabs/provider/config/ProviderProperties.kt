@@ -11,5 +11,7 @@ data class ComponentConfig(
     val domainName: String = "",
     val packageName: String = "",
     val orgIds: List<String> = emptyList(),
-    val relationUpdate: Boolean = false
+    val relationUpdate: Boolean = false,
+    val requestPartitions: Int? = null,
+    val responsePartitions: Int? = null
 )

@@ -4,14 +4,17 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import no.fintlabs.provider.config.ComponentConfig
 import no.fintlabs.provider.config.ProducerProperties
 import no.fintlabs.provider.config.ProviderProperties
 import no.fintlabs.provider.kafka.topic.ResponseEventTopicEnsurer
 import no.novari.kafka.topic.EventTopicService
+import no.novari.kafka.topic.configuration.EventTopicConfiguration
 import no.novari.kafka.topic.name.EventTopicNameParameters
 import no.novari.kafka.topic.name.TopicNamePrefixParameters
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -71,5 +74,31 @@ class ResponseEventTopicEnsurerTest {
         sut(emptyList()).ensureResponseEventTopics()
 
         verify(exactly = 0) { eventTopicService.createOrModifyTopic(any(), any()) }
+    }
+
+    @Test
+    fun `ensureResponseEventTopics uses component responsePartitions override when set`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no"), responsePartitions = 3)
+        )
+        val configSlot = slot<EventTopicConfiguration>()
+        every { eventTopicService.createOrModifyTopic(any(), capture(configSlot)) } just Runs
+
+        sut(components).ensureResponseEventTopics()
+
+        assertEquals(3, configSlot.captured.partitions)
+    }
+
+    @Test
+    fun `ensureResponseEventTopics falls back to global default when responsePartitions is unset`() {
+        val components = listOf(
+            ComponentConfig(domainName = "utdanning", "elev", listOf("fintlabs-no"))
+        )
+        val configSlot = slot<EventTopicConfiguration>()
+        every { eventTopicService.createOrModifyTopic(any(), capture(configSlot)) } just Runs
+
+        sut(components).ensureResponseEventTopics()
+
+        assertEquals(responseProducerProperties.partitions, configSlot.captured.partitions)
     }
 }
