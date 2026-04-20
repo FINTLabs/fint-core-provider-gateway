@@ -23,6 +23,7 @@ class RequestEventTopicEnsurer(
     @EventListener(ApplicationReadyEvent::class)
     fun ensureRequestEventTopics() {
         providerProperties.components.forEach { component ->
+            val partitions = component.requestPartitions ?: requestProducerProperties.partitions
             component.orgIds.forEach { orgId ->
                 eventTopicService.createOrModifyTopic(
                     EventTopicNameParameters.builder()
@@ -35,7 +36,7 @@ class RequestEventTopicEnsurer(
                         .eventName("${component.domainName}-${component.packageName}-request")
                         .build(),
                     EventTopicConfiguration.stepBuilder()
-                        .partitions(requestProducerProperties.partitions)
+                        .partitions(partitions)
                         .retentionTime(requestProducerProperties.retentionTime)
                         .cleanupFrequency(EventCleanupFrequency.NORMAL)
                         .build()

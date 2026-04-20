@@ -23,6 +23,7 @@ class ResponseEventTopicEnsurer(
     @EventListener(ApplicationReadyEvent::class)
     fun ensureResponseEventTopics() {
         providerProperties.components.forEach { component ->
+            val partitions = component.responsePartitions ?: responseProducerProperties.partitions
             component.orgIds.forEach { orgId ->
                 eventTopicService.createOrModifyTopic(
                     EventTopicNameParameters.builder()
@@ -35,7 +36,7 @@ class ResponseEventTopicEnsurer(
                         .eventName("${component.domainName}-${component.packageName}-response")
                         .build(),
                     EventTopicConfiguration.stepBuilder()
-                        .partitions(responseProducerProperties.partitions)
+                        .partitions(partitions)
                         .retentionTime(responseProducerProperties.retentionTime)
                         .cleanupFrequency(EventCleanupFrequency.NORMAL)
                         .build()
