@@ -54,16 +54,15 @@ class SecurityConfiguration {
         context: AuthorizationContext,
     ): Mono<AuthorizationDecision> =
         authentication
-            .map { auth ->
-                val domainName = context.variables["domainName"] as? String
-                val packageName = context.variables["packageName"] as? String
-                AuthorizationDecision(
-                    auth.isFintAdapter() &&
-                            domainName != null && packageName != null &&
-                            (auth as CorePrincipal).hasComponent(domainName, packageName)
-                )
-            }
+            .map { AuthorizationDecision(it.canAccessComponent(context)) }
             .defaultIfEmpty(AuthorizationDecision(false))
+
+    private fun Authentication.canAccessComponent(context: AuthorizationContext): Boolean {
+        if (this !is CorePrincipal || !isFintAdapter()) return false
+        val domainName = context.variables["domainName"] as? String ?: return false
+        val packageName = context.variables["packageName"] as? String ?: return false
+        return hasComponent(domainName, packageName)
+    }
 
     private fun Authentication.isFintAdapter(): Boolean =
         isAuthenticated && this is CorePrincipal && type == FintType.ADAPTER && FintScope.FINT_ADAPTER in scopes
