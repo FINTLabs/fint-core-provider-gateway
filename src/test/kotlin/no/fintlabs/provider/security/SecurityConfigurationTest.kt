@@ -141,12 +141,12 @@ class SecurityConfigurationTest {
         @GetMapping("/status")
         fun status(): String = "ok"
 
-        @PostMapping("/{domain}/{packageName}/{entity}")
+        @PostMapping("/{domainName}/{packageName}/{entity}")
         fun sync(
-            @PathVariable domain: String,
+            @PathVariable domainName: String,
             @PathVariable packageName: String,
             @PathVariable entity: String,
-        ): String = "$domain/$packageName/$entity"
+        ): String = "$domainName/$packageName/$entity"
     }
 
     companion object {

@@ -43,7 +43,7 @@ class SecurityConfiguration {
 
     private fun requireAdapter(
         authentication: Mono<Authentication>,
-        @Suppress("UNUSED_PARAMETER") context: AuthorizationContext,
+        context: AuthorizationContext,
     ): Mono<AuthorizationDecision> =
         authentication
             .map { AuthorizationDecision(it.isFintAdapter()) }
@@ -55,24 +55,21 @@ class SecurityConfiguration {
     ): Mono<AuthorizationDecision> =
         authentication
             .map { auth ->
-                val domain = context.variables["domain"] as? String
+                val domainName = context.variables["domainName"] as? String
                 val pkg = context.variables["packageName"] as? String
                 AuthorizationDecision(
                     auth.isFintAdapter() &&
-                        domain != null && pkg != null &&
-                        (auth as CorePrincipal).hasComponent(domain, pkg)
+                            domainName != null && pkg != null &&
+                            (auth as CorePrincipal).hasComponent(domainName, pkg)
                 )
             }
             .defaultIfEmpty(AuthorizationDecision(false))
 
     private fun Authentication.isFintAdapter(): Boolean =
-        isAuthenticated &&
-            this is CorePrincipal &&
-            type == FintType.ADAPTER &&
-            FintScope.FINT_ADAPTER in scopes
+        isAuthenticated && this is CorePrincipal && type == FintType.ADAPTER && FintScope.FINT_ADAPTER in scopes
 
     companion object {
-        private const val SYNC_PATH = "/{domain}/{packageName}/{entity}"
+        private const val SYNC_PATH = "/{domainName}/{packageName}/{entity}"
         private val OPEN_PATHS = arrayOf(
             "/api-docs/**",
             "/swagger/**",

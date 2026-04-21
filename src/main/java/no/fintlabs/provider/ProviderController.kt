@@ -51,32 +51,32 @@ class ProviderController(
         return ResponseEntity.ok("💗")
     }
 
-    @PostMapping("{domain}/{packageName}/{entity}")
+    @PostMapping("{domainName}/{packageName}/{entity}")
     suspend fun fullSync(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @RequestBody syncPage: FullSyncPage,
-        @PathVariable domain: String,
+        @PathVariable domainName: String,
         @PathVariable packageName: String,
         @PathVariable entity: String,
-    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domainName, packageName, entity, HttpStatus.CREATED)
 
-    @PatchMapping("{domain}/{packageName}/{entity}")
+    @PatchMapping("{domainName}/{packageName}/{entity}")
     suspend fun deltaSync(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @RequestBody syncPage: DeltaSyncPage,
-        @PathVariable domain: String,
+        @PathVariable domainName: String,
         @PathVariable packageName: String,
         @PathVariable entity: String,
-    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domainName, packageName, entity, HttpStatus.CREATED)
 
-    @DeleteMapping("{domain}/{packageName}/{entity}")
+    @DeleteMapping("{domainName}/{packageName}/{entity}")
     suspend fun deleteSync(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @RequestBody syncPage: DeleteSyncPage,
-        @PathVariable domain: String,
+        @PathVariable domainName: String,
         @PathVariable packageName: String,
         @PathVariable entity: String,
-    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.OK)
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domainName, packageName, entity, HttpStatus.OK)
 
     @PostMapping("register")
     fun register(
@@ -93,7 +93,7 @@ class ProviderController(
     private suspend fun handleSync(
         corePrincipal: CorePrincipal,
         syncPage: SyncPage,
-        domain: String,
+        domainName: String,
         packageName: String,
         entity: String,
         status: HttpStatus,
@@ -105,12 +105,12 @@ class ProviderController(
         // TODO: Disabled until contracts are in database
 //        requestValidator.validateAdapterCapabilityPermission(
 //            syncPage.metadata.adapterId,
-//            domain,
+//            domainName,
 //            packageName,
 //            entity,
 //        )
 
-        syncPageService.doSync(syncPage, domain, packageName, entity)
+        syncPageService.doSync(syncPage, domainName, packageName, entity)
         return ResponseEntity.status(status).build()
     }
 }

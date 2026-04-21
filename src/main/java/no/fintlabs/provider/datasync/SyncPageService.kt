@@ -23,7 +23,7 @@ class SyncPageService(
 
     suspend fun <T : SyncPage> doSync(
         syncPage: T,
-        domain: String,
+        domainName: String,
         packageName: String,
         entity: String,
     ) = syncPage.logSync {
@@ -31,7 +31,7 @@ class SyncPageService(
             syncPage.resources.forEach { syncPageEntry -> syncPageEntry.resource = null }
         }
 
-        mutateMetadata(syncPage.metadata, domain, packageName, entity)
+        mutateMetadata(syncPage.metadata, domainName, packageName, entity)
         val syncType = syncPage.syncType.toString().lowercase()
         val eventName = "adapter-$syncType-sync"
         metaDataKafkaProducer.send(syncPage.metadata, eventName)
@@ -40,12 +40,12 @@ class SyncPageService(
 
     private fun mutateMetadata(
         syncPageMetadata: SyncPageMetadata,
-        domain: String,
+        domainName: String,
         packageName: String,
         resourceName: String,
     ) {
         syncPageMetadata.time = System.currentTimeMillis()
-        syncPageMetadata.uriRef = domain.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
+        syncPageMetadata.uriRef = domainName.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
     }
 
     private suspend fun sendEntities(page: SyncPage) = coroutineScope {
