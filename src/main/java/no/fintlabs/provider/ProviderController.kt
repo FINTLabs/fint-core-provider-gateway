@@ -7,7 +7,7 @@ import no.fintlabs.adapter.models.sync.DeleteSyncPage
 import no.fintlabs.adapter.models.sync.DeltaSyncPage
 import no.fintlabs.adapter.models.sync.FullSyncPage
 import no.fintlabs.adapter.models.sync.SyncPage
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
+import no.novari.resource.server.authentication.CorePrincipal
 import no.fintlabs.provider.datasync.SyncPageService
 import no.fintlabs.provider.heartbeat.HeartbeatService
 import no.fintlabs.provider.register.RegistrationService
@@ -99,7 +99,6 @@ class ProviderController(
         status: HttpStatus,
     ): ResponseEntity<Void> {
         requestValidator.validateOrgId(corePrincipal, syncPage.metadata.orgId)
-        requestValidator.validateRole(corePrincipal, domain, packageName)
         // TODO: Enable validationg of AdapterId once we persist AdapterContracts
         //        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
