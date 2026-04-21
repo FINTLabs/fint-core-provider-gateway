@@ -35,9 +35,6 @@ class SecurityConfigurationTest {
     @Autowired
     private lateinit var context: ApplicationContext
 
-    @MockitoBean
-    private lateinit var jwtDecoder: ReactiveJwtDecoder
-
     private lateinit var client: WebTestClient
 
     @BeforeEach
@@ -102,6 +99,67 @@ class SecurityConfigurationTest {
             .expectStatus().isOk
     }
 
+    @Test
+    fun `event POST is unauthenticated rejected`() {
+        client.post().uri("/event")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("{}")
+            .exchange()
+            .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `event POST denies client scope`() {
+        client.mutateWith(mockAuthentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
+            .post().uri("/event")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("{}")
+            .exchange()
+            .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `event POST passes filter chain for any fint-adapter regardless of roles`() {
+        client.mutateWith(mockAuthentication(adapter()))
+            .post().uri("/event")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("{}")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun `event GET domain passes filter chain for any fint-adapter regardless of roles`() {
+        client.mutateWith(mockAuthentication(adapter()))
+            .get().uri("/event/utdanning")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun `event GET domain-package passes filter chain even when component does not match roles`() {
+        client.mutateWith(mockAuthentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
+            .get().uri("/event/utdanning/vurdering")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun `event GET domain-package-resource passes filter chain for any fint-adapter`() {
+        client.mutateWith(mockAuthentication(adapter()))
+            .get().uri("/event/utdanning/elev/elev")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun `event GET denies client scope`() {
+        client.mutateWith(mockAuthentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
+            .get().uri("/event/utdanning")
+            .exchange()
+            .expectStatus().isForbidden
+    }
+
     private fun adapter(
         scope: String = "fint-adapter",
         roles: List<String> = emptyList(),
@@ -147,6 +205,25 @@ class SecurityConfigurationTest {
             @PathVariable packageName: String,
             @PathVariable entity: String,
         ): String = "$domainName/$packageName/$entity"
+
+        @PostMapping("/event")
+        fun postEvent(): String = "ok"
+
+        @GetMapping("/event/{domainName}")
+        fun getEventsDomain(@PathVariable domainName: String): String = domainName
+
+        @GetMapping("/event/{domainName}/{packageName}")
+        fun getEventsPackage(
+            @PathVariable domainName: String,
+            @PathVariable packageName: String,
+        ): String = "$domainName/$packageName"
+
+        @GetMapping("/event/{domainName}/{packageName}/{resourceName}")
+        fun getEventsResource(
+            @PathVariable domainName: String,
+            @PathVariable packageName: String,
+            @PathVariable resourceName: String,
+        ): String = "$domainName/$packageName/$resourceName"
     }
 
     companion object {
