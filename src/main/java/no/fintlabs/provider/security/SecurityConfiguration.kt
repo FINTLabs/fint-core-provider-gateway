@@ -56,11 +56,11 @@ class SecurityConfiguration {
         authentication
             .map { auth ->
                 val domainName = context.variables["domainName"] as? String
-                val pkg = context.variables["packageName"] as? String
+                val packageName = context.variables["packageName"] as? String
                 AuthorizationDecision(
                     auth.isFintAdapter() &&
-                            domainName != null && pkg != null &&
-                            (auth as CorePrincipal).hasComponent(domainName, pkg)
+                            domainName != null && packageName != null &&
+                            (auth as CorePrincipal).hasComponent(domainName, packageName)
                 )
             }
             .defaultIfEmpty(AuthorizationDecision(false))
