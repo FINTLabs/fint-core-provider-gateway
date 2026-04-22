@@ -1,5 +1,6 @@
 package no.fintlabs.provider.security
 
+import no.fintlabs.provider.TestcontainersConfiguration
 import no.novari.kafka.KafkaConfiguration
 import no.novari.resource.server.authentication.CorePrincipal
 import org.junit.jupiter.api.BeforeEach
@@ -34,6 +35,7 @@ import org.springframework.web.context.WebApplicationContext
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
 )
 @ActiveProfiles(SecurityConfigurationTest.PROFILE)
+@Import(TestcontainersConfiguration::class)
 class SecurityConfigurationTest {
 
     @Autowired

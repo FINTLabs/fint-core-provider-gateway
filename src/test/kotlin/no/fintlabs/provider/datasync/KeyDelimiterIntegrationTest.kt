@@ -2,6 +2,7 @@ package no.fintlabs.provider.datasync
 
 import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPageEntry
+import no.fintlabs.provider.TestcontainersConfiguration
 import no.fintlabs.provider.datasync.EntityProducer.Companion.KEY_DELIMITER
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.test.EmbeddedKafkaBroker
 import org.springframework.kafka.test.context.EmbeddedKafka
@@ -20,6 +22,7 @@ private const val TOPIC = "fintlabs-no.fint-core.entity.utdanning-vurdering"
 
 @SpringBootTest
 @EmbeddedKafka(partitions = 1, topics = [TOPIC])
+@Import(TestcontainersConfiguration::class)
 class KeyDelimiterIntegrationTest {
 
     @Autowired

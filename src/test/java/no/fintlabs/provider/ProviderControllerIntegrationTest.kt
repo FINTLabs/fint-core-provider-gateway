@@ -10,17 +10,15 @@ import no.fintlabs.adapter.models.sync.FullSyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.novari.resource.server.authentication.CorePrincipal
-import no.fintlabs.adapter.models.sync.*
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
 import no.fintlabs.provider.register.ContractJpaRepository
 import no.fintlabs.provider.register.ContractService
 import org.apache.kafka.common.utils.Time
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -42,6 +40,7 @@ import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EmbeddedKafka(partitions = 1)
+@Import(TestcontainersConfiguration::class)
 class ProviderControllerIntegrationTest @Autowired constructor(contractJpaRepository: ContractJpaRepository) {
 
     private val contractService: ContractService = ContractService(contractJpaRepository)
@@ -315,13 +314,13 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             this.orgId = "whatEverOrgId"
             this.time = Time.SYSTEM.milliseconds()
         }
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/heartbeat")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(heartbeat)
-            .exchange()
-            .expectStatus().isForbidden
+
+        mockMvc.perform(
+            post("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(heartbeat))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -333,13 +332,13 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             this.orgId = this@ProviderControllerIntegrationTest.orgId
             this.time = Time.SYSTEM.milliseconds()
         }
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/heartbeat")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(heartbeat)
-            .exchange()
-            .expectStatus().isOk
+
+        mockMvc.perform(
+            post("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(heartbeat))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
     }
 
 
