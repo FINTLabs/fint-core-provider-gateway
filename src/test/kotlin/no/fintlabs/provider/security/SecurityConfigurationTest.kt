@@ -4,6 +4,8 @@ import no.novari.kafka.KafkaConfiguration
 import no.novari.resource.server.authentication.CorePrincipal
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
@@ -47,10 +49,42 @@ class SecurityConfigurationTest {
             .build()
     }
 
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "/ready",
+            "/offset",
+            "/api-docs",
+            "/api-docs/swagger-config",
+            "/swagger",
+            "/swagger/ui",
+            "/swagger-ui",
+            "/swagger-ui/index.html",
+            "/swagger-ui/swagger-ui.css",
+            "/swagger-ui.html",
+            "/v3/api-docs",
+            "/v3/api-docs/swagger-config",
+            "/webjars/swagger-ui/index.html",
+            "/actuator/health",
+        ],
+    )
+    fun `open paths are reachable without authentication even when no handler exists`(path: String) {
+        mockMvc.perform(get(path))
+            .andExpect { result ->
+                val code = result.response.status
+                check(code != 401 && code != 403) { "expected $path to be open, got $code" }
+            }
+    }
+
     @Test
-    fun `open path is reachable without authentication`() {
+    fun `error dispatch after an open path is not re-secured`() {
         mockMvc.perform(get("/ready"))
-            .andExpect(status().isOk)
+            .andExpect { result ->
+                val code = result.response.status
+                check(code != 401 && code != 403) { "expected open path /ready to be unauthenticated, got $code" }
+                val errorForwarded = result.response.forwardedUrl == "/error" || code == 404
+                check(errorForwarded) { "expected internal error forward from unmapped open path, got status=$code forwarded=${result.response.forwardedUrl}" }
+            }
     }
 
     @Test
@@ -193,9 +227,6 @@ class SecurityConfigurationTest {
     @RestController
     @Profile(PROFILE)
     class Endpoints {
-        @GetMapping("/ready")
-        fun ready(): String = "ok"
-
         @GetMapping("/status")
         fun status(): String = "ok"
 

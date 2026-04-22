@@ -1,5 +1,6 @@
 package no.fintlabs.provider.security
 
+import jakarta.servlet.DispatcherType
 import no.novari.resource.server.authentication.CorePrincipal
 import no.novari.resource.server.converter.CorePrincipalConverter
 import no.novari.resource.server.enums.FintScope
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import java.util.function.Supplier
 
 @Configuration
@@ -26,7 +28,8 @@ class SecurityConfiguration {
             .csrf { it.disable() }
             .authorizeHttpRequests { requests ->
                 requests
-                    .requestMatchers(*OPEN_PATHS).permitAll()
+                    .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC, DispatcherType.FORWARD).permitAll()
+                    .requestMatchers(*OPEN_PATHS.map { AntPathRequestMatcher.antMatcher(it) }.toTypedArray()).permitAll()
                     .requestMatchers(HttpMethod.POST, SYNC_PATH).access(requireAdapterWithComponent())
                     .requestMatchers(HttpMethod.PATCH, SYNC_PATH).access(requireAdapterWithComponent())
                     .requestMatchers(HttpMethod.DELETE, SYNC_PATH).access(requireAdapterWithComponent())
@@ -64,8 +67,16 @@ class SecurityConfiguration {
     companion object {
         private const val SYNC_PATH = "/{domainName}/{packageName}/{entity}"
         private val OPEN_PATHS = arrayOf(
+            "/api-docs",
             "/api-docs/**",
+            "/swagger",
             "/swagger/**",
+            "/swagger-ui",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/webjars/**",
             "/actuator/health",
             "/ready",
             "/offset",
