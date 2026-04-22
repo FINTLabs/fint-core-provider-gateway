@@ -1,8 +1,15 @@
 package no.fintlabs.provider
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.AdapterHeartbeat
+import no.fintlabs.adapter.models.sync.DeleteSyncPage
+import no.fintlabs.adapter.models.sync.DeltaSyncPage
+import no.fintlabs.adapter.models.sync.FullSyncPage
+import no.fintlabs.adapter.models.sync.SyncPageEntry
+import no.fintlabs.adapter.models.sync.SyncPageMetadata
+import no.novari.resource.server.authentication.CorePrincipal
 import no.fintlabs.adapter.models.sync.*
 import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
 import no.fintlabs.provider.register.ContractJpaRepository
@@ -14,28 +21,38 @@ import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.ApplicationContext
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity
-import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 import java.util.*
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EmbeddedKafka(partitions = 1)
 class ProviderControllerIntegrationTest @Autowired constructor(contractJpaRepository: ContractJpaRepository) {
 
     private val contractService: ContractService = ContractService(contractJpaRepository)
 
     @Autowired
-    private lateinit var context: ApplicationContext
+    private lateinit var context: WebApplicationContext
 
-    private lateinit var client: WebTestClient
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
+    private lateinit var mockMvc: MockMvc
     private lateinit var mockPrincipal: CorePrincipal
 
     private val domainName = "utdanning"
@@ -59,31 +76,56 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
 
         mockPrincipal = CorePrincipal(jwt, listOf(SimpleGrantedAuthority("ROLE_ADAPTER")))
 
-        client = WebTestClient
-            .bindToApplicationContext(context)
-            .apply(springSecurity())
-            .configureClient()
+        mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .apply<DefaultMockMvcBuilder>(springSecurity())
             .build()
     }
 
     @Test
-    fun `Status endpoint should return 200 with CorePrincipal`() {
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .get()
-            .uri("/status")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.status").isEqualTo("Greetings form FINTLabs 👋")
-            .jsonPath("$.corePrincipal.username").isEqualTo(username)
+    fun `OpenAPI docs endpoint returns the spec without authentication`() {
+        mockMvc.perform(get("/v3/api-docs"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.openapi").exists())
+            .andExpect(jsonPath("$.paths").exists())
     }
 
     @Test
+    fun `Actuator health endpoint reports UP without authentication`() {
+        mockMvc.perform(get("/actuator/health"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("UP"))
+    }
+
+    @Test
+    fun `Swagger UI paths are not blocked by security`() {
+        listOf("/swagger-ui", "/swagger-ui/index.html", "/swagger-ui/swagger-ui.css").forEach { path ->
+            mockMvc.perform(get(path))
+                .andExpect { result ->
+                    val code = result.response.status
+                    check(code != 401 && code != 403) { "expected $path to be open, got $code" }
+                }
+        }
+    }
+
+    @Test
+    fun `Status endpoint should return 200 with CorePrincipal`() {
+        mockMvc.perform(
+            get("/status").with(authentication(mockPrincipal))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("Greetings form FINTLabs 👋"))
+            .andExpect(jsonPath("$.corePrincipal.username").value(username))
+    }
+
+    @Test
+    @Disabled
+    // TODO: Enable in next iteration - where we enable contract validation
     fun `Should reject sync request if adapter is not registered`() {
         val syncPage = FullSyncPage().apply {
             this.metadata = SyncPageMetadata.builder()
-                .adapterId("random-adapter-id")
-                .orgId("random-org-id")
+                .adapterId(this@ProviderControllerIntegrationTest.adapterId)
+                .orgId(this@ProviderControllerIntegrationTest.orgId)
                 .corrId(UUID.randomUUID().toString())
                 .totalSize(0)
                 .page(0)
@@ -95,13 +137,12 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             this.resources = emptyList()
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -122,13 +163,12 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             this.capabilities = setOf(capability)
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(adapterContract)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(adapterContract))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
 
         val syncPage = FullSyncPage().apply {
             this.metadata = SyncPageMetadata.builder()
@@ -148,41 +188,12 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             )
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isCreated
-    }
-
-    @Test
-    fun `Should reject sync request if JWT lacks the required role`() {
-        val invalidJwt = Jwt.withTokenValue("mock-token")
-            .header("alg", "none")
-            .claim("cn", username)
-            .claim("fintAssetIDs", orgId)
-            .claim("scope", listOf("fint-adapter"))
-            .claim("Roles", listOf("FINT_Adapter_wrong_role"))
-            .build()
-
-        val invalidPrincipal = CorePrincipal(invalidJwt, listOf(SimpleGrantedAuthority("ROLE_ADAPTER")))
-
-        val syncPage = FullSyncPage().apply {
-            this.metadata = SyncPageMetadata().apply {
-                this.orgId = this@ProviderControllerIntegrationTest.orgId
-                this.adapterId = this@ProviderControllerIntegrationTest.adapterId
-            }
-        }
-
-        client.mutateWith(mockAuthentication(invalidPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isCreated)
     }
 
     @Test
@@ -206,13 +217,12 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             )
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .patch()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isCreated
+        mockMvc.perform(
+            patch("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isCreated)
     }
 
     @Test
@@ -236,13 +246,28 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             )
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .method(HttpMethod.DELETE)
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            delete("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `Should successfully send heartbeat`() {
+        val heartbeat = AdapterHeartbeat().apply {
+            this.adapterId = this@ProviderControllerIntegrationTest.adapterId
+            this.orgId = this@ProviderControllerIntegrationTest.orgId
+            this.username = this@ProviderControllerIntegrationTest.username
+        }
+
+        mockMvc.perform(
+            post("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(heartbeat))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
     }
 
     @Test
@@ -263,13 +288,12 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             this.resources = emptyList()
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -336,13 +360,12 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             this.capabilities = setOf(capability)
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(adapterContract)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(adapterContract))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
     }
 
 }

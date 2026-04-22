@@ -12,8 +12,8 @@ class ComponentResourceRegistry(
     private val resourceIdentifiers: Set<String> = createResourceIdentifiers(metamodelService)
 
     /**
-     * Checks if a resource defined by the given combination of domain, package, and resource name exists.
-     * * @param domainName The domain component.
+     * Checks if a resource defined by the given combination of domainName, packageName, and resourceName exists.
+     * @param domainName The domain component.
      * @param packageName The package component.
      * @param resourceName The resource name component.
      * @return true if the combined resource identifier exists in the registry, false otherwise.

@@ -1,20 +1,11 @@
 server:
   port: 0 # 0 tells Spring to pick a random available port to avoid port conflicts during CI/CD
+  servlet:
+    context-path: /provider
 
 fint:
   metamodel:
     base-url: http://localhost:8082 # You can mock this using WireMock later if your service actually calls it
-  security:
-    enabled: true
-    component: false
-    org-id: false
-    role-type: adapter
-    open-paths: |
-      /api-docs/**,
-      /swagger/**,
-      /actuator/health,
-      /ready,
-      /offset,
   kafka:
     enable-ssl: false
 
@@ -54,10 +45,6 @@ spring:
       # Ensure Kafka producer doesn't block forever if embedded Kafka acts up
       properties:
         max.block.ms: 5000
-  webflux:
-    base-path: /provider
-  codec:
-    max-in-memory-size: 200MB
 
 logging:
   level:

@@ -4,11 +4,11 @@ import no.fintlabs.adapter.models.event.RequestFintEvent
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
-import no.fintlabs.provider.kafka.TopicNamesConstants.LAST_UPDATED
-import no.fintlabs.provider.kafka.TopicNamesConstants.RESOURCE_NAME
-import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_CORRELATION_ID
-import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TOTAL_SIZE
-import no.fintlabs.provider.kafka.TopicNamesConstants.SYNC_TYPE
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants.LAST_UPDATED
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants.RESOURCE_NAME
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants.SYNC_CORRELATION_ID
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants.SYNC_TOTAL_SIZE
+import no.fintlabs.provider.kafka.topic.TopicNamesConstants.SYNC_TYPE
 import no.novari.kafka.producing.ParameterizedProducerRecord
 import no.novari.kafka.producing.ParameterizedTemplateFactory
 import no.novari.kafka.topic.name.EntityTopicNameParameters

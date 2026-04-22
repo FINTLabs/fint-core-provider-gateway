@@ -3,7 +3,7 @@ package no.fintlabs.provider.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
+import no.novari.resource.server.authentication.CorePrincipal;
 import no.fintlabs.provider.exception.*;
 import no.fintlabs.provider.register.ContractJpaRepository;
 import no.fintlabs.provider.register.ContractService;
@@ -34,7 +34,8 @@ public class AdapterRequestValidator {
     }
 
     public void validateOrgId(CorePrincipal corePrincipal, String requestedOrgId) {
-        if (corePrincipal.doesNotContainAsset(requestedOrgId.replace("-", ".").replace("_", "."))) {
+        String normalized = requestedOrgId.replace("-", ".").replace("_", ".");
+        if (!corePrincipal.getAssets().contains(normalized)) {
             log.warn("Validation failed: JWT for user '{}' does not have access to organization '{}'. Available assets: {}", corePrincipal.getUsername(), requestedOrgId, corePrincipal.getAssets());
             throw new InvalidOrgId("Adapter assets does not contain the organization for the request");
         }
@@ -50,17 +51,9 @@ public class AdapterRequestValidator {
     }
 
     public void validateUsername(CorePrincipal corePrincipal, String contractUsername) {
-        if (corePrincipal.doesNotHaveMatchingUsername(contractUsername)) {
+        if (!corePrincipal.getUsername().equals(contractUsername)) {
             log.warn("Validation failed: Username mismatch. JWT's username '{}' does not match contract username '{}'.", corePrincipal.getUsername(), contractUsername);
             throw new InvalidUsername("Adapter username does not match contract username");
-        }
-    }
-
-    public void validateRole(CorePrincipal corePrincipal, String domain, String packageName) {
-        String role = String.format("FINT_Adapter_%s_%s", domain.toLowerCase(), packageName.toLowerCase());
-        if (corePrincipal.doesNotHaveRole(role)) {
-            log.warn("Validation failed: Principal '{}' is missing required role '{}'. Current roles: {}", corePrincipal.getUsername(), role, corePrincipal.getRoles());
-            throw new MissingRoleException("Adapter does not have the correct role to perform this action");
         }
     }
 }

@@ -19,5 +19,11 @@ class KafkaPropertiesConfiguration(private val kafkaProperties: KafkaProperties)
     fun responseConsumerProperties(): ConsumerProperties = kafkaProperties.event.responseConsumer
 
     @Bean
+    fun requestProducerProperties(): ProducerProperties = kafkaProperties.event.requestProducer
+
+    @Bean
     fun requestConsumerProperties(): ConsumerProperties = kafkaProperties.event.requestConsumer
+
+    @Bean
+    fun relationUpdateKafkaProperties(): RelationUpdateKafkaProperties = kafkaProperties.relationUpdate
 }
