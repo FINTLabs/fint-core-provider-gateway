@@ -22,7 +22,7 @@ class AdapterRegistrationTopicService(
     private val ensuredTopics = ConcurrentHashMap.newKeySet<String>()
 
     /**
-     * Ensures a Kafka entity topic exists for each unique component (domain-package combination)
+     * Ensures a Kafka entity topic exists for each unique component (domainName-packageName combination)
      * in the adapter contract. Topics are created per org, and if a topic has already been
      * ensured for a given org and component in this runtime, it is skipped.
      *

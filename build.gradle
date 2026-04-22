@@ -53,7 +53,7 @@ dependencies {
     implementation 'no.fint:fint-event-model:3.0.2'
     implementation 'no.fintlabs:fint-core-infra-models:2.1.0-rc-5'
     implementation 'no.novari:kafka:6.0.0'
-    implementation 'no.fintlabs:fint-core-resource-server-security:2.1.2'
+    implementation 'no.novari:fint-core-principal:4.1.0'
     // Version 3 of metamodel supports v4 of information model
     implementation 'no.novari:fint-core-metamodel:3.0.0'
 

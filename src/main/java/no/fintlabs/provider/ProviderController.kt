@@ -7,7 +7,7 @@ import no.fintlabs.adapter.models.sync.DeleteSyncPage
 import no.fintlabs.adapter.models.sync.DeltaSyncPage
 import no.fintlabs.adapter.models.sync.FullSyncPage
 import no.fintlabs.adapter.models.sync.SyncPage
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
+import no.novari.resource.server.authentication.CorePrincipal
 import no.fintlabs.provider.datasync.SyncPageService
 import no.fintlabs.provider.heartbeat.HeartbeatService
 import no.fintlabs.provider.register.RegistrationService
@@ -51,32 +51,32 @@ class ProviderController(
         return ResponseEntity.ok("💗")
     }
 
-    @PostMapping("{domain}/{packageName}/{entity}")
+    @PostMapping("{domainName}/{packageName}/{entity}")
     suspend fun fullSync(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @RequestBody syncPage: FullSyncPage,
-        @PathVariable domain: String,
+        @PathVariable domainName: String,
         @PathVariable packageName: String,
         @PathVariable entity: String,
-    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domainName, packageName, entity, HttpStatus.CREATED)
 
-    @PatchMapping("{domain}/{packageName}/{entity}")
+    @PatchMapping("{domainName}/{packageName}/{entity}")
     suspend fun deltaSync(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @RequestBody syncPage: DeltaSyncPage,
-        @PathVariable domain: String,
+        @PathVariable domainName: String,
         @PathVariable packageName: String,
         @PathVariable entity: String,
-    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.CREATED)
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domainName, packageName, entity, HttpStatus.CREATED)
 
-    @DeleteMapping("{domain}/{packageName}/{entity}")
+    @DeleteMapping("{domainName}/{packageName}/{entity}")
     suspend fun deleteSync(
         @AuthenticationPrincipal corePrincipal: CorePrincipal,
         @RequestBody syncPage: DeleteSyncPage,
-        @PathVariable domain: String,
+        @PathVariable domainName: String,
         @PathVariable packageName: String,
         @PathVariable entity: String,
-    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domain, packageName, entity, HttpStatus.OK)
+    ): ResponseEntity<Void> = handleSync(corePrincipal, syncPage, domainName, packageName, entity, HttpStatus.OK)
 
     @PostMapping("register")
     fun register(
@@ -93,25 +93,24 @@ class ProviderController(
     private suspend fun handleSync(
         corePrincipal: CorePrincipal,
         syncPage: SyncPage,
-        domain: String,
+        domainName: String,
         packageName: String,
         entity: String,
         status: HttpStatus,
     ): ResponseEntity<Void> {
         requestValidator.validateOrgId(corePrincipal, syncPage.metadata.orgId)
-        requestValidator.validateRole(corePrincipal, domain, packageName)
         // TODO: Enable validationg of AdapterId once we persist AdapterContracts
         //        requestValidator.validateAdapterId(corePrincipal, syncPage.getMetadata().getAdapterId());
 
         // TODO: Disabled until contracts are in database
 //        requestValidator.validateAdapterCapabilityPermission(
 //            syncPage.metadata.adapterId,
-//            domain,
+//            domainName,
 //            packageName,
 //            entity,
 //        )
 
-        syncPageService.doSync(syncPage, domain, packageName, entity)
+        syncPageService.doSync(syncPage, domainName, packageName, entity)
         return ResponseEntity.status(status).build()
     }
 }

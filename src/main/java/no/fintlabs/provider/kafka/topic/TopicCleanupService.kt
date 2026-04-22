@@ -174,9 +174,9 @@ class TopicCleanupService(
      * never deleted by the cleanup pass, even when they match the `fint-core` filter.
      *
      * The set contains, for every `(component, orgId)` pair in `components.yaml`:
-     *  - the entity topic (`<orgId>.fint-core.entity.<domain>-<package>`)
-     *  - the request event topic (`<orgId>.fint-core.event.<domain>-<package>-request`)
-     *  - the response event topic (`<orgId>.fint-core.event.<domain>-<package>-response`)
+     *  - the entity topic (`<orgId>.fint-core.entity.<domainName>-<packageName>`)
+     *  - the request event topic (`<orgId>.fint-core.event.<domainName>-<packageName>-request`)
+     *  - the response event topic (`<orgId>.fint-core.event.<domainName>-<packageName>-response`)
      *  - the relation-update topic — only when the component has `relation-update: true`
      *
      * It also contains the eight global event topics under the application-default orgId:

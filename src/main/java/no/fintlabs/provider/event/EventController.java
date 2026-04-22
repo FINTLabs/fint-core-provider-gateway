@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.adapter.models.event.RequestFintEvent;
 import no.fintlabs.adapter.models.event.ResponseFintEvent;
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
+import no.novari.resource.server.authentication.CorePrincipal;
 import no.fintlabs.provider.event.request.RequestEventService;
 import no.fintlabs.provider.event.response.ResponseEventService;
 import no.fintlabs.provider.exception.InvalidOrgIdException;

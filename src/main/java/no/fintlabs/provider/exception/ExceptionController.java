@@ -42,12 +42,6 @@ public class ExceptionController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
-    @ExceptionHandler(MissingRoleException.class)
-    public ResponseEntity<String> handleMissingRoleException(Throwable e) {
-        providerErrorPublisher.publish(ProviderError.from(e));
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-    }
-
     @ExceptionHandler(CapabilityNotSupportedException.class)
     public ResponseEntity<String> handleCapabilityNotSupportedException(Throwable e) {
         providerErrorPublisher.publish(ProviderError.from(e));

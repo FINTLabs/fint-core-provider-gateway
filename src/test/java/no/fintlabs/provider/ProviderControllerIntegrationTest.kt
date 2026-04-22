@@ -8,7 +8,7 @@ import no.fintlabs.adapter.models.sync.DeltaSyncPage
 import no.fintlabs.adapter.models.sync.FullSyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal
+import no.novari.resource.server.authentication.CorePrincipal
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -155,34 +155,6 @@ class ProviderControllerIntegrationTest {
             .bodyValue(syncPage)
             .exchange()
             .expectStatus().isCreated
-    }
-
-    @Test
-    fun `Should reject sync request if JWT lacks the required role`() {
-        val invalidJwt = Jwt.withTokenValue("mock-token")
-            .header("alg", "none")
-            .claim("cn", username)
-            .claim("fintAssetIDs", orgId)
-            .claim("scope", listOf("fint-adapter"))
-            .claim("Roles", listOf("FINT_Adapter_wrong_role"))
-            .build()
-
-        val invalidPrincipal = CorePrincipal(invalidJwt, listOf(SimpleGrantedAuthority("ROLE_ADAPTER")))
-
-        val syncPage = FullSyncPage().apply {
-            this.metadata = SyncPageMetadata().apply {
-                this.orgId = this@ProviderControllerIntegrationTest.orgId
-                this.adapterId = this@ProviderControllerIntegrationTest.adapterId
-            }
-        }
-
-        client.mutateWith(mockAuthentication(invalidPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isForbidden
     }
 
     @Test
