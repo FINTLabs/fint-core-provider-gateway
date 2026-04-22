@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext
-import java.util.function.Supplier
 
 @Configuration
 @EnableWebSecurity
@@ -41,25 +40,23 @@ class SecurityConfiguration {
 
     private fun requireAdapter(): AuthorizationManager<RequestAuthorizationContext> =
         AuthorizationManager { authentication, _ ->
-            AuthorizationDecision(authentication.resolve().isFintAdapter())
+            AuthorizationDecision(authentication.get().isFintAdapter())
         }
 
     private fun requireAdapterWithComponent(): AuthorizationManager<RequestAuthorizationContext> =
         AuthorizationManager { authentication, context ->
-            AuthorizationDecision(authentication.resolve().canAccessComponent(context))
+            AuthorizationDecision(authentication.get().canAccessComponent(context))
         }
 
-    private fun Supplier<Authentication?>.resolve(): Authentication? = runCatching { get() }.getOrNull()
+    private fun Authentication.isFintAdapter(): Boolean =
+        this is CorePrincipal && type == FintType.ADAPTER && FintScope.FINT_ADAPTER in scopes
 
-    private fun Authentication?.canAccessComponent(context: RequestAuthorizationContext): Boolean {
+    private fun Authentication.canAccessComponent(context: RequestAuthorizationContext): Boolean {
         if (this !is CorePrincipal || !isFintAdapter()) return false
         val domainName = context.variables["domainName"] ?: return false
         val packageName = context.variables["packageName"] ?: return false
         return hasComponent(domainName, packageName)
     }
-
-    private fun Authentication?.isFintAdapter(): Boolean =
-        this != null && isAuthenticated && this is CorePrincipal && type == FintType.ADAPTER && FintScope.FINT_ADAPTER in scopes
 
     companion object {
         private const val SYNC_PATH = "/{domainName}/{packageName}/{entity}"
