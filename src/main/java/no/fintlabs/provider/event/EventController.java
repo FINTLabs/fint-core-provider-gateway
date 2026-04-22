@@ -11,7 +11,6 @@ import no.fintlabs.provider.exception.InvalidOrgIdException;
 import no.fintlabs.provider.exception.NoRequestFoundException;
 import no.fintlabs.provider.security.AdapterRequestValidator;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class EventController {
 
     @GetMapping(value = {"{domainName}", "{domainName}/{packageName}", "{domainName}/{packageName}/{resourceName}"})
     public ResponseEntity<List<RequestFintEvent>> getEvents(
-            @AuthenticationPrincipal CorePrincipal corePrincipal,
+            CorePrincipal corePrincipal,
             @PathVariable(required = false) String domainName,
             @PathVariable(required = false) String packageName,
             @PathVariable(required = false) String resourceName,
@@ -43,7 +42,7 @@ public class EventController {
 
     @PostMapping
     public ResponseEntity<Void> postEvent(
-            @AuthenticationPrincipal CorePrincipal corePrincipal,
+            CorePrincipal corePrincipal,
             @RequestBody ResponseFintEvent responseFintEvent
     ) throws InvalidOrgIdException, NoRequestFoundException {
         requestValidator.validateOrgId(corePrincipal, responseFintEvent.getOrgId());
