@@ -35,11 +35,6 @@ spring:
   kafka:
     consumer:
       group-id: provider
-  webflux:
-    base-path: /provider
-  http:
-    codecs:
-      max-in-memory-size: 200MB
 
 management:
   endpoints:
@@ -58,8 +53,8 @@ logging:
     root: INFO
     org.apache.kafka: WARN
 server:
-  netty:
-    connection-timeout: 600000
+  servlet:
+    context-path: /provider
   tomcat:
     threads:
       max: 400

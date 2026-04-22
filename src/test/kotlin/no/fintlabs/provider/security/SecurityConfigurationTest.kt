@@ -8,22 +8,24 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.context.WebApplicationContext
 
 @SpringBootTest(
     classes = [SecurityConfigurationTest.TestApp::class],
@@ -33,131 +35,129 @@ import org.springframework.web.bind.annotation.RestController
 class SecurityConfigurationTest {
 
     @Autowired
-    private lateinit var context: ApplicationContext
+    private lateinit var context: WebApplicationContext
 
-    private lateinit var client: WebTestClient
+    private lateinit var mockMvc: MockMvc
 
     @BeforeEach
     fun setup() {
-        client = WebTestClient
-            .bindToApplicationContext(context)
-            .apply(springSecurity())
-            .configureClient()
+        mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .apply<org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder>(springSecurity())
             .build()
     }
 
     @Test
     fun `open path is reachable without authentication`() {
-        client.get().uri("/ready").exchange()
-            .expectStatus().isOk
+        mockMvc.perform(get("/ready"))
+            .andExpect(status().isOk)
     }
 
     @Test
     fun `unauthenticated request to protected path returns 401`() {
-        client.get().uri("/status").exchange()
-            .expectStatus().isUnauthorized
+        mockMvc.perform(get("/status"))
+            .andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `client principal is denied on protected path`() {
-        client.mutateWith(mockAuthentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
-            .get().uri("/status").exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            get("/status")
+                .with(authentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
     fun `adapter without fint-adapter scope is denied`() {
-        client.mutateWith(mockAuthentication(adapter(scope = "fint-client")))
-            .get().uri("/status").exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            get("/status").with(authentication(adapter(scope = "fint-client")))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
     fun `adapter with fint-adapter scope passes baseline check`() {
-        client.mutateWith(mockAuthentication(adapter()))
-            .get().uri("/status").exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            get("/status").with(authentication(adapter()))
+        ).andExpect(status().isOk)
     }
 
     @Test
     fun `sync endpoint denies adapter without matching component`() {
-        client.mutateWith(mockAuthentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
-            .post().uri("/utdanning/vurdering/elev")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("{}")
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/utdanning/vurdering/elev")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .with(authentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
     fun `sync endpoint allows adapter with matching component`() {
-        client.mutateWith(mockAuthentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
-            .post().uri("/utdanning/elev/elev")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("{}")
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/utdanning/elev/elev")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .with(authentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
+        ).andExpect(status().isOk)
     }
 
     @Test
     fun `event POST is unauthenticated rejected`() {
-        client.post().uri("/event")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("{}")
-            .exchange()
-            .expectStatus().isUnauthorized
+        mockMvc.perform(
+            post("/event")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        ).andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `event POST denies client scope`() {
-        client.mutateWith(mockAuthentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
-            .post().uri("/event")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("{}")
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/event")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .with(authentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
     fun `event POST passes filter chain for any fint-adapter regardless of roles`() {
-        client.mutateWith(mockAuthentication(adapter()))
-            .post().uri("/event")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("{}")
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/event")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .with(authentication(adapter()))
+        ).andExpect(status().isOk)
     }
 
     @Test
     fun `event GET domain passes filter chain for any fint-adapter regardless of roles`() {
-        client.mutateWith(mockAuthentication(adapter()))
-            .get().uri("/event/utdanning")
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            get("/event/utdanning").with(authentication(adapter()))
+        ).andExpect(status().isOk)
     }
 
     @Test
     fun `event GET domain-package passes filter chain even when component does not match roles`() {
-        client.mutateWith(mockAuthentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
-            .get().uri("/event/utdanning/vurdering")
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            get("/event/utdanning/vurdering")
+                .with(authentication(adapter(roles = listOf("FINT_Adapter_utdanning_elev"))))
+        ).andExpect(status().isOk)
     }
 
     @Test
     fun `event GET domain-package-resource passes filter chain for any fint-adapter`() {
-        client.mutateWith(mockAuthentication(adapter()))
-            .get().uri("/event/utdanning/elev/elev")
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            get("/event/utdanning/elev/elev").with(authentication(adapter()))
+        ).andExpect(status().isOk)
     }
 
     @Test
     fun `event GET denies client scope`() {
-        client.mutateWith(mockAuthentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
-            .get().uri("/event/utdanning")
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            get("/event/utdanning")
+                .with(authentication(principal(cn = "client@client.fintlabs.no", scope = "fint-client")))
+        ).andExpect(status().isForbidden)
     }
 
     private fun adapter(

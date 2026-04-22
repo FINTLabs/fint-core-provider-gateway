@@ -1,16 +1,12 @@
 package no.fintlabs.provider.datasync
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.future.await
 import lombok.RequiredArgsConstructor
 import no.fintlabs.adapter.models.sync.SyncPage
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.fintlabs.adapter.models.sync.SyncType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.util.concurrent.CompletableFuture
 import kotlin.time.measureTime
 
 @RequiredArgsConstructor
@@ -21,7 +17,7 @@ class SyncPageService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    suspend fun <T : SyncPage> doSync(
+    fun <T : SyncPage> doSync(
         syncPage: T,
         domainName: String,
         packageName: String,
@@ -48,27 +44,30 @@ class SyncPageService(
         syncPageMetadata.uriRef = domainName.lowercase() + '/' + packageName.lowercase() + '/' + resourceName.lowercase()
     }
 
-    private suspend fun sendEntities(page: SyncPage) = coroutineScope {
-        page.resources.map { syncPageEntry ->
-            async {
-                try {
-                    entityProducer.sendSyncEntity(page, syncPageEntry).await()
-                    log.debug(
-                        "Successfully sent entity [orgId={}, uriRef={}]",
-                        page.metadata.orgId,
-                        page.metadata.uriRef
-                    )
-                } catch (e: CancellationException) {
-                    log.error(
-                        "Failed to send entity [orgId={}, uriRef={}]: {}",
-                        page.metadata.orgId,
-                        page.metadata.uriRef,
-                        e.message,
-                        e
-                    )
-                }
-            }
-        }.awaitAll()
+    private fun sendEntities(page: SyncPage) {
+        val futures = page.resources.map { syncPageEntry ->
+            entityProducer.sendSyncEntity(page, syncPageEntry)
+                .whenComplete { _, throwable -> logSendOutcome(page, throwable) }
+        }
+        CompletableFuture.allOf(*futures.toTypedArray()).join()
+    }
+
+    private fun logSendOutcome(page: SyncPage, throwable: Throwable?) {
+        if (throwable == null) {
+            log.debug(
+                "Successfully sent entity [orgId={}, uriRef={}]",
+                page.metadata.orgId,
+                page.metadata.uriRef,
+            )
+        } else {
+            log.error(
+                "Failed to send entity [orgId={}, uriRef={}]: {}",
+                page.metadata.orgId,
+                page.metadata.uriRef,
+                throwable.message,
+                throwable,
+            )
+        }
     }
 
     private inline fun SyncPage.logSync(action: () -> Unit) {

@@ -1,5 +1,7 @@
 server:
-  port : 8085
+  port: 8085
+  servlet:
+    context-path: /provider
 
 fint:
   metamodel:
@@ -28,10 +30,6 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: provider
-  webflux:
-    base-path: /provider
-  codec:
-    max-in-memory-size: 200MB
 
 management:
   endpoints:

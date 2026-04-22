@@ -1,5 +1,6 @@
 package no.fintlabs.provider
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.AdapterHeartbeat
@@ -14,26 +15,36 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.ApplicationContext
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
-import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity
-import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
 import java.util.UUID
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EmbeddedKafka(partitions = 1)
 class ProviderControllerIntegrationTest {
 
     @Autowired
-    private lateinit var context: ApplicationContext
+    private lateinit var context: WebApplicationContext
 
-    private lateinit var client: WebTestClient
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
+    private lateinit var mockMvc: MockMvc
     private lateinit var mockPrincipal: CorePrincipal
 
     private val domainName = "utdanning"
@@ -57,23 +68,20 @@ class ProviderControllerIntegrationTest {
 
         mockPrincipal = CorePrincipal(jwt, listOf(SimpleGrantedAuthority("ROLE_ADAPTER")))
 
-        client = WebTestClient
-            .bindToApplicationContext(context)
-            .apply(springSecurity())
-            .configureClient()
+        mockMvc = MockMvcBuilders
+            .webAppContextSetup(context)
+            .apply<DefaultMockMvcBuilder>(springSecurity())
             .build()
     }
 
     @Test
     fun `Status endpoint should return 200 with CorePrincipal`() {
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .get()
-            .uri("/status")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.status").isEqualTo("Greetings form FINTLabs 👋")
-            .jsonPath("$.corePrincipal.username").isEqualTo(username)
+        mockMvc.perform(
+            get("/status").with(authentication(mockPrincipal))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("Greetings form FINTLabs 👋"))
+            .andExpect(jsonPath("$.corePrincipal.username").value(username))
     }
 
     @Test
@@ -95,13 +103,12 @@ class ProviderControllerIntegrationTest {
             this.resources = emptyList()
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -122,13 +129,12 @@ class ProviderControllerIntegrationTest {
             this.capabilities = setOf(capability)
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(adapterContract)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(adapterContract))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
 
         val syncPage = FullSyncPage().apply {
             this.metadata = SyncPageMetadata.builder()
@@ -148,13 +154,12 @@ class ProviderControllerIntegrationTest {
             )
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isCreated
+        mockMvc.perform(
+            post("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isCreated)
     }
 
     @Test
@@ -178,13 +183,12 @@ class ProviderControllerIntegrationTest {
             )
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .patch()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isCreated
+        mockMvc.perform(
+            patch("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isCreated)
     }
 
     @Test
@@ -208,13 +212,12 @@ class ProviderControllerIntegrationTest {
             )
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .method(HttpMethod.DELETE)
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            delete("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
     }
 
     @Test
@@ -225,13 +228,12 @@ class ProviderControllerIntegrationTest {
             this.username = this@ProviderControllerIntegrationTest.username
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/heartbeat")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(heartbeat)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(heartbeat))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
     }
 
     @Test
@@ -252,13 +254,12 @@ class ProviderControllerIntegrationTest {
             this.resources = emptyList()
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/$domainName/$packageName/$resourceName")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(syncPage)
-            .exchange()
-            .expectStatus().isForbidden
+        mockMvc.perform(
+            post("/$domainName/$packageName/$resourceName")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(syncPage))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isForbidden)
     }
 
     private fun registerAdapter() {
@@ -278,13 +279,12 @@ class ProviderControllerIntegrationTest {
             this.capabilities = setOf(capability)
         }
 
-        client.mutateWith(mockAuthentication(mockPrincipal))
-            .post()
-            .uri("/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(adapterContract)
-            .exchange()
-            .expectStatus().isOk
+        mockMvc.perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(adapterContract))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
     }
 
 }
