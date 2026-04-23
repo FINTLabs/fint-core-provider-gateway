@@ -10,11 +10,15 @@ import no.fintlabs.adapter.models.sync.FullSyncPage
 import no.fintlabs.adapter.models.sync.SyncPageEntry
 import no.fintlabs.adapter.models.sync.SyncPageMetadata
 import no.novari.resource.server.authentication.CorePrincipal
+import no.fintlabs.provider.register.ContractJpaRepository
+import no.fintlabs.provider.register.ContractService
+import org.apache.kafka.common.utils.Time
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -32,11 +36,14 @@ import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EmbeddedKafka(partitions = 1)
-class ProviderControllerIntegrationTest {
+@Import(TestcontainersConfiguration::class)
+class ProviderControllerIntegrationTest @Autowired constructor(contractJpaRepository: ContractJpaRepository) {
+
+    private val contractService: ContractService = ContractService(contractJpaRepository)
 
     @Autowired
     private lateinit var context: WebApplicationContext
@@ -112,7 +119,7 @@ class ProviderControllerIntegrationTest {
 
     @Test
     @Disabled
-    // TODO: This is a bug, get the test to work
+    // TODO: Enable in next iteration - where we enable contract validation
     fun `Should reject sync request if adapter is not registered`() {
         val syncPage = FullSyncPage().apply {
             this.metadata = SyncPageMetadata.builder()
@@ -287,6 +294,53 @@ class ProviderControllerIntegrationTest {
                 .with(authentication(mockPrincipal))
         ).andExpect(status().isForbidden)
     }
+
+    @Test
+    fun `verify contracts get saved to database when registering adapter`() {
+        registerAdapter()
+
+        val adapterIds = contractService.getAdapterIds()
+
+        assert(adapterIds.contains("https://test.com/test.org.no/utdanning/elev"))
+
+    }
+
+    @Test
+    @Disabled("Will be enabled later")
+    fun `should reject heartbeat when adapter is not registered`() {
+        val heartbeat = AdapterHeartbeat().apply {
+            this.adapterId = "random-adapter-id"
+            this.username = "random-username"
+            this.orgId = "whatEverOrgId"
+            this.time = Time.SYSTEM.milliseconds()
+        }
+
+        mockMvc.perform(
+            post("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(heartbeat))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `should accept heartbeat when adapter is registered`() {
+        registerAdapter()
+        val heartbeat = AdapterHeartbeat().apply {
+            this.adapterId = this@ProviderControllerIntegrationTest.adapterId
+            this.username = this@ProviderControllerIntegrationTest.username
+            this.orgId = this@ProviderControllerIntegrationTest.orgId
+            this.time = Time.SYSTEM.milliseconds()
+        }
+
+        mockMvc.perform(
+            post("/heartbeat")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsBytes(heartbeat))
+                .with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
+    }
+
 
     private fun registerAdapter() {
         val capability = AdapterCapability().apply {

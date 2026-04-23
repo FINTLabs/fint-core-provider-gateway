@@ -1,7 +1,7 @@
 FROM gradle:9.4.0-jdk25 AS builder
 USER root
 COPY . .
-RUN ./gradlew --no-daemon build
+RUN ./gradlew --no-daemon assemble
 
 FROM gcr.io/distroless/java25-debian13
 ENV JAVA_TOOL_OPTIONS="-XX:+ExitOnOutOfMemoryError"
