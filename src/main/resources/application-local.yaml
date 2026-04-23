@@ -1,20 +1,11 @@
 server:
-  port : 8085
+  port: 8085
+  servlet:
+    context-path: /provider
 
 fint:
   metamodel:
     base-url: http://localhost:8082
-  security:
-    enabled: true
-    component: false
-    org-id: false
-    role-type: adapter
-    open-paths: |
-      /api-docs/**,
-      /swagger/**,
-      /actuator/health,
-      /ready,
-      /offset
   kafka:
     enable-ssl: false
 
@@ -24,26 +15,33 @@ novari:
     default-replicas: 1
 
 spring:
+  jpa:
+    properties:
+      jdbc:
+        time_zone: UTC
+        lob:
+          non_contextual_creation: true
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      enable_lazy_load_no_trans: true
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    url: jdbc:postgresql://localhost:5436/contract
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      schema: public
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: provider
-  webflux:
-    base-path: /provider
-  codec:
-    max-in-memory-size: 200MB
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger/ui
 
 logging:
   level:

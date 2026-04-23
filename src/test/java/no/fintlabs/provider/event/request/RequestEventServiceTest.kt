@@ -221,14 +221,14 @@ class RequestEventServiceTest {
     private fun createEvent(
         id: String?,
         org: String?,
-        domain: String?,
+        domainName: String?,
         pkg: String?,
         res: String?
     ): RequestFintEvent {
         return RequestFintEvent().apply {
             corrId = id
             orgId = org
-            domainName = domain
+            this.domainName = domainName
             packageName = pkg
             resourceName = res
         }

@@ -1,61 +1,55 @@
 package no.fintlabs.provider.security;
 
-import no.fintlabs.core.resource.server.security.authentication.CorePrincipal;
-import no.fintlabs.provider.exception.MissingRoleException;
-import no.fintlabs.provider.security.AdapterRequestValidator;
+import no.novari.resource.server.authentication.CorePrincipal;
+import no.fintlabs.provider.exception.InvalidOrgId;
 import no.fintlabs.provider.exception.InvalidUsername;
-import org.junit.jupiter.api.BeforeEach;
+import no.fintlabs.provider.register.ContractJpaRepository;
+import no.fintlabs.provider.register.ContractService;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 public class AdapterRequestValidatorTest {
 
-    @Mock
-    private CorePrincipal corePrincipal;
+    private final AdapterRequestValidator validator =
+            new AdapterRequestValidator(mock(ContractService.class), mock(ContractJpaRepository.class));
 
-    @InjectMocks
-    private AdapterRequestValidator adapterRequestValidator;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
+    private CorePrincipal principal(String username, String assetIds) {
+        Jwt jwt = Jwt.withTokenValue("token")
+                .header("alg", "none")
+                .claim("cn", username)
+                .claim("fintAssetIDs", assetIds)
+                .claim("scope", List.of("fint-adapter"))
+                .build();
+        return new CorePrincipal(jwt, List.of());
     }
 
     @Test
-    public void shouldThrowExceptionWhenRoleMismatch() {
-        when(corePrincipal.doesNotHaveRole(anyString())).thenReturn(true);
-        assertThrows(MissingRoleException.class, () -> adapterRequestValidator.validateRole(corePrincipal, "domain", "package"));
+    public void shouldNotThrowWhenOrgIdInAssets() {
+        CorePrincipal p = principal("test@adapter.test.org.no", "test.org.no");
+        assertDoesNotThrow(() -> validator.validateOrgId(p, "test-org-no"));
     }
 
     @Test
-    public void shouldNotThrowExceptionWhenRoleMatch() {
-        when(corePrincipal.doesNotHaveRole(anyString())).thenReturn(false);
-        assertDoesNotThrow(() -> adapterRequestValidator.validateRole(corePrincipal, "domain", "package"));
+    public void shouldThrowWhenOrgIdNotInAssets() {
+        CorePrincipal p = principal("test@adapter.test.org.no", "test.org.no");
+        assertThrows(InvalidOrgId.class, () -> validator.validateOrgId(p, "other-org-no"));
     }
 
     @Test
-    public void shouldNotThrowExceptionWhenOrgIdMatch() {
-        when(corePrincipal.doesNotHaveMatchingOrgId(anyString())).thenReturn(false);
-        assertDoesNotThrow(() -> adapterRequestValidator.validateOrgId(corePrincipal, "orgId"));
+    public void shouldThrowWhenUsernameMismatch() {
+        CorePrincipal p = principal("test@adapter.test.org.no", "test.org.no");
+        assertThrows(InvalidUsername.class, () -> validator.validateUsername(p, "someone_else"));
     }
 
     @Test
-    public void shouldThrowExceptionWhenUsernameMismatch() {
-        when(corePrincipal.doesNotHaveMatchingUsername(anyString())).thenReturn(true);
-        assertThrows(InvalidUsername.class, () -> adapterRequestValidator.validateUsername(corePrincipal, "username"));
-    }
-
-    @Test
-    public void shouldNotThrowExceptionWhenUsernameMatch() {
-        when(corePrincipal.doesNotHaveMatchingUsername(anyString())).thenReturn(false);
-        assertDoesNotThrow(() -> adapterRequestValidator.validateUsername(corePrincipal, "username"));
+    public void shouldNotThrowWhenUsernameMatches() {
+        CorePrincipal p = principal("test@adapter.test.org.no", "test.org.no");
+        assertDoesNotThrow(() -> validator.validateUsername(p, "test@adapter.test.org.no"));
     }
 }

@@ -1,16 +1,6 @@
 fint:
   metamodel:
     base-url: http://fint-core-consumer-metamodel:8080
-  security:
-    component: false
-    org-id: false
-    role-type: adapter
-    open-paths: |
-      /api-docs/**,
-      /swagger/**,
-      /actuator/health,
-      /ready,
-      /offset
   kafka:
     enable-ssl: true
 
@@ -25,6 +15,21 @@ novari:
       batch-size: 64KB
 
 spring:
+  jpa:
+    properties:
+      jdbc:
+        time_zone: UTC
+        lob:
+          non_contextual_creation: true
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      enable_lazy_load_no_trans: true
+    hibernate:
+      ddl-auto: create
+  datasource:
+    url: ${fint.database.url}
+    username: ${fint.database.username}
+    password: ${fint.database.password}
+    driver-class-name: org.postgresql.Driver
   config:
     import:
       - classpath:components.yaml
@@ -35,11 +40,6 @@ spring:
   kafka:
     consumer:
       group-id: provider
-  webflux:
-    base-path: /provider
-  http:
-    codecs:
-      max-in-memory-size: 200MB
 
 management:
   endpoints:
@@ -47,19 +47,13 @@ management:
       exposure:
         include: health,info,prometheus
 
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger/ui
-
 logging:
   level:
     root: INFO
     org.apache.kafka: WARN
 server:
-  netty:
-    connection-timeout: 600000
+  servlet:
+    context-path: /provider
   tomcat:
     threads:
       max: 400
