@@ -5,7 +5,6 @@ import no.fintlabs.adapter.models.AdapterCapability
 import no.fintlabs.adapter.models.AdapterContract
 import no.fintlabs.adapter.models.AdapterHeartbeat
 import no.fintlabs.adapter.models.sync.*
-import no.fintlabs.provider.register.ContractEntity
 import no.fintlabs.provider.register.ContractJpaRepository
 import no.fintlabs.provider.register.ContractService
 import no.novari.resource.server.authentication.CorePrincipal
@@ -359,33 +358,48 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
 
     @Test
     fun `should reject registration when component-resource is non-existing`() {
-        registerAdapter(2, "utdanning", "elev", "non-existing-resource").andExpect(MockMvcResultMatchers.status().isBadRequest)
+        registerAdapter(
+            2,
+            "utdanning",
+            "elev",
+            "non-existing-resource"
+        ).andExpect(MockMvcResultMatchers.status().isBadRequest)
     }
 
     @Test
     fun `should reject registration when capability alredy exsists for the organisatrion`() {
-        contractService.saveContract(AdapterContract(
-            "https://test.com/test.org.no/utdanning/elev",
-            "test.org.no",
-            "testeteste@adapter.fintlabs.no",
-            5,
-            setOf(AdapterCapability(
-                "utdanning",
-                "elev",
-                "elev",
-                1,
-                AdapterCapability.DeltaSyncInterval.IMMEDIATE
-            )),
-            0L
-        ))
-        registerAdapter(3, "utdanning", "elev", "elev").andExpect( MockMvcResultMatchers.status().isBadRequest )
+        contractService.saveContract(
+            AdapterContract(
+                "https://test.com/test.org.no/utdanning/elev",
+                "test.org.no",
+                "testeteste@adapter.fintlabs.no",
+                5,
+                setOf(
+                    AdapterCapability(
+                        "utdanning",
+                        "elev",
+                        "elev",
+                        1,
+                        AdapterCapability.DeltaSyncInterval.IMMEDIATE
+                    )
+                ),
+                0L
+            )
+        )
+        registerAdapter(3, "utdanning", "elev", "elev").andExpect(MockMvcResultMatchers.status().isBadRequest)
     }
 
     @Test
     fun `should reject when contract username does not match JWT username`() {
-        registerAdapter(3, "utdanning", "elev", "elev", "sam@adapter.fintlabs.no", "sam@adapter.fintlabs.no/utdanning/elev").andExpect { MockMvcResultMatchers.status().isForbidden }
+        registerAdapter(
+            3,
+            "utdanning",
+            "elev",
+            "elev",
+            "sam@adapter.fintlabs.no",
+            "sam@adapter.fintlabs.no/utdanning/elev"
+        ).andExpect { MockMvcResultMatchers.status().isForbidden }
     }
-
 
 
     private fun registerAdapter(
