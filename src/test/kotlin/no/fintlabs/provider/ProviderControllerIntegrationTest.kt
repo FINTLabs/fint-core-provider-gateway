@@ -9,6 +9,7 @@ import no.fintlabs.provider.register.ContractJpaRepository
 import no.fintlabs.provider.register.ContractService
 import no.novari.resource.server.authentication.CorePrincipal
 import org.apache.kafka.common.utils.Time
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -35,7 +36,7 @@ import java.util.*
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @EmbeddedKafka(partitions = 1)
 @Import(TestcontainersConfiguration::class)
-class ProviderControllerIntegrationTest @Autowired constructor(contractJpaRepository: ContractJpaRepository) {
+class ProviderControllerIntegrationTest @Autowired constructor(@Autowired private val contractJpaRepository: ContractJpaRepository) {
 
     private val contractService: ContractService = ContractService(contractJpaRepository)
 
@@ -73,6 +74,11 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
             .webAppContextSetup(context)
             .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
             .build()
+    }
+
+    @AfterEach
+    fun cleanUp() {
+        contractJpaRepository.deleteAll()
     }
 
     @Test
