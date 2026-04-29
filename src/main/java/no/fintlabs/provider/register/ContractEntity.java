@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import no.fintlabs.adapter.models.AdapterContract;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,11 +29,17 @@ public class ContractEntity {
         this.adapterId = adapterContract.getAdapterId();
         this.userName = adapterContract.getUsername();
         this.heartbeatIntervalInMinutes = adapterContract.getHeartbeatIntervalInMinutes();
-        this.capabilityEntityset = adapterContract.getCapabilities().stream().map(capability -> {
-            CapabilityEntity entity = new CapabilityEntity(capability);
-            entity.setContractEntity(this);
-            return entity;
-        }).collect(Collectors.toSet());
+        if (adapterContract.getCapabilities() != null) {
+            this.capabilityEntityset = adapterContract.getCapabilities().stream()
+                    .map(capability -> {
+                        CapabilityEntity entity = new CapabilityEntity(capability);
+                        entity.setContractEntity(this);
+                        return entity;
+                    })
+                    .collect(Collectors.toSet());
+        } else {
+            this.capabilityEntityset = Collections.emptySet();
+        }
     }
 
     public ContractEntity() {

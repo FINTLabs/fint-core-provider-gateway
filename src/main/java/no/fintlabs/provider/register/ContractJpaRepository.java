@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,5 +25,13 @@ public interface ContractJpaRepository extends JpaRepository<ContractEntity, Str
         where c.userName = :userName
     """)
     Optional<ContractEntity> findByUserNameWithCapabilities(@Param("userName") String userName);
+
+    @Query("""
+        select distinct c
+        from ContractEntity c
+        left join fetch c.capabilityEntityset
+        where c.orgId = :orgId
+    """)
+    List<ContractEntity> getCapabilitiesOnOrId(String orgId);
 
 }

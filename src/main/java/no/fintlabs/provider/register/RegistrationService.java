@@ -17,8 +17,10 @@ public class RegistrationService {
     private final AdapterRegistrationTopicService adapterRegistrationTopicService;
 
     public void register(AdapterContract adapterContract) {
-        adapterRegistrationValidator.validateCapabilities(adapterContract.getCapabilities());
+        if (adapterContract.getCapabilities() != null && !adapterContract.getCapabilities().isEmpty()) {
+        adapterRegistrationValidator.validateContract(adapterContract);
         adapterRegistrationTopicService.createCapabilityTopics(adapterContract);
+        }
         adapterContractProducer.send(adapterContract);
         contractService.saveContract(adapterContract);
     }
