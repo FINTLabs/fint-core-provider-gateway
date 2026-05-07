@@ -32,6 +32,6 @@ public interface ContractJpaRepository extends JpaRepository<ContractEntity, Str
         left join fetch c.capabilityEntityset
         where c.orgId = :orgId
     """)
-    List<ContractEntity> getCapabilitiesOnOrId(String orgId);
+    List<ContractEntity> findByOrgIdWithCapabilities(@Param("orgId") String orgId);
 
 }

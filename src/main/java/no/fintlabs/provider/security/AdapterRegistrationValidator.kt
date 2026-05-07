@@ -20,43 +20,42 @@ class AdapterRegistrationValidator(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun validateContract(contract: AdapterContract) =
+    fun validateContract(contract: AdapterContract) {
+        val duplicates = duplicateResourceNamesInOrganisation(contract)
         contract.capabilities.forEach { capability ->
-            if (isDuplicateInOrganisation(capability, contract.orgId, contract.username)) {
-                logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is a duplicate in organisation '${contract.orgId}'")
-                throw InvalidAdapterCapabilityException("Duplicate capability resource: ${capability.entityUri} - Organisation already has a capability with the same resource name")
-            }
-            if (invalidComponentResource(capability)) {
-                logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is not a valid resource.")
-                throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - Component does not exist")
-            } else if (invalidFullSyncInterval(capability.fullSyncIntervalInDays)) {
-                logger.warn("Validation failed: Capability '$capability' has an invalid FullSyncIntervalInDays value")
-                throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - FullSyncIntervalInDays value is invalid")
-            }
+            rejectIfDuplicate(capability, contract.orgId, duplicates)
+            rejectIfUnknownResource(capability)
+            rejectIfInvalidFullSyncInterval(capability)
         }
-
-    private fun isDuplicateInOrganisation(
-        capability: AdapterCapability,
-        orgId: String,
-        userName: String
-    ): Boolean {
-        return contractRepository.getCapabilitiesOnOrId(orgId)
-            .any { contract ->
-                contract.userName != userName &&
-                        contract.capabilityEntityset.any {
-                            it.resourceName == capability.resourceName
-                        }
-            }
     }
 
-    private fun invalidComponentResource(capability: AdapterCapability): Boolean =
-        !componentResourceRegistry.containsResource(
-            capability.domainName,
-            capability.packageName,
-            capability.resourceName
-        )
+    private fun duplicateResourceNamesInOrganisation(contract: AdapterContract): Set<String> =
+        contractRepository.findByOrgIdWithCapabilities(contract.orgId)
+            .filter { it.userName != contract.username }
+            .flatMap { it.capabilityEntityset }
+            .mapTo(mutableSetOf()) { it.resourceName }
 
-    private fun invalidFullSyncInterval(fullSyncIntervalInDays: Int): Boolean =
-        fullSyncIntervalInDays !in 1..MAX_FULL_SYNC_INTERVAL_DAYS
+    private fun rejectIfDuplicate(capability: AdapterCapability, orgId: String, duplicates: Set<String>) {
+        if (capability.resourceName !in duplicates) return
+        logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is a duplicate in organisation '$orgId'")
+        throw InvalidAdapterCapabilityException("Duplicate capability resource: ${capability.entityUri} - Organisation already has a capability with the same resource name")
+    }
+
+    private fun rejectIfUnknownResource(capability: AdapterCapability) {
+        if (componentResourceRegistry.containsResource(
+                capability.domainName,
+                capability.packageName,
+                capability.resourceName
+            )
+        ) return
+        logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is not a valid resource.")
+        throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - Component does not exist")
+    }
+
+    private fun rejectIfInvalidFullSyncInterval(capability: AdapterCapability) {
+        if (capability.fullSyncIntervalInDays in 1..MAX_FULL_SYNC_INTERVAL_DAYS) return
+        logger.warn("Validation failed: Capability '$capability' has an invalid FullSyncIntervalInDays value")
+        throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - FullSyncIntervalInDays value is invalid")
+    }
 
 }
