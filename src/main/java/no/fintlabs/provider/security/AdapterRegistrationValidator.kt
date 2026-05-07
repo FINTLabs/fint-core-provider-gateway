@@ -24,7 +24,7 @@ class AdapterRegistrationValidator(
     fun validateContract(contract: AdapterContract) {
         val duplicates = duplicateCapabilityKeysInOrganisation(contract)
         contract.capabilities.forEach { capability ->
-            rejectIfDuplicate(capability, contract.orgId, duplicates)
+            rejectIfDuplicate(capability, contract, duplicates)
             rejectIfUnknownResource(capability)
             rejectIfInvalidFullSyncInterval(capability)
         }
@@ -36,10 +36,10 @@ class AdapterRegistrationValidator(
             .flatMap { it.capabilityEntityset }
             .mapTo(mutableSetOf()) { it.capabilityKey() }
 
-    private fun rejectIfDuplicate(capability: AdapterCapability, orgId: String, duplicates: Set<String>) {
+    private fun rejectIfDuplicate(capability: AdapterCapability, contract: AdapterContract, duplicates: Set<String>) {
         if (capability.capabilityKey() !in duplicates) return
-        logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is a duplicate in organisation '$orgId'")
-        throw InvalidAdapterCapabilityException("Duplicate capability resource: ${capability.entityUri} - Organisation already has a capability with the same resource name")
+        logger.warn("Rejected registration for '${contract.username}': capability '${capability.entityUri}' is already registered to another adapter in organisation '${contract.orgId}'")
+        throw InvalidAdapterCapabilityException("Capability '${capability.entityUri}' is already registered to another adapter in organisation '${contract.orgId}'. Each capability can only be claimed by one adapter per organisation.")
     }
 
     private fun AdapterCapability.capabilityKey(): String = "$domainName/$packageName/$resourceName"
@@ -53,14 +53,14 @@ class AdapterRegistrationValidator(
                 capability.resourceName
             )
         ) return
-        logger.warn("Validation failed: Capability '$capability' from '${capability.entityUri}' is not a valid resource.")
-        throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - Component does not exist")
+        logger.warn("Rejected registration: capability '${capability.entityUri}' is not a known FINT resource")
+        throw InvalidAdapterCapabilityException("Capability '${capability.entityUri}' is not a known FINT resource. Verify the domain, package, and resource names against the metamodel.")
     }
 
     private fun rejectIfInvalidFullSyncInterval(capability: AdapterCapability) {
         if (capability.fullSyncIntervalInDays in 1..MAX_FULL_SYNC_INTERVAL_DAYS) return
-        logger.warn("Validation failed: Capability '$capability' has an invalid FullSyncIntervalInDays value")
-        throw InvalidAdapterCapabilityException("Invalid capability resource: ${capability.entityUri} - FullSyncIntervalInDays value is invalid")
+        logger.warn("Rejected registration: capability '${capability.entityUri}' has fullSyncIntervalInDays=${capability.fullSyncIntervalInDays}, must be 1..$MAX_FULL_SYNC_INTERVAL_DAYS")
+        throw InvalidAdapterCapabilityException("Capability '${capability.entityUri}' has an invalid fullSyncIntervalInDays value (${capability.fullSyncIntervalInDays}). Must be between 1 and $MAX_FULL_SYNC_INTERVAL_DAYS.")
     }
 
 }
