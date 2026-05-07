@@ -118,6 +118,13 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
     }
 
     @Test
+    fun `Trailing slash on status endpoint is accepted`() {
+        mockMvc.perform(
+            get("/status/").with(authentication(mockPrincipal))
+        ).andExpect(status().isOk)
+    }
+
+    @Test
     @Disabled
     // TODO: Enable in next iteration - where we enable contract validation
     fun `Should reject sync request if adapter is not registered`() {
