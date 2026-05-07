@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
-@Suppress("DEPRECATION")
 class TrailingSlashTest {
 
     private val mockMvc = MockMvcBuilders
