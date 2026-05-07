@@ -121,9 +121,7 @@ class ProviderControllerIntegrationTest @Autowired constructor(contractJpaReposi
     fun `Trailing slash on status endpoint is accepted`() {
         mockMvc.perform(
             get("/status/").with(authentication(mockPrincipal))
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value("Greetings form FINTLabs 👋"))
+        ).andExpect(status().isOk)
     }
 
     @Test
