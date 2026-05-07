@@ -373,7 +373,7 @@ class ProviderControllerIntegrationTest @Autowired constructor(@Autowired privat
     }
 
     @Test
-    fun `should reject registration when capability alredy exsists for the organisatrion`() {
+    fun `should reject registration when capability already exists for the organisation`() {
         contractService.saveContract(
             AdapterContract(
                 "https://test.com/test.org.no/utdanning/elev",
@@ -393,6 +393,61 @@ class ProviderControllerIntegrationTest @Autowired constructor(@Autowired privat
             )
         )
         registerAdapter(3, "utdanning", "elev", "elev").andExpect(MockMvcResultMatchers.status().isBadRequest)
+    }
+
+    @Test
+    fun `should accept registration when same user re-registers the same capability`() {
+        registerAdapter().andExpect(MockMvcResultMatchers.status().isOk)
+        registerAdapter().andExpect(MockMvcResultMatchers.status().isOk)
+    }
+
+    @Test
+    fun `should accept registration when another organisation already has the same capability`() {
+        contractService.saveContract(
+            AdapterContract(
+                "https://test.com/other.org.no/utdanning/elev",
+                "other.org.no",
+                "someone@adapter.other.org.no",
+                5,
+                setOf(
+                    AdapterCapability(
+                        "utdanning",
+                        "elev",
+                        "elev",
+                        1,
+                        AdapterCapability.DeltaSyncInterval.IMMEDIATE
+                    )
+                ),
+                0L
+            )
+        )
+        registerAdapter().andExpect(MockMvcResultMatchers.status().isOk)
+    }
+
+    @Test
+    fun `rejected duplicate registration must not persist the new contract`() {
+        contractService.saveContract(
+            AdapterContract(
+                "https://test.com/test.org.no/utdanning/elev",
+                "test.org.no",
+                "testeteste@adapter.fintlabs.no",
+                5,
+                setOf(
+                    AdapterCapability(
+                        "utdanning",
+                        "elev",
+                        "elev",
+                        1,
+                        AdapterCapability.DeltaSyncInterval.IMMEDIATE
+                    )
+                ),
+                0L
+            )
+        )
+
+        registerAdapter().andExpect(MockMvcResultMatchers.status().isBadRequest)
+
+        assert(contractJpaRepository.findByUserNameWithCapabilities(username).isEmpty)
     }
 
     @Test
