@@ -39,7 +39,7 @@ jobs:
         with:
           gradle-version: wrapper
 
-      - name: Gradle build
+      - name: Gradle Build Check
         run: ./gradlew build
 
       - name: Trigger CD
