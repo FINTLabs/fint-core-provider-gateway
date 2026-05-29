@@ -17,7 +17,9 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfiguration {
+class SecurityConfiguration(
+    private val securityProblemDetailHandler: SecurityProblemDetailHandler,
+) {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
@@ -35,6 +37,12 @@ class SecurityConfiguration {
                 oauth2.jwt { jwt ->
                     jwt.jwtAuthenticationConverter(CorePrincipalConverter())
                 }
+                oauth2.authenticationEntryPoint(securityProblemDetailHandler)
+                oauth2.accessDeniedHandler(securityProblemDetailHandler)
+            }
+            .exceptionHandling {
+                it.authenticationEntryPoint(securityProblemDetailHandler)
+                it.accessDeniedHandler(securityProblemDetailHandler)
             }
             .build()
 

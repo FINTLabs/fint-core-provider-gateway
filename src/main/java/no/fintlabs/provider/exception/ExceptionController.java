@@ -1,15 +1,21 @@
 package no.fintlabs.provider.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.provider.kafka.ProviderError;
 import no.fintlabs.provider.kafka.ProviderErrorPublisher;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.net.URI;
 
 @Slf4j
 @ControllerAdvice
@@ -97,6 +103,29 @@ public class ExceptionController {
                 The adapter has probably not called the '/register' endpoint. \
                 Also, you need to check if the entity endpoint is in the capability list.\
                 """);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException exception,
+            HttpServletRequest request
+    ) {
+        providerErrorPublisher.publish(ProviderError.from(exception));
+        Throwable cause = exception.getCause();
+        String detail;
+        if (cause == null) {
+            detail = "Required request body is missing";
+        } else if (cause.getMessage() != null) {
+            detail = cause.getMessage();
+        } else {
+            detail = "Request body could not be parsed";
+        }
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+        problem.setTitle("Bad Request");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
     }
 
 }
