@@ -12,6 +12,7 @@ import no.fintlabs.provider.datasync.SyncPageService
 import no.fintlabs.provider.heartbeat.HeartbeatService
 import no.fintlabs.provider.register.RegistrationService
 import no.fintlabs.provider.security.AdapterRequestValidator
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -26,6 +27,9 @@ class ProviderController(
     private val heartbeatService: HeartbeatService,
     private val syncPageService: SyncPageService,
 ) {
+
+    private val logger = LoggerFactory.getLogger(ProviderController::class.java)
+
     @GetMapping("status")
     fun status(
         corePrincipal: CorePrincipal,
@@ -82,9 +86,10 @@ class ProviderController(
         corePrincipal: CorePrincipal,
         @RequestBody adapterContract: AdapterContract,
     ): ResponseEntity<Void?> {
+        logger.debug("Received contract: {}", adapterContract.adapterId)
         requestValidator.validateOrgId(corePrincipal, adapterContract.orgId)
         requestValidator.validateUsername(corePrincipal, adapterContract.username)
-
+        logger.debug("Contract validated: {}", adapterContract.adapterId)
         registrationService.register(adapterContract)
         return ResponseEntity.ok().build<Void?>()
     }

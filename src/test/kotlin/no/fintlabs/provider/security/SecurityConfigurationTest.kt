@@ -1,6 +1,7 @@
 package no.fintlabs.provider.security
 
 import no.fintlabs.provider.TestcontainersConfiguration
+import no.fintlabs.provider.kafka.ProviderErrorPublisher
 import no.novari.kafka.KafkaConfiguration
 import no.novari.resource.server.authentication.CorePrincipal
 import org.junit.jupiter.api.BeforeEach
@@ -19,6 +20,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -40,6 +42,9 @@ class SecurityConfigurationTest {
 
     @Autowired
     private lateinit var context: WebApplicationContext
+
+    @MockitoBean
+    private lateinit var providerErrorPublisher: ProviderErrorPublisher
 
     private lateinit var mockMvc: MockMvc
 
@@ -205,7 +210,7 @@ class SecurityConfigurationTest {
     @Configuration
     @Profile(PROFILE)
     @EnableAutoConfiguration(exclude = [KafkaAutoConfiguration::class, KafkaConfiguration::class])
-    @Import(SecurityConfiguration::class, Endpoints::class)
+    @Import(SecurityConfiguration::class, SecurityProblemDetailHandler::class, Endpoints::class)
     class TestApp
 
     @RestController
