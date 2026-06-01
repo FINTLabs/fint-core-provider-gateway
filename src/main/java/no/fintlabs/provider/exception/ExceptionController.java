@@ -111,21 +111,25 @@ public class ExceptionController {
             HttpServletRequest request
     ) {
         providerErrorPublisher.publish(ProviderError.from(exception));
-        Throwable cause = exception.getCause();
-        String detail;
-        if (cause == null) {
-            detail = "Required request body is missing";
-        } else if (cause.getMessage() != null) {
-            detail = cause.getMessage();
-        } else {
-            detail = "Request body could not be parsed";
-        }
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
-        problem.setTitle("Bad Request");
-        problem.setInstance(URI.create(request.getRequestURI()));
+        ProblemDetail problem = badRequestProblem(resolveDetail(exception), request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problem);
+    }
+
+    private String resolveDetail(HttpMessageNotReadableException exception) {
+        Throwable cause = exception.getCause();
+        if (cause == null) {
+            return "Required request body is missing";
+        }
+        return cause.getMessage() != null ? cause.getMessage() : "Request body could not be parsed";
+    }
+
+    private ProblemDetail badRequestProblem(String detail, HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+        problem.setTitle("Bad Request");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        return problem;
     }
 
 }
