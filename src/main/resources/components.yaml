@@ -37,7 +37,7 @@ fint:
           - nfk-no
           - ofk-no
           - rogfk-no
-          - side-no
+          - side-novari-no
           - telemarkfylke-no
           - tromsfylke-no
           - trondelagfylke-no
@@ -78,7 +78,7 @@ fint:
           - nfk-no
           - ofk-no
           - rogfk-no
-          - side-no
+          - side-novari-no
           - telemarkfylke-no
           - tromsfylke-no
           - trondelagfylke-no
@@ -119,7 +119,7 @@ fint:
           - nfk-no
           - ofk-no
           - rogfk-no
-          - side-no
+          - side-novari-no
           - telemarkfylke-no
           - tromsfylke-no
           - trondelagfylke-no
@@ -140,7 +140,7 @@ fint:
           - nfk-no
           - ofk-no
           - rogfk-no
-          - side-no
+          - side-novari-no
           - telemarkfylke-no
           - tromsfylke-no
           - trondelagfylke-no
@@ -185,7 +185,7 @@ fint:
           - evry-com
           - rogfk-no
           - sdworx-com
-          - side-no
+          - side-novari-no
           - telemarkfylke-no
           - th-rogfk-no
           - trondelagfylke-no
