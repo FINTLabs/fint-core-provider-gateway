@@ -6,7 +6,7 @@ fint:
       - domain-name: utdanning
         package-name: vurdering
         relation-update: true
-        org-ids: &utdanning-orgs
+        org-ids:
           - afk-no
           - agderfk-no
           - bfk-no
@@ -26,32 +26,132 @@ fint:
       - domain-name: utdanning
         package-name: elev
         relation-update: true
-        org-ids: *utdanning-orgs
+        org-ids:
+          - afk-no
+          - agderfk-no
+          - bfk-no
+          - ffk-no
+          - fintlabs-no
+          - innlandetfylke-no
+          - mrfylke-no
+          - nfk-no
+          - ofk-no
+          - rogfk-no
+          - side-no
+          - telemarkfylke-no
+          - tromsfylke-no
+          - trondelagfylke-no
+          - ude-oslo-kommune-no
+          - vestfoldfylke-no
+          - vlfk-no
       - domain-name: utdanning
         package-name: kodeverk
         relation-update: true
-        org-ids: *utdanning-orgs
+        org-ids:
+          - afk-no
+          - agderfk-no
+          - bfk-no
+          - ffk-no
+          - fintlabs-no
+          - innlandetfylke-no
+          - mrfylke-no
+          - nfk-no
+          - ofk-no
+          - rogfk-no
+          - telemarkfylke-no
+          - tromsfylke-no
+          - trondelagfylke-no
+          - ude-oslo-kommune-no
+          - vestfoldfylke-no
+          - vlfk-no
       - domain-name: utdanning
         package-name: larling
         relation-update: false
-        org-ids: *utdanning-orgs
+        org-ids:
+          - afk-no
+          - agderfk-no
+          - bfk-no
+          - ffk-no
+          - fintlabs-no
+          - innlandetfylke-no
+          - mrfylke-no
+          - nfk-no
+          - ofk-no
+          - rogfk-no
+          - side-no
+          - telemarkfylke-no
+          - tromsfylke-no
+          - trondelagfylke-no
+          - ude-oslo-kommune-no
+          - vestfoldfylke-no
+          - vlfk-no
       - domain-name: utdanning
         package-name: ot
         relation-update: false
-        org-ids: *utdanning-orgs
+        org-ids:
+          - afk-no
+          - agderfk-no
+          - bfk-no
+          - ffk-no
+          - fintlabs-no
+          - innlandetfylke-no
+          - mrfylke-no
+          - nfk-no
+          - ofk-no
+          - rogfk-no
+          - telemarkfylke-no
+          - tromsfylke-no
+          - trondelagfylke-no
+          - ude-oslo-kommune-no
+          - vestfoldfylke-no
+          - vlfk-no
       - domain-name: utdanning
         package-name: timeplan
         relation-update: true
-        org-ids: *utdanning-orgs
+        org-ids:
+          - afk-no
+          - agderfk-no
+          - bfk-no
+          - ffk-no
+          - fintlabs-no
+          - innlandetfylke-no
+          - mrfylke-no
+          - nfk-no
+          - ofk-no
+          - rogfk-no
+          - side-no
+          - telemarkfylke-no
+          - tromsfylke-no
+          - trondelagfylke-no
+          - ude-oslo-kommune-no
+          - vestfoldfylke-no
+          - vlfk-no
       - domain-name: utdanning
         package-name: utdanningsprogram
         relation-update: true
-        org-ids: *utdanning-orgs
+        org-ids:
+          - afk-no
+          - agderfk-no
+          - bfk-no
+          - ffk-no
+          - fintlabs-no
+          - innlandetfylke-no
+          - mrfylke-no
+          - nfk-no
+          - ofk-no
+          - rogfk-no
+          - side-no
+          - telemarkfylke-no
+          - tromsfylke-no
+          - trondelagfylke-no
+          - ude-oslo-kommune-no
+          - vestfoldfylke-no
+          - vlfk-no
 
       # ===== Administrasjon =====
       - domain-name: administrasjon
         package-name: fullmakt
-        org-ids: &administrasjon-orgs
+        org-ids:
           - evry-com
           - rogfk-no
           - sdworx-com
@@ -61,13 +161,35 @@ fint:
           - vestfoldfylke-no
       - domain-name: administrasjon
         package-name: kodeverk
-        org-ids: *administrasjon-orgs
+        org-ids:
+          - evry-com
+          - rogfk-no
+          - sdworx-com
+          - telemarkfylke-no
+          - th-rogfk-no
+          - trondelagfylke-no
+          - vestfoldfylke-no
       - domain-name: administrasjon
         package-name: organisasjon
-        org-ids: *administrasjon-orgs
+        org-ids:
+          - evry-com
+          - rogfk-no
+          - sdworx-com
+          - telemarkfylke-no
+          - th-rogfk-no
+          - trondelagfylke-no
+          - vestfoldfylke-no
       - domain-name: administrasjon
         package-name: personal
-        org-ids: *administrasjon-orgs
+        org-ids:
+          - evry-com
+          - rogfk-no
+          - sdworx-com
+          - side-no
+          - telemarkfylke-no
+          - th-rogfk-no
+          - trondelagfylke-no
+          - vestfoldfylke-no
 
       # ===== Okonomi =====
       - domain-name: okonomi
@@ -87,16 +209,22 @@ fint:
       # ===== Ressurs =====
       - domain-name: ressurs
         package-name: eiendel
-        org-ids: &ressurs-orgs
+        org-ids:
           - afk-no
           - bfk-no
           - ofk-no
       - domain-name: ressurs
         package-name: kodeverk
-        org-ids: *ressurs-orgs
+        org-ids:
+          - afk-no
+          - bfk-no
+          - ofk-no
       - domain-name: ressurs
         package-name: tilgang
-        org-ids: *ressurs-orgs
+        org-ids:
+          - afk-no
+          - bfk-no
+          - ofk-no
 
       # ===== Personvern =====
       - domain-name: personvern
