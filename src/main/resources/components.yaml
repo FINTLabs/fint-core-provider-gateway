@@ -227,6 +227,13 @@ fint:
           - afk-no
           - bfk-no
           - ofk-no
+      - domain-name: ressurs
+        package-name: datautstyr
+        org-ids:
+          - afk-no
+          - bfk-no
+          - fintlabs-no
+          - ofk-no
 
       # ===== Personvern =====
       - domain-name: personvern
